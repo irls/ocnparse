@@ -12,15 +12,16 @@ npm install --save ocnparse
 
 ### Functionality
 ``` Javascript
-* parser.tokenizeString(str) 
- // returns array of tokens, each an object with three properties: prefix, word and suffix. Prefix and suffix contain any punctuation or markup. Word contains the core word (which can also contain <u> markup).
-* parser.rebuildBlock = function(tokens, options, dictionary, blockid)
- // returns the reconstructed text with some options for inserting changes
+parser.tokenizeString(str) 
+// returns array of tokens, each an object with three properties: prefix, word and suffix. Prefix and suffix contain any punctuation or markup. Word contains the core word (which can also contain <u> markup).
+
+parser.rebuildBlock(tokens, options, dictionary, blockid)
+// returns the reconstructed text with some options for inserting changes
 ```
  
  
  
- ### Some Implementation Example:
+### Some Implementation Examples:
 ``` Javascript 
 
 // sample book and audio playlist
@@ -30,8 +31,6 @@ var fs = require('fs');
 var path = require('path');
 
 var parser = require('ocnparse'); 
-
- 
 ```
 
 ### Todo:
