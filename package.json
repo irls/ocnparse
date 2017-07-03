@@ -1,8 +1,8 @@
 {
   "name": "ocnparse",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Simple unicode and Baha'i term compatible parser",
-  "main": "lib/ocnparse.js",
+  "main": "ocnparse.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,5 +11,20 @@
     "parser"
   ],
   "author": "Chad Jones <chadananda@gmail.com>",
-  "license": "ISC"
+  "license": "ISC",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chadananda/ocnparse.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chadananda/ocnparse/issues"
+  },
+  "homepage": "https://github.com/chadananda/ocnparse",
+  "devDependencies": {
+    "chai": "^4.0.2",
+    "mocha": "^3.4.2"
+  }
 }
