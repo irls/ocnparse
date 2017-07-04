@@ -79,28 +79,15 @@ describe('Ocean Parser Behaviour Tests', function() {
     })
   }) // Parse and rebuild Farsi strings
 
-  describe('Test ability to determine if a token is a word', function () {
-
-    it('Test word: "hello" ', function () { 
-      expect(parser.isWord("hello")).to.be.true;
-    }) 
-    it('Test word: "-hello" ', function () { 
-      expect(parser.isWord("-hello")).to.be.false;
-    }) 
-    it('Test word: "\'hello\'" ', function () { 
-      expect(parser.isWord("'hello'")).to.be.true;
-    }) 
-    it('Test word: "!!hello" ', function () { 
-      expect(parser.isWord("!!hello")).to.be.false;
-    }) 
-    it('Test word: "مردم" ', function () { 
-      expect(parser.isWord("مردم")).to.be.true;
-    }) 
-    it('Test word: "\'مردم\'" ', function () { 
-      expect(parser.isWord("'مردم'")).to.be.true;
-    }) 
-
-
+  describe('Test "isWord()" function', function () {
+    it('Test word: "hello" ', () => expect(parser.isWord("hello")).to.be.true ) 
+    it('Test word: "\'Abdu\'l-Baha" ', () => expect(parser.isWord("'Abdu'l-Baha")).to.be.true ) 
+    it('Test word: "‘Abdu’l-Bahá" ', () => expect(parser.isWord("‘Abdu’l-Bahá")).to.be.true )    
+    it('Test word: "\'hello\'" ', () => expect(parser.isWord("'hello'")).to.be.true ) 
+    it('Test word: "!!hello" ', () => expect(parser.isWord("!!hello")).to.be.false ) 
+    it('Test word: "مردم" ', () => expect(parser.isWord("مردم")).to.be.true ) 
+    it('Test word: "\'مردم\'" ', () => expect(parser.isWord("'مردم'")).to.be.true ) 
+    it('Test word: "Ma<u>sh</u>riq’l-A<u>dh</u>kár" ', () => expect(parser.isWord("Ma<u>sh</u>riqu’l-A<u>dh</u>kár")).to.be.true ) 
   }) // Test ability to determine if a token is a word
 
 });

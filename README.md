@@ -13,7 +13,9 @@ npm install --save ocnparse
 const parser = require('ocnparse')  
 
 parser.tokenize(str)
-// returns array of tokens, each an object with three properties: prefix, word and suffix. Prefix and suffix contain any punctuation or markup. Word contains the core word (which can also contain <u> markup).
+// returns array of tokens, each an object with three properties: prefix, word and suffix. 
+// .prefix and .suffix contain any punctuation or markup. 
+// .word contains the core word (which can also contain <u> markup).
 
 parser.rebuild(tokens, options, dictionary, blockid)
 // returns the reconstructed text with some options for inserting changes

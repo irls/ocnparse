@@ -390,7 +390,9 @@ parser.tokenize = function(str, type='html') {
 
 // regex test for word content
 parser.isWord = function(word) { 
-  word = word.replace(/[\’\‘\'\`]/g, '').trim()
+  word = word.replace(/[\’\‘\'\`\'\-]/g, '')
+  word = word.replace(/<[\/]?u>/ig, '')
+  word = word.trim()
   return (word.length>0) && XRegExp('^\\pL+$').test(word)
 }
 
