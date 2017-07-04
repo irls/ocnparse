@@ -17,7 +17,7 @@ parser.tokenize(str)
 // .prefix and .suffix contain any punctuation or markup. 
 // .word contains the core word (which can also contain <u> markup).
 
-parser.rebuild(tokens, options, dictionary, blockid)
+parser.rebuild(tokens, [options], [dictionary], [blockid])
 // returns the reconstructed text with some options for inserting changes
 ```
 
