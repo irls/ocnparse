@@ -30,7 +30,7 @@ const parser = require('ocnparse')
 // For example, say we want to wrap each word in a <span>...</span>
 let tokens = parser.tokenize("Four score!!!") 
 
-tokens.forEach( (token) => token.word=`<span>${token.word}</span>` )
+tokens.map( (token) => token.word=`<span>${token.word}</span>` )
 
 console.log( parser.rebuild(tokens) )
 // "<span>Four</span> <span>score</span>!!!"
