@@ -6,12 +6,16 @@
 // where is:
 //  self.addTermSuggestions
 
+var XRegExp = require('xregexp')
+
+
+
 var parser = {};
 
 parser.wrapSpanWords = function(htmlblock, dictionary) {
   var self = this;
   // takes a block of text with some inline HTML elements and wraps every word in a wrd span
-  return self.rebuildBlock(htmlblock, 'spanwords', dictionary);
+  return self.rebuild(htmlblock, 'spanwords', dictionary);
 };
 
 parser.isPossibleTerm = function(token) {
@@ -276,7 +280,7 @@ parser.prepareDictionary = function(wordList) {
   }
 };
 
-parser.tokenizeString = function(str, type) {
+parser.tokenize = function(str, type='html') {
   if (!str) return [];
   if (str instanceof Array) return str; // already tokenized apparently
 
@@ -284,32 +288,44 @@ parser.tokenizeString = function(str, type) {
       tt,
       regex;
 
-  if (!type) type='html'; // we're not yet using this
-
   // split text up into tokens in several steps
   var tokens = str,
-      delimiters = [
-    '<span.*?>', '</span>', '<a.*?>', '</a>', '&.*?;',
-    // all html tags except <u>
-    '</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>',
-    // m-dashes
-    '[\\—]|[-]{2,3}',
-    // white space and remaining punctuation
-    "[\\s\\,\\.\\!\\—\\?\\;\\:\\[\\]\\+\\=\\(\\)\\*\\&\\^\\%\\$\\#\\@\\~\\|]+?"
-  ];
+    delimiters = [
+      '<span.*?>', '</span>', '<a.*?>', '</a>', '&.*?;', '<w.*?>', '</w>', '<q.*?>', '</q>',
+      // all html tags except <u>
+      '</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>',
+      // m-dashes
+      '[\\—]|[-]{2,3}',
+      // white space and remaining punctuation
+      "[\\s\\,\\.\\!\\—\\?\\;\\:\\[\\]\\+\\=\\(\\)\\*\\&\\^\\%\\$\\#\\@\\~\\|]+?"
+    ];
   delimiters.forEach(function(delimiter) {
     tokens = self.splitTokens(tokens, delimiter);
   });
 
+  //console.log(tokens)
+
   // loop through tokens and do some manual edge cleanup of words
   tokens.forEach(function(token, index) {
     // Split off any punctuation on the word and move it to the prefix and suffix - tag friendly
-    regex = /^([^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\<\>]*)(.*?)([^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\<\>]*)$/mg;
-    if (tt = regex.exec(token.word)) {
+    // regex = /^([^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\<\>]*)(.*?)([^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\<\>]*)$/mg; 
+    regex = /^(\\PL+)(.*?)(\\PL+)$/mgu 
+
+    // var unicodeWord = XRegExp('^\\pL+$'); 
+    // console.log(unicodeWord.test('العربية')) // -> true 
+
+    if (tt = XRegExp.exec(token.word, regex)) {
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
       token.suffix = tt[3] + token.suffix;
     }
+
+    // if (tt = regex.exec(token.word)) {
+    //   token.prefix = token.prefix + tt[1];
+    //   token.word = tt[2];
+    //   token.suffix = tt[3] + token.suffix;
+    // } 
+
     // Remove single quotes only if they are on both sides
     regex = /^([\’\‘\'\`])(.*)([\’\‘\'\`])$/mg;
     if ((tt = regex.exec(token.word)) && (tt[1].length>0 || tt[3].length>0)) {
@@ -324,42 +340,30 @@ parser.tokenizeString = function(str, type) {
       token.word = '';
       token.suffix = token.suffix.slice(1);
     }
-
-    // we need to move these into an array or language-specific
-
+ 
     // Remove 's and any other similar suffix
     if (tt = /^(.*)([\’\‘\'\`]s)$/img.exec(token.word)) {
       token.word = tt[1]; token.suffix = tt[2] + token.suffix;
     }
-
-
-    // remove Romanian suffixes -- , 'ul'
-    // TODO: refactor into an approach with i18n extensions
-    /*
-    ['-ul','-ului','-ii','-uri','-ilor','-la','-ua','-ismului','-ismul','-smului','-i','ilor','lor','ului','atul']
-    .forEach(function(suffix) {
-      suffix = suffix.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'); // a regexp escape
-      var re = new RegExp('^(.*)('+suffix+')$', 'img');
-      if (tt = re.exec(token.word)) {
-        token.word = tt[1]; token.suffix = tt[2] + token.suffix;
-      }
-    });
-    // remove Romanian lower-case prefixes such as "din" or "la", "lui"
-    var regex = /^([a-z]+)([\_\’\‘\'\`]*?[A-Z]+.*?)$/mg;
-    if ((tt = regex.exec(token.word))  &&  (['din','la','lui','un'].indexOf(tt[1])>-1) ) {
-      token.prefix = token.prefix + tt[1];
-      token.word = tt[2];
-    }
-    */
 
     // for each word, add some additional info
     token.info = tokenInfo(token);
 
     // replace list item with updated object
     tokens[index] = token;
-  });
+  })
+
+  // if last token has no word content, move it all to previous token
+  var lastt = tokens[tokens.length-1]
+  if (tokens.length>1 && !self.isWord(lastt.word)) {
+    let tkn = lastt.prefix + lastt.word + lastt.suffix
+    tokens[tokens.length-2].suffix += tkn
+    tokens.splice(tokens.length-1, 1)
+  }
 
   return tokens;
+
+
 
   // =====================================
   function tokenInfo(token) {
@@ -377,12 +381,20 @@ parser.tokenizeString = function(str, type) {
     info.ansi = self.glyph2ANSI(info.glyph);
     info.soundex = self.soundex(info.ansi);
 
-
-
     //if (info.isPossibleTerm) info.class = ['term'];
     return info;
   }
 };
+
+
+
+// regex test for word content
+parser.isWord = function(word) { 
+  word = word.replace(/[\’\‘\'\`]/g, '').trim()
+  return (word.length>0) && XRegExp('^\\pL+$').test(word)
+}
+
+
 
 parser.term2phoneme = function(term) {
   // translates an html term into a phoneme
@@ -497,7 +509,7 @@ parser.term2phoneme = function(term) {
 
 // given an array of token objects, rebuild the original text block
 // dictionary is optional just in case you want to pass in a raw string in place of tokens
-parser.rebuildBlock = function(tokens, options, dictionary, blockid) {
+parser.rebuild = function(tokens, options, dictionary, blockid) {
   if (!tokens) return '';
   var self = this;
   // options: [clean], showall, suggest, original, spanwords
@@ -507,7 +519,7 @@ parser.rebuildBlock = function(tokens, options, dictionary, blockid) {
 
   // allow passing in raw text strings for simplified use, including dictionary
   if (typeof tokens == 'string') {
-    tokens = self.tokenizeString(tokens);
+    tokens = self.tokenize(tokens);
     if (dictionary) self.addTermSuggestions(tokens, dictionary);
   }
 
@@ -538,10 +550,10 @@ parser.rebuildBlock = function(tokens, options, dictionary, blockid) {
           else if ((options != 'clean')) newword = "<mark class='term correct'>"+ token.word + "</mark>";
         }
       } else if (token.info.isPossibleTerm) {
-        if (options ==='spanwords') newword = "<span class='w term unknown' data-phoneme='"+
-           token.info.phoneme+"'>"+token.word+"</span>";
+        if (options ==='spanwords') newword = "<w class='term' data-phoneme='"+
+           token.info.phoneme+"'>"+token.word+"</w>";
          else if (options != 'clean') newword = "<mark class='term unknown'>"+ token.word + "</mark>";
-      } else if (options ==='spanwords') newword = "<span class='wrd'>"+token.word+"</span>";
+      } else if (options ==='spanwords') newword = "<w>"+token.word+"</w>";
 
     }
     words.push(token.prefix + newword + token.suffix);
