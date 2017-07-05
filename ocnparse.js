@@ -7,89 +7,15 @@
 //  self.addTermSuggestions
 
 var XRegExp = require('xregexp')
+var bterm = require('../bahai-term-phonemes/bahai-term-phonemes')
 
 
 
 var parser = {};
 
-parser.wrapSpanWords = function(htmlblock, dictionary) {
-  var self = this;
-  // takes a block of text with some inline HTML elements and wraps every word in a wrd span
-  return self.rebuild(htmlblock, 'spanwords', dictionary);
-};
 
-parser.isPossibleTerm = function(token) {
-  var self = this;
 
-  // remove quotes from either side
-  token = token.trim().replace(/^[\’\‘\'\`\-]/mg, '').replace(/[\’\‘\'\`\-]$/mg, '');
 
-  // stripped down version must be at least two characters
-  if (self.term_strip_alpha(token).length<2) return false;
-
-  // word must contain some non-normal characters beside just one dash
-  if (token.replace(/[a-zA-Z]/g, '') === '-') return false;
-
-  // first, see if it has our special characters
-  if (token.search(/[áÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\-]/g) === -1) return false;
-  // next, remove illegal characters and see if anything changed
-  //  first, remove any tags
-  var src = token.replace(/(<([^>]+)>)/ig, '')
-  // next, remove all not allowed characters
-  var modified = src.replace(/[^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\-]/g, '').replace(/[eo]/g, '');
-  // if no change after deleting not allowed characters, this might be a term
-  return (src === modified);
-};
-
-parser.term_strip_alpha = function(word) {
-  if (!word) return '';
-  return word
-    // replace accented vowels
-    .replace(/\á/g, 'a')
-    .replace(/\í/g, 'i')
-    .replace(/\ú/g, 'u')
-    .replace(/\Á/g, 'A')
-    .replace(/\Í/g, 'I')
-    .replace(/\Ú/g, 'U')
-
-    // replace dot-unders with regular letters
-    .replace(/\Ḥ/g, 'H')
-    .replace(/\ḥ/g, 'h')
-    .replace(/\Ḍ/g, 'D')
-    .replace(/\ḍ/g, 'd')
-    .replace(/\Ṭ/g, 'T')
-    .replace(/\ṭ/g, 't')
-    .replace(/\Ẓ/g, 'Z')
-    .replace(/\ẓ/g, 'z')
-    .replace(/\Ṣ/g, 'S')
-    .replace(/\ṣ/g, 's')
-
-    // remove all non alphas
-    //.replace(/[^a-zA-Z\-]/g, '') // this fails with ansi characters, we'll have to re-think it
-
-    // remove all HTML tags
-    .replace(/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g, '')
-
-    // delete quotes and line unders
-    .replace(/[\’\‘\'\`\_\ʼ]/g, '')
-
-    // delete dashes
-    .replace(/[\-]/g, '')
-
-    .trim(); // just in case
-};
-
-parser.HTML2glyph = function(term) {
-  // replace underscore
-  term = term.replace(/\<u\>([sdztgkc][h])\<\/u\>/ig, "_$1");
-  // replace double underline
-  term = term.replace(/\<u\>([sdztgkc][h])([sdztgkc][h])\<\/u\>/ig, "_$1_$2");
-  // remove other tags
-  term = term.replace(/(<([^>]+)>)/ig, '');
-  // remove all non-legal character
-  term = term.replace(/[^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\_\-]/g, '');
-  return term;
-};
 
 parser.splitTokens = function(tokens, delimeter_regex_str) {
   var self = this,
@@ -178,7 +104,7 @@ parser.prepareDictionary = function(wordList) {
   terms.forEach(function(term) {
     addToDictionary(term.base, term, dictionary);
     if (term.known_mispellings.length>0) term.known_mispellings.forEach(function(known_misspelling) {
-      addToDictionary(self.term_strip_alpha(known_misspelling), term, dictionary);
+      addToDictionary(term_strip_alpha(known_misspelling), term, dictionary);
     });
   });
   return dictionary;
@@ -195,10 +121,10 @@ parser.prepareDictionary = function(wordList) {
     // [ref], original, definition, [alternates], [known_mispellings] and verified
     var obj = {
       'glyph'     : term.word,
-      'html'      : self.glyph2HTML(term.word),
+      'html'      : glyph2HTML(term.word),
       'stripped'  : base,
       'lookup'    : lookup,
-      'ansi'      : self.glyph2ANSI(term.word),
+      'ansi'      : glyph2ANSI(term.word),
       'ref'       : term.ref,
       'original'  : term.original,
       'definition': term.definition,
@@ -229,9 +155,9 @@ parser.prepareDictionary = function(wordList) {
         word_data = word.value;
         word = word.key;
         word_data.word = word;
-        word_data.base = self.term_strip_alpha(word);
+        word_data.base = term_strip_alpha(word);
       } else {
-        word_data = {word: word, ref:[], original: '', definition:'', alternates:[], known_mispellings:[], verified: false, base: self.term_strip_alpha(word)};
+        word_data = {word: word, ref:[], original: '', definition:'', alternates:[], known_mispellings:[], verified: false, base: term_strip_alpha(word)};
       }
       var base = word_data.base;
       if (!(base in list)) list[base] = {};
@@ -280,6 +206,13 @@ parser.prepareDictionary = function(wordList) {
   }
 };
 
+// assuming we have data that was previously tokenized. split it into parts
+parser.tokenizeWord = function(word) { 
+  var tokens = this.tokenize(word)
+  return tokens[0]
+} 
+
+
 parser.tokenize = function(str, type='html') {
   if (!str) return [];
   if (str instanceof Array) return str; // already tokenized apparently
@@ -298,10 +231,8 @@ parser.tokenize = function(str, type='html') {
       '[\\—]|[-]{2,3}',
       // white space and remaining punctuation
       "[\\s\\,\\.\\!\\—\\?\\;\\:\\[\\]\\+\\=\\(\\)\\*\\&\\^\\%\\$\\#\\@\\~\\|]+?"
-    ];
-  delimiters.forEach(function(delimiter) {
-    tokens = self.splitTokens(tokens, delimiter);
-  });
+    ]; 
+    delimiters.map( (delimiter) => tokens = self.splitTokens(tokens, delimiter) )
 
   //console.log(tokens)
 
@@ -309,17 +240,15 @@ parser.tokenize = function(str, type='html') {
   tokens.forEach(function(token, index) {
     // Split off any punctuation on the word and move it to the prefix and suffix - tag friendly
     // regex = /^([^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\<\>]*)(.*?)([^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\<\>]*)$/mg; 
-    regex = /^(\\PL+)(.*?)(\\PL+)$/mgu 
+    //regex = /^(\\PL+)(.*?)(\\PL+)$/mgu  // is this really sufficient???
+    regex = XRegExp(`^(\\PL*)([\\pL\-\>\<\’\‘\'\`]+)(\\PL*)$`, 'mgu')  
 
-    // var unicodeWord = XRegExp('^\\pL+$'); 
-    // console.log(unicodeWord.test('العربية')) // -> true 
-
-    if (tt = XRegExp.exec(token.word, regex)) {
+    if (tt = regex.exec(token.word) && Array.isArray(tt) && (tt[1].length || tt[3].length)) {
+      console.log('Splitting off additional punctuation', tt)
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
       token.suffix = tt[3] + token.suffix;
     }
-
     // if (tt = regex.exec(token.word)) {
     //   token.prefix = token.prefix + tt[1];
     //   token.word = tt[2];
@@ -342,9 +271,9 @@ parser.tokenize = function(str, type='html') {
     }
  
     // Remove 's and any other similar suffix
-    if (tt = /^(.*)([\’\‘\'\`]s)$/img.exec(token.word)) {
-      token.word = tt[1]; token.suffix = tt[2] + token.suffix;
-    }
+    // if (tt = /^(.*)([\’\‘\'\`]s)$/img.exec(token.word)) {
+    //   token.word = tt[1]; token.suffix = tt[2] + token.suffix;
+    // }
 
     // for each word, add some additional info
     token.info = tokenInfo(token);
@@ -369,17 +298,21 @@ parser.tokenize = function(str, type='html') {
   function tokenInfo(token) {
     var info = {class: []};
     // now generate base version
-    info.stripped = self.term_strip_alpha(token.word);
+    info.stripped = term_strip_alpha(token.word);
     // now determine if word is allcaps
     info.isAllCaps = (info.stripped === info.stripped.toUpperCase());
 
     //info.lookup = info.stripped.substr(0,3).toLowerCase();
-    info.isPossibleTerm = self.isPossibleTerm(token.word);
-     if (info.isPossibleTerm) info.phoneme = self.term2phoneme(token.word);
-    info.html = self.glyph2HTML(token.word);
-    info.glyph = self.HTML2glyph(token.word);
-    info.ansi = self.glyph2ANSI(info.glyph);
-    info.soundex = self.soundex(info.ansi);
+    info.isPossibleTerm = bterm.isPossibleTerm(token.word);
+    if (info.isPossibleTerm) {
+      info.phoneme = bterm.phonemes(token.word)
+      if (!token.data) token.data={}
+      token.data.sug = info.phoneme
+    } 
+    info.html = glyph2HTML(token.word);
+    info.glyph = HTML2glyph(token.word);
+    info.ansi = glyph2ANSI(info.glyph);
+    info.soundex = soundex(info.stripped);
 
     //if (info.isPossibleTerm) info.class = ['term'];
     return info;
@@ -387,127 +320,28 @@ parser.tokenize = function(str, type='html') {
 };
 
 
-
 // regex test for word content
-parser.isWord = function(word) { 
-  word = word.replace(/[\’\‘\'\`\'\-]/g, '')
-  word = word.replace(/<[\/]?u>/ig, '')
-  word = word.trim()
-  return (word.length>0) && XRegExp('^\\pL+$').test(word)
+// rule is that a word must contain content after single quotes and dashes are all removed
+parser.isWord = function(word) {  
+  var tt = this.tokenizeWord(word) 
+  return !!(tt.prefix.trim().length==0 && tt.suffix.trim().length==0 && tt.word.length>0) 
 }
 
 
 
-parser.term2phoneme = function(term) {
-  // translates an html term into a phoneme
-  var original = term;
-  //var prefix = term.replace(/^([^a-zḥṭẓḍ_áíú]*).*/i, '$1');
-  //var suffix = term.replace(/.*?([^a-zḥṭẓḍ_áíú]*)$/i, '$1');
-  //var term = term.replace(/^[^a-zḥṭẓḍ_áíú]/ig, '').replace(/[^a-zḥṭẓḍ_áíú]$/ig, '');
-
-   // Bahá’u’lláh ->  ba hah ow lah
-  term = term.toLowerCase().trim();
-  // conver html to glyph
-  term = term.replace(/<u>/g, '_').replace(/<\/u>/g,'');
-  // remove any remaining tags and whitespace
-  term = term.replace(/<(.|\n)*?>/g, '').replace(/\s+/g, ' ').trim();
-  // replace any letters that sound like another
-  term = term.replace(/ḍ/g, 'z').replace(/_dh/g, 'z').replace(/_th/g, 's').replace(/u/g, 'o').replace(/aw/g, 'o');
-  term = term.replace(/_gh/g, 'g');
-  // replace remaining dot-unders
-  //term = term.replace(/ḥ/g, 'h').replace(/ṭ/g, 't').replace(/ẓ/g, 'z').replace(/ṣ/g, 's');
-  // connectors
-  term = term.replace(/-i-/g, 'i-')
-   .replace(/’(d-D|_kh-_kh|_sh-_sh|_ch-_ch|_zh-_zh|b-b|p-p|j-j|t-t|d-d|r-r|z-z|s-s|f-f|q-q|k-k|l-l|m-m|n-n|h-h)/, '$1') ;
-  // remove beginning or ending ayn and hamza
-  //term = term.replace(/^[’‘]/, '').replace(/[’‘]$/, '');
-  // remove duplicate consonants which is not currenlty working
-  // term = term.replace(/ll/, 'l').replace(/mm/, 'm');
-  // weird non-transliterated endings
-  term = term.replace(/cist$/, 'sist').replace(/ic$/, 'ik').replace(/ian$/, 'ían');
-
-  // arabic feminine ending in farsi, somtimes with english plural
-  term = term.replace(/ih\b/, 'î').replace(/ihs\b/, 'îs').replace(/an\b/, 'in');
-
-  // for some reason some terminal consonants need doubled
-  term = term.replace(/n\b/, 'nn');
-
-  // cannot handle some doubled consonants
-  term = term.replace(/bb/, 'b');
-
-  // apostrophe l can drop the pause
-  term = term.replace(/’[l]/, 'l');
 
 
-  var vowels = {
-    'ay' : 'eI',
-    'iy' : 'eI',
-    'î' : 'eI', // for ih endings
-    'a'  : '{1',
-    'á'  : 'A:',
-    'i'  : 'e',
-    'í'  : 'i:',
-    'o'  : '@U',
-    'ú'  : 'u:'
-  };
-  var consonants = {
-    '_kh' : 'x',
-    '_zh' : 'Z',
-    '_sh' : 'S1',
-    '_ch' : 'tS',
-    'b'   : 'b',
-    'p'   : 'p',
-    'j'   : 'dZ',
-    't'   : 't_h',
-    'ṭ'   : 't_h',
-    'd'   : 'd',
-    'r'   : 'r',
-    'z'   : 'z',
-    'ẓ'   : 'z',
-    's'   : 's',
-    'ṣ'   : 's',
-    'f'   : 'f',
-    'q'   : 'k_h ',
-    'k'   : 'k',
-    'l'   : 'l',
-    'm'   : 'm',
-    'n'   : 'n',
-    'h'   : 'h',
-    'ḥ'   : 'h',
-    'w'   : 'w',
-    'v'   : 'v',
-    'y'   : 'j',
-    '’'   : '?',
-    '‘'   : '?',
-    '-'   : '? ?',
-  };
-
-  var letters = [];
-  while (term.length) {
-    var nextletter = term.slice(0,1);
-    if (nextletter === '_') nextletter = term.slice(0,3);
-     else if ((term.slice(0,2) === 'ay') && (term.slice(0,3) != 'ayá')) nextletter = 'ay';
-     else if (term.slice(0,2) === 'iy') nextletter = 'iy';
-
-    letters.push(nextletter);
-    term = term.slice(nextletter.length);
-    nextletter = '';
-  }
-
-  var replacements = {};
-  for (var attrname in vowels)     { replacements[attrname] = vowels[attrname]; }
-  for (var attrname in consonants) { replacements[attrname] = consonants[attrname]; }
-
-  for (var i=0; i<letters.length; i++) {
-    var letter = letters[i];
-    if (replacements[letter]) letters[i] = replacements[letter];
-  }
-
-  term = '_ '+ letters.join(' ') +' _ ';
-
-  //console.log(original + ': \\Prn="'+term+'"\\ ');
-  return term;
-};
+parser.rebuildWrapper = function(tokens, tag='w') {
+  var result = []
+  tokens.map( (token) => {
+    let data_attrs = ''
+    if (token.hasOwnProperty('data')) Object.keys(token.data).map((key) => {
+      data_attrs += ` data-${key}="${token.data[key]}`
+    })
+    result.push(`<${tag}${data_attrs}>${token.prefix}${token.word}${token.suffix}</${tag}>`)
+  })
+  return result.join('')
+}
 
 // given an array of token objects, rebuild the original text block
 // dictionary is optional just in case you want to pass in a raw string in place of tokens
@@ -563,13 +397,18 @@ parser.rebuild = function(tokens, options, dictionary, blockid) {
   return words.join('');
 };
 
-parser.glyph2HTML = function(term) {
+
+
+
+// utility functions used by tokenInfo()
+
+function glyph2HTML(term) {
   if (!term) return '';
   term = term.replace(/_([sdztgkc][h])/ig, "<u>$1</u>");
   return term;
 };
 
-parser.glyph2ANSI = function(term) {
+function glyph2ANSI(term) {
   return term
     // remove underscores
     .replace(/_/g, '')
@@ -588,7 +427,7 @@ parser.glyph2ANSI = function(term) {
     .replace(/\ṣ/g, 's');
 };
 
-parser.soundex = function(s) {
+function soundex(s) {
   if (!s) return '';
   var a = s.toLowerCase().split('');
      f = a.shift(),
@@ -612,6 +451,56 @@ parser.soundex = function(s) {
      .join('');
 
   return (r + '000').slice(0, 4).toUpperCase();
+};
+
+function term_strip_alpha(word) {
+  if (!word) return '';
+  return word
+    // replace accented vowels
+    .replace(/\á/g, 'a')
+    .replace(/\í/g, 'i')
+    .replace(/\ú/g, 'u')
+    .replace(/\Á/g, 'A')
+    .replace(/\Í/g, 'I')
+    .replace(/\Ú/g, 'U')
+
+    // replace dot-unders with regular letters
+    .replace(/\Ḥ/g, 'H')
+    .replace(/\ḥ/g, 'h')
+    .replace(/\Ḍ/g, 'D')
+    .replace(/\ḍ/g, 'd')
+    .replace(/\Ṭ/g, 'T')
+    .replace(/\ṭ/g, 't')
+    .replace(/\Ẓ/g, 'Z')
+    .replace(/\ẓ/g, 'z')
+    .replace(/\Ṣ/g, 'S')
+    .replace(/\ṣ/g, 's')
+
+    // remove all non alphas
+    //.replace(/[^a-zA-Z\-]/g, '') // this fails with ansi characters, we'll have to re-think it
+
+    // remove all HTML tags
+    .replace(/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g, '')
+
+    // delete quotes and line unders
+    .replace(/[\’\‘\'\`\_\ʼ]/g, '')
+
+    // delete dashes
+    .replace(/[\-]/g, '')
+
+    .trim(); // just in case
+};
+
+function HTML2glyph(term) {
+  // replace underscore
+  term = term.replace(/\<u\>([sdztgkc][h])\<\/u\>/ig, "_$1");
+  // replace double underline
+  term = term.replace(/\<u\>([sdztgkc][h])([sdztgkc][h])\<\/u\>/ig, "_$1_$2");
+  // remove other tags
+  term = term.replace(/(<([^>]+)>)/ig, '');
+  // remove all non-legal character
+  term = term.replace(/[^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\_\-]/g, '');
+  return term;
 };
 
 
