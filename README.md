@@ -17,8 +17,13 @@ parser.tokenize(str)
 // .prefix and .suffix contain any punctuation or markup. 
 // .word contains the core word (which can also contain <u> markup).
 
-parser.rebuild(tokens, [options], [dictionary], [blockid])
+parser.rebuild(tokens)
 // returns the reconstructed text with some options for inserting changes
+
+parser.rebuildWrap(tokens, tag='w')
+// simplified rebuild which wraps each rebuilt token in an html tag.
+//  any values in the "token.classes" array are added as classes
+//  any properties in the 'token.data' object are added as data attributes
 ```
 
 
@@ -29,13 +34,9 @@ const parser = require('ocnparse')
 
 // For example, say we want to wrap each word in a <span>...</span>
 let tokens = parser.tokenize("Four score!!!") 
-
-tokens.map( (token) => token.word=`<span>${token.word}</span>` )
-
-console.log( parser.rebuild(tokens) )
-// "<span>Four</span> <span>score</span>!!!"
+let result = parser.rebuildWrap(tokens, 'span')
+// result: "<span>Four</span> <span>score</span>!!!"
 ```
 
-### Todo:
-* clean up the code and strip out lots of unnecessary experiments 
+### Todo: 
 * add option to fix unnecessary HTML entities

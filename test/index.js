@@ -34,7 +34,7 @@ describe('Ocean Parser Behaviour Tests', function() {
       let src = tests.plaintext
       let cmp = tests.plaintext_wrapped
       let tokens = parser.tokenize(src)
-      let wrapped = parser.rebuildWrapper(tokens, 'w')
+      let wrapped = parser.rebuildWrap(tokens, 'w')
       if (wrapped!=cmp) console.log(wrapped) 
       expect(wrapped===cmp).to.be.true;
     })
@@ -42,7 +42,7 @@ describe('Ocean Parser Behaviour Tests', function() {
       let src = tests.spans
       let cmp = tests.spans_wrapped
       let tokens = parser.tokenize(src)
-      let wrapped = parser.rebuildWrapper(tokens, 'w')
+      let wrapped = parser.rebuildWrap(tokens, 'w')
       if (wrapped!=cmp)  console.log(wrapped) 
       expect(wrapped===cmp).to.be.true;
     })
@@ -61,7 +61,7 @@ describe('Ocean Parser Behaviour Tests', function() {
       let src = tests.plaintext_fa_short
       let cmp = tests.plaintext_fa_short_wrapped
       let tokens = parser.tokenize(src)
-      let wrapped = parser.rebuildWrapper(tokens, 'w')
+      let wrapped = parser.rebuildWrap(tokens, 'w')
       if (wrapped!=cmp) console.log(wrapped) 
       expect(wrapped===cmp).to.be.true;
     })
@@ -78,17 +78,15 @@ describe('Ocean Parser Behaviour Tests', function() {
     it(`Test word: "Ma<u>sh</u>riq’l-A<u>dh</u>kár" `, () => expect(parser.isWord("Ma<u>sh</u>riqu’l-A<u>dh</u>kár")).to.be.true ) 
   }) // Test ability to determine if a given string is a word
 
-  // describe(`Test "parseWord(str)" returns a correct token`, function () {
-
-  //   //console.log(parser.tokenizeWord(`Ma<u>sh</u>riqu’l-A<u>dh</u>kár!!`))
-
-  //   // it(`Test word: "Ma<u>sh</u>riqu’l-A<u>dh</u>kár!!" `, () => expect(
-  //   //   parser.tokenizeWord(`Ma<u>sh</u>riqu’l-A<u>dh</u>kár!!`).word === `Ma<u>sh</u>riqu’l-A<u>dh</u>kár`
-  //   // ).to.be.true )  
+  describe(`Test "tokenizeWord()" returns a correct token`, function () {
+    //console.log(parser.tokenizeWord(`Ma<u>sh</u>riqu’l-A<u>dh</u>kár!!`))
+    it(`Test word: "Ma<u>sh</u>riqu’l-A<u>dh</u>kár!!" `, () => expect(
+      parser.tokenizeWord(`Ma<u>sh</u>riqu’l-A<u>dh</u>kár!!`).word === `Ma<u>sh</u>riqu’l-A<u>dh</u>kár`
+    ).to.be.true )  
 
 
 
-  // }) // Test ability to determine if a token is a word
+  }) // Test ability to determine if a token is a word
 
   describe('Tokens correctly give same soundex for various states of utf8', function () {
     var tt = parser.tokenize(`'Abdu'l-Bahá ‘Abdu’l-Bahá Abdu'l-Bahá`)
