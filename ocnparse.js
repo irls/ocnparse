@@ -7,8 +7,8 @@
 //  self.addTermSuggestions
 
 var XRegExp = require('xregexp')
-var bterm = require('../bahai-term-phonemes/bahai-term-phonemes')
-
+//var bterm = require('../bahai-term-phonemes/bahai-term-phonemes')
+var bterm = require('bahai-term-phonemes')
 
 
 var parser = {
@@ -202,7 +202,7 @@ var parser = {
 
 }
  
- 
+
 // This library has a legacy use for parsing books and identifying term misspellings. 
 // We might want to split dictionary operations into a seperate module next time we 
 //  need to use it.
