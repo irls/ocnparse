@@ -13,6 +13,12 @@ var bterm = require('bahai-term-phonemes')
 
 var parser = {
 
+
+  reWrap(str, srcTag='w', destTag='w') {
+    let tokens = reTokenize(str, srcTag)
+    return rebuildWrap(tokens, destTag)
+  },
+
   reTokenize: function(str, tag='w') {
     let tokens = reTokenizeFromWrapper(str, tag)
     return tokens

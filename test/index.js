@@ -164,12 +164,12 @@ describe('Ocean Parser Behaviour Tests', function() {
       })    
 
 
-      // it(`Re-wrapped string with inserted mid-words retokenizes correctly`, () => {
-      //   let testString = `<w>one </w><w>two </w><w>three </w><w>four</w>`
-      //   let tokens = parser.reTokenize(testString, tag) 
-      //   let wrapped = parser.rebuildWrap(tokens, tag)  
-      //   return expect(testString===wrapped).to.be.true
-      // })
+      it(`Re-wrapped string with inserted mid-words retokenizes correctly`, () => {
+        let src  = `<w>one </w><w class="pronoun">two three </w><w data-type="number">four. </w>`
+        let dest = `<w>one </w><w class="pronoun">two </w><w> three </w><w data-type="number">four. </w>`
+        let wrapped = parser.reWrap(parser.reTokenize(testString)) 
+        return expect(testString===wrapped).to.be.true
+      })
 
 
 

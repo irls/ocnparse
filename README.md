@@ -32,6 +32,10 @@ parser.reTokenize(str, tag='w')
 //     2) delete words inside a wrapper or 
 //     3) add words inside a word wrapper
 
+parser.reWrap(str, srcTag='w', destTag='w')
+// helper function to parse wrapped text, correct tokens and output new word-wrapped string 
+// user can use this whenever text is edited -- or change the wrapper tags easily 
+// preserves wrapper class and data attributes
 
 ```
 

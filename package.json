@@ -1,6 +1,6 @@
 {
   "name": "ocnparse",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Simple unicode and Baha'i term compatible parser",
   "main": "ocnparse.js",
   "scripts": {
