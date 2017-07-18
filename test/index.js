@@ -110,10 +110,78 @@ describe('Ocean Parser Behaviour Tests', function() {
     }
   }) // Test ability to determine if a token is a word
 
+
+  describe('String with tokens correctly re-tokenizes', function () {
+    let testString, tag 
+
+    describe('Sending a token list through tokenize() should work', function () { 
+      let tokens = parser.tokenize("Jack jumped over the bean stalk")
+      let wrapped = parser.rebuild(tokens)
+      let tokens2 = parser.tokenize(wrapped)
+      tokens2 = parser.tokenize(tokens2)
+      tokens2 = parser.tokenize(tokens2)
+      let wrapped2 = parser.rebuild(tokens2)
+      it(`Wrapped strings match`, () => expect(wrapped===wrapped2).to.be.true)  
+    })
+
+    testString = `one two three four` 
+    describe('Manipulate tokens and re run tokenize. ', function () {
+      tag = 'w'
+      let tokens = parser.tokenize(testString)  
+      let tokenCount = tokens.length
+      it(`Intially has 4 tokens`, () => expect(tokenCount).to.equal(4)) 
+
+      // inject a couple extra words into the middle of a token
+      tokens[1].word += ` extra words` 
+      tokens = parser.tokenize(tokens)  
+      if (tokens.length!=6) console.log(tokens.length, tokens) 
+      it(`After re-tokenize, has 6 tokens`, () => expect(tokens.length).to.equal(6))  
+    })
+
+    
+    describe('Re-tokenize complex string ', function () {
+      let tag = 'w' 
+      it(`Re-wrapped string matches original`, () => {
+        let testString = `<w>one </w><w>two </w><w>three </w><w>four</w>`
+        let tokens = parser.reTokenize(testString, tag) 
+        let wrapped = parser.rebuildWrap(tokens, tag)  
+        return expect(testString===wrapped).to.be.true
+      })
+      it(`Re-wrapped string with classes matches original`, () => {
+        let testString = `<w>one </w><w class="pronoun">two </w><w class="number">three </w><w>four</w>`
+        let tokens = parser.reTokenize(testString, tag) 
+        let wrapped = parser.rebuildWrap(tokens, tag)  
+        // if (testString!=wrapped) console.log('        '+testString, '\n', '       '+wrapped)
+        return expect(testString===wrapped).to.be.true
+      })
+
+      it(`Re-wrapped string with data-attributes matching original`, () => {
+        let testString = `<w>one </w><w data-pos="pronoun">two </w><w data-type="number">three </w><w>four</w>`
+        let tokens = parser.reTokenize(testString, tag) 
+        let wrapped = parser.rebuildWrap(tokens, tag)  
+        if (testString!=wrapped) console.log('        '+testString, '\n', '       '+wrapped)
+        return expect(testString===wrapped).to.be.true
+      })    
+
+
+      // it(`Re-wrapped string with inserted mid-words retokenizes correctly`, () => {
+      //   let testString = `<w>one </w><w>two </w><w>three </w><w>four</w>`
+      //   let tokens = parser.reTokenize(testString, tag) 
+      //   let wrapped = parser.rebuildWrap(tokens, tag)  
+      //   return expect(testString===wrapped).to.be.true
+      // })
+
+
+
+    })
+
+
+  }) //  String with tokens correctly re-tokenizes
+
 });
 
 
-
+      
 
 
 

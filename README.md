@@ -24,6 +24,15 @@ parser.rebuildWrap(tokens, tag='w')
 // simplified rebuild which wraps each rebuilt token in an html tag.
 //  any values in the "token.classes" array are added as classes
 //  any properties in the 'token.data' object are added as data attributes
+
+parser.reTokenize(str, tag='w')
+// tokenizes a string already containing 'wrapped' words without losing class or data attrs
+// this is important in case the html string has been edited. editing might: 
+//     1) add strings outside the word wrappers, 
+//     2) delete words inside a wrapper or 
+//     3) add words inside a word wrapper
+
+
 ```
 
 

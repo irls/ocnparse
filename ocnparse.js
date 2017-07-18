@@ -13,112 +13,47 @@ var bterm = require('bahai-term-phonemes')
 
 var parser = {
 
-  tokenize: function(str, type='html') {
-    if (!str) return [];
-    if (str instanceof Array) return str; // already tokenized apparently
+  reTokenize: function(str, tag='w') {
+    let tokens = reTokenizeFromWrapper(str, tag)
+    return tokens
+    return this.tokenize(tokens, tag)
+  },
 
-    var self = this,
-        tt,
-        regex;
 
-    // split text up into tokens in several steps
-    var tokens = str,
-      delimiters = [
-        '<span.*?>', '</span>', '<a.*?>', '</a>', '&.*?;', '<w.*?>', '</w>', '<q.*?>', '</q>',
-        // all html tags except <u>
-        '</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>',
-        // m-dashes
-        '[\\—]|[-]{2,3}',
-        // white space and remaining punctuation
-        "[\\s\\,\\.\\!\\—\\?\\;\\:\\[\\]\\+\\=\\(\\)\\*\\&\\^\\%\\$\\#\\@\\~\\|]+?"
-      ]; 
-      delimiters.map( (delimiter) => tokens = splitTokens(tokens, delimiter) )
+  // pass in a string to tokenize
+  // pass in a token list to re-split each token
+  tokenize: function(str, preserveWrapperTag='', type='html') {
+    if (!str) return [] 
 
-    //console.log(tokens)
+    // if preservewrapper, first tokenize and extract class and data attributes
+    if (preserveWrapperTag && (typeof str === 'string')) str = reTokenizeFromWrapper(str, preserveWrapperTag)
 
-    // loop through tokens and do some manual edge cleanup of words
-    tokens.forEach(function(token, index) {
-      // Split off any punctuation on the word and move it to the prefix and suffix - tag friendly
-      // regex = /^([^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\<\>]*)(.*?)([^a-zA-ZáÁíÍúÚḤḥḌḍṬṭẒẓṢṣ\’\‘\'\`\<\>]*)$/mg; 
-      //regex = /^(\\PL+)(.*?)(\\PL+)$/mgu  // is this really sufficient???
-      regex = XRegExp(`^(\\PL*)([\\pL\-\>\<\’\‘\'\`]+)(\\PL*)$`, 'mgu')  
-
-      if (tt = regex.exec(token.word) && Array.isArray(tt) && (tt[1].length || tt[3].length)) {
-        console.log('Splitting off additional punctuation', tt)
-        token.prefix = token.prefix + tt[1];
-        token.word = tt[2];
-        token.suffix = tt[3] + token.suffix;
-      }
-      // if (tt = regex.exec(token.word)) {
-      //   token.prefix = token.prefix + tt[1];
-      //   token.word = tt[2];
-      //   token.suffix = tt[3] + token.suffix;
-      // } 
-
-      // Remove single quotes only if they are on both sides
-      regex = /^([\’\‘\'\`])(.*)([\’\‘\'\`])$/mg;
-      if ((tt = regex.exec(token.word)) && (tt[1].length>0 || tt[3].length>0)) {
-        token.prefix = token.prefix + tt[1];
-        token.word = tt[2];
-        token.suffix = tt[3] + token.suffix;
-      }
-
-      // If the word appears to be an html entity, push it back into prefix
-      if ((token.prefix.slice(-1)==='&') && (token.suffix.slice(0,1)===';')) {
-        token.prefix = token.prefix + token.word + ';';
-        token.word = '';
-        token.suffix = token.suffix.slice(1);
-      }
-  
-      // Remove 's and any other similar suffix
-      // if (tt = /^(.*)([\’\‘\'\`]s)$/img.exec(token.word)) {
-      //   token.word = tt[1]; token.suffix = tt[2] + token.suffix;
-      // }
-
-      // for each word, add some additional info
-      token.info = tokenInfo(token);
-
-      // replace list item with updated object
-      tokens[index] = token;
-    })
-
-    // if last token has no word content, move it all to previous token
-    var lastt = tokens[tokens.length-1]
-    if (tokens.length>1 && !self.isWord(lastt.word)) {
+    // Initial splitting of all text blocks into tokens
+    // We first split on HTML tags so that they will not be tokenized
+    // then we split again on m-dashes
+    // finally on pronunciation
+    let delimiters = [
+      '<span.*?>', '</span>', '<a.*?>', '</a>', '&.*?;', '<w.*?>', '</w>', '<q.*?>', '</q>',
+      // all html tags except <u>
+      '</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>',
+      // m-dashes
+      '[\\—]|[-]{2,3}',
+      // white space and remaining punctuation
+      "[\\s\\,\\.\\!\\—\\?\\;\\:\\[\\]\\+\\=\\(\\)\\*\\&\\^\\%\\$\\#\\@\\~\\|]+?"
+    ]  
+    let tokens = splitTokens(str, delimiters)
+ 
+    // finally, if last token has no word, move it to previous token's suffix
+    let lastt = tokens[tokens.length-1]
+    if (tokens.length>1 && !this.isWord(lastt.word)) {
       let tkn = lastt.prefix + lastt.word + lastt.suffix
       tokens[tokens.length-2].suffix += tkn
       tokens.splice(tokens.length-1, 1)
     }
-
-    return tokens;
-
-
-
-    // =====================================
-    function tokenInfo(token) {
-      var info = {class: []};
-      // now generate base version
-      info.stripped = term_strip_alpha(token.word);
-      // now determine if word is allcaps
-      info.isAllCaps = (info.stripped === info.stripped.toUpperCase());
-
-      //info.lookup = info.stripped.substr(0,3).toLowerCase();
-      info.isPossibleTerm = bterm.isPossibleTerm(token.word);
-      if (info.isPossibleTerm) {
-        info.phoneme = bterm.phonemes(token.word)
-        if (!token.data) token.data={}
-        token.data.sug = info.phoneme
-      } 
-      info.html = glyph2HTML(token.word);
-      info.glyph = HTML2glyph(token.word);
-      info.ansi = glyph2ANSI(info.glyph);
-      info.soundex = soundex(info.stripped);
-
-      //if (info.isPossibleTerm) info.class = ['term'];
-      return info;
-    }
+ 
+    return tokens 
   },
-
+ 
   // simple re-tokenizing of data that should be just one token
   tokenizeWord: function(word) { 
     var tokens = this.tokenize(word)
@@ -140,8 +75,6 @@ var parser = {
       tokens = self.tokenize(tokens);
       if (dictionary) self.addTermSuggestions(tokens, dictionary);
     }
-
-   // console.log(tokens);
 
     var words = [], newword;
     tokens.forEach(function(token) {
@@ -183,13 +116,15 @@ var parser = {
   //  any values in the "token.classes" array are added as classes
   //  any properties in the 'token.data' object are added as data attributes
   rebuildWrap: function(tokens, tag='w') {
-    var result = []
+    var result = [] 
     tokens.map( (token) => {
       let data_attrs = ''
+      let class_attr = ''
       if (token.hasOwnProperty('data')) Object.keys(token.data).map((key) => {
-        data_attrs += ` data-${key}="${token.data[key]}`
+        data_attrs += ` data-${key}="${token.data[key]}"`
       })
-      result.push(`<${tag}${data_attrs}>${token.prefix}${token.word}${token.suffix}</${tag}>`)
+      if (token.hasOwnProperty('class')) class_attr = ` class="${token.class.join(' ')}"`
+      result.push(`<${tag}${class_attr}${data_attrs}>${token.prefix}${token.word}${token.suffix}</${tag}>`)
     })
     return result.join('')
   },
@@ -224,8 +159,7 @@ parser.prepareDictionary = function(wordList) {
   // =============================
 
   function addToDictionary(base, term, replList) {
-    if (!base || !term) {
-      //console.log('Added bad word to dictionary: '+ base +', '+JSON.stringify(term));
+    if (!base || !term) { 
       return;
     }
     var lookup = base.toLowerCase();
@@ -248,8 +182,7 @@ parser.prepareDictionary = function(wordList) {
     if (!replList.terms[lookup][base]) {
       replList.terms[lookup][base] = obj;
       replList.total++;
-    }
-    //console.log(obj);
+    } 
   }
 
   // ----------------------------------------
@@ -428,81 +361,196 @@ function HTML2glyph(term) {
   return term;
 }
 
-function splitTokens(tokens, delimeter_regex_str) {
+function splitTokens(str, delimeters) {
+  if (!str) return []
+  let tokens = str
+  if (typeof tokens==='string') tokens = [ {prefix:'', suffix:'', word: tokens} ]
+  delimeters.map( (delimeter) => tokens = splitTokensRegex(tokens, delimeter) )
+  return tokens
+}
+
+function splitTokensRegex(tokens, delimeter_regex_str) {
   var items = [],
       templist = [],
       token,
-      newtoken;
-  if (typeof tokens === 'string') tokens = splitStringIntoTokens(tokens, delimeter_regex_str);
-  // loop through array and split each word further based on delimiter regex
-  //console.log('Splitting array on delimiter: '+ delimeter_regex_str);
-  tokens.forEach(function(token) {
-    //console.log('Testing token: ', token);
-    items = splitStringIntoTokens(token.word, delimeter_regex_str);
-    //console.log('splitString: '+ token.word, items);
-    if (items.length>0) { // the delimiter matched this word block, it needs to be split further
-      //console.log('Word split: ', token, items);
+      newtoken; 
+  // loop through array and split each word further based on delimiter regex 
+  tokens.forEach(function(token) { 
+    items = splitStringIntoTokens(token.word, delimeter_regex_str); 
+    if (items.length>0) { // the delimiter matched this word block, it needs to be split further 
       templist.push({word: '', prefix: token.prefix, suffix: ''}); // these will be cleaned up at the end
       items.forEach(function(newtoken)  { templist.push(newtoken);  });
       templist.push({word:'', prefix: '', suffix: token.suffix});
     } else templist.push(token);
   });
-  // clean up a little and return
+  // clean up a little and return -- should we do this only once?
   return cleanTokenList(templist);
+}
+ 
+function splitStringIntoTokens (str, delimeter_regex_str) {
+  // split any string by delimeter with delimeter suffixed to each
+  var tokens = [],
+      prevIndex = 0,
+      match,
+      divider_regex;
 
-  // ========================================================
-
-  function splitStringIntoTokens (str, delimeter_regex_str) {
-    // split any string by delimeter with delimeter suffixed to each
-    var tokens = [],
-        prevIndex = 0,
-        match,
-        divider_regex;
-
-    divider_regex = new RegExp(delimeter_regex_str, 'g');
-    while (match = divider_regex.exec(str)) {
-      tokens.push({
-        word: str.substring(prevIndex, match.index),
-        suffix: match[0],
-        prefix: ''
-      });
-      prevIndex = divider_regex.lastIndex;
-    }
-    // if there is no final delimiter, the last bit is ignored. Grab it into a token
-    if (prevIndex < str.length) tokens.push({word: str.substring(prevIndex, str.length), prefix:'', suffix:''});
-    return tokens;
-  }
-  function cleanTokenList(tokens) {
-    // remove empty tokens and merge tokens without words
-    var prefix = '',
-        shortList = [],
-        loc;
-    // merge empty tokens pushing prefixes and suffixes forward to next non-empty word
-    tokens.forEach(function(token, index) {
-      if (token.word.length>0) {
-        token.prefix = prefix+token.prefix;
-        shortList.push(token);
-        prefix = '';
-      } else prefix = prefix + token.prefix + token.suffix;
+  divider_regex = new RegExp(delimeter_regex_str, 'g');
+  while (match = divider_regex.exec(str)) {
+    tokens.push({
+      word: str.substring(prevIndex, match.index),
+      suffix: match[0],
+      prefix: ''
     });
-    if (prefix.length>0) {
-      if (shortList.length>0) shortList[shortList.length-1].suffix = shortList[shortList.length-1].suffix + prefix;
-       else shortList.push({word:'', prefix: prefix, suffix:''});
-    }
-    tokens = JSON.parse(JSON.stringify(shortList));
-
-    // TODO: these two should be one loop like /^[\s]+|^[^\s]+[\s]+/gm
-    // move back beginning spaces or beginning non-space plus space
-    if (tokens.length>2) for (var i=1; i<tokens.length; i++) {
-      if (loc = /^([\s]+|^[^\s]+[\s]+)(.*)$/gm.exec(tokens[i].prefix)) {
-        tokens[i-1].suffix += loc[1];
-        tokens[i].prefix = loc[2];
-      }
-    }
-    return tokens;
+    prevIndex = divider_regex.lastIndex;
   }
-};
+  // if there is no final delimiter, the last bit is ignored. Grab it into a token
+  if (prevIndex < str.length) tokens.push({word: str.substring(prevIndex, str.length), prefix:'', suffix:''});
+  return tokens;
+}
+
+function cleanTokenList(tokens) {
+  // remove empty tokens and merge tokens without words
+  var prefix = '',
+      shortList = [],
+      loc;
+  // merge empty tokens pushing prefixes and suffixes forward to next non-empty word
+  tokens.forEach(function(token, index) {
+    if (token.word.length>0) {
+      token.prefix = prefix+token.prefix;
+      shortList.push(token);
+      prefix = '';
+    } else prefix = prefix + token.prefix + token.suffix;
+  });
+  if (prefix.length>0) {
+    if (shortList.length>0) shortList[shortList.length-1].suffix = shortList[shortList.length-1].suffix + prefix;
+      else shortList.push({word:'', prefix: prefix, suffix:''});
+  }
+  tokens = JSON.parse(JSON.stringify(shortList));
+
+  // TODO: these two should be one loop like /^[\s]+|^[^\s]+[\s]+/gm
+  // move back beginning spaces or beginning non-space plus space
+  if (tokens.length>2) for (var i=1; i<tokens.length; i++) {
+    if (loc = /^([\s]+|^[^\s]+[\s]+)(.*)$/gm.exec(tokens[i].prefix)) {
+      tokens[i-1].suffix += loc[1];
+      tokens[i].prefix = loc[2];
+    }
+  }
+
+  // loop through array and cleanup edges, moving punctuation and tags 
+  let tt, regex
+  tokens.forEach(function(token, index) { 
+    regex = XRegExp(`^(\\PL*)([\\pL\-\>\<\’\‘\'\`]+)(\\PL*)$`, 'mgu')  
+
+    if (tt = regex.exec(token.word) && Array.isArray(tt) && (tt[1].length || tt[3].length)) { 
+      token.prefix = token.prefix + tt[1];
+      token.word = tt[2];
+      token.suffix = tt[3] + token.suffix;
+    } 
+
+    // Remove single quotes only if they are on both sides
+    regex = /^([\’\‘\'\`])(.*)([\’\‘\'\`])$/mg;
+    if ((tt = regex.exec(token.word)) && (tt[1].length>0 || tt[3].length>0)) {
+      token.prefix = token.prefix + tt[1];
+      token.word = tt[2];
+      token.suffix = tt[3] + token.suffix;
+    }
+
+    // If the word appears to be an html entity, push it back into prefix
+    if ((token.prefix.slice(-1)==='&') && (token.suffix.slice(0,1)===';')) {
+      token.prefix = token.prefix + token.word + ';';
+      token.word = '';
+      token.suffix = token.suffix.slice(1);
+    } 
+
+    // for each word, add some additional info
+    token.info = tokenInfo(token);
+
+    // replace list item with updated object
+    tokens[index] = token;
+  })
+ 
+  return tokens;
+}
+ 
+function tokenInfo(token) {
+  let info = {class: []}
+
+  // if token already has class, keep
+  if (token.class && token.class.length>0) {
+    if (typeof token.class==='string') info.class=token.class.trim().split(' ')
+      else info.class=token.class  
+  }
+
+  // now generate base version
+  info.stripped = term_strip_alpha(token.word);
+  // now determine if word is allcaps
+  info.isAllCaps = (info.stripped === info.stripped.toUpperCase());
+
+  //info.lookup = info.stripped.substr(0,3).toLowerCase();
+  info.isPossibleTerm = bterm.isPossibleTerm(token.word);
+  if (info.isPossibleTerm) {
+    info.phoneme = bterm.phonemes(token.word)
+    if (!token.data) token.data={}
+    token.data.sug = info.phoneme
+  } 
+  info.html = glyph2HTML(token.word);
+  info.glyph = HTML2glyph(token.word);
+  info.ansi = glyph2ANSI(info.glyph);
+  info.soundex = soundex(info.stripped);
+
+  //if (info.isPossibleTerm) info.class = ['term'];
+  return info;
+}
+
+function reTokenizeFromWrapper(str, tag='w') { 
+  // split into array by end tag  
+  let tokens = splitStringIntoTokens(str, `</${tag}>`)
+
+  // when content is inserted between tags, move it to a new tag 
+  for (let i=tokens.length-1; i >= 0; --i) {
+    // if any data in token before <tag, split and insert <tag data to new token  
+    if (tokens[i].word.indexOf(`<${tag}`)>0) {
+      let str = tokens[i].word
+      let index = str.indexOf(`<${tag}`)
+      let l1 = str.substring(0, index)
+      let l2 = str.substring(index+1)
+      let wrd = {word: l2, suffix: tokens[i].suffix, prefix:''}
+      arr.splice(index+1, 0, wrd)
+      tokens[i].word = l1
+      tokens[i].suffix = ''
+    }  
+  } 
+
+  // remove all wrapper close-tags from suffixes, like </w>
+  tokens.map((token) => token.suffix = token.suffix.replace(`</${tag}>`, ''))
+
+  // remove all wrapper open tags and move values into token object 
+  tokens.map((token, i) => { 
+    if (token.word.indexOf(`<${tag}`)>-1) { 
+      // remove wrapper open tag
+      let wrapperTag = token.word.substring(0, token.word.indexOf(`>`)+1) 
+      tokens[i].word = token.word.substring(token.word.indexOf(`>`)+1) 
+
+      // pull out the class from the wrapper tag, if any
+      let classreg = /class\s*=\s*['"]([^'"]+?)['"]/i, matches
+      if ((matches = classreg.exec(wrapperTag)) !== null)  tokens[i].class = [ matches[1].trim() ] 
+
+      // pull out data attributes from the wrapper tag, if any
+      let datareg = /data-(.*?)\s*=\s*['"]([^'"]+?)['"]/ig
+      while ((matches = datareg.exec(wrapperTag)) !== null) {
+        if (!tokens[i].data) tokens[i].data = {} 
+        tokens[i].data[matches[1]] = matches[2] 
+      }  
+    } 
+  })  
+
+  return tokens
+}
 
 
 
-module.exports = parser;
+
+
+module.exports = parser
+
+
