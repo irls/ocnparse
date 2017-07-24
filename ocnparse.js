@@ -13,8 +13,9 @@ var parser = {
   // helper function
   // pass in a string of wrapped words
   // words will be re-parsed, retaining class and data attributes from wrapper tags
-  reWrap: function(str, srcTag='w', destTag='w') {
+  reWrap: function(str, srcTag='w', destTag='') {
     let tokens = this.tokenize(str, srcTag) 
+    if (!destTag) destTag = srcTag
     return this.rebuild(tokens, destTag)
   },
  
@@ -27,12 +28,7 @@ var parser = {
     return tokens 
   },
  
-  // simple re-tokenizing of data that should be just one token
-  tokenizeWord: function(word) { 
-    let token = this.tokenize(word)[0] 
-    addTokenInfo(token)
-    return token
-  }, 
+ 
 
   // given an array of token objects, rebuild the original text block
   // dictionary is optional just in case you want to pass in a raw string in place of tokens
@@ -117,6 +113,13 @@ var parser = {
   isWord: function(word) {  
     return !!(this.tokenizeWord(word).word.length)  
   }
+
+ // simple re-tokenizing of data that should be just one token
+  tokenizeWord: function(word) { 
+    let token = this.tokenize(word)[0] 
+    addTokenInfo(token)
+    return token
+  }, 
 
 }
  
