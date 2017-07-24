@@ -112,14 +112,14 @@ var parser = {
   // check if this content would be tokenized to a word or not
   isWord: function(word) {  
     return !!(this.tokenizeWord(word).word.length)  
-  }
+  },
 
  // simple re-tokenizing of data that should be just one token
   tokenizeWord: function(word) { 
     let token = this.tokenize(word)[0] 
     addTokenInfo(token)
     return token
-  }, 
+  }
 
 }
  
