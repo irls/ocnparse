@@ -12,7 +12,7 @@ module.exports = function() {
     </w><w>futile </w><w>attempts, </w><w>however </w><w>persistent </w><w>and </w><w>malicious </w><w>they </w><w>may </w><w>be, </w><w>is </w><w>to
     </w><w>contribute </w><w>to </w><w>a </w><w>wider </w><w>and </w><w>deeper </w><w>recognition </w><w>by </w><w>believers </w><w>and
     </w><w>unbelievers </w><w>alike </w><w>of </w><w>the </w><w>distinguishing </w><w>features </w><w>of </w><w>the </w><w>Faith
-    </w><w>proclaimed </w><w>by </w><w data-sug="[[b @ h A: ? @U ? l l A: h]]">Bahá’u’lláh.</w>`,
+    </w><w>proclaimed </w><w>by </w><w data-ipa="[[b @ h A: ? @U ? l l A: h]]">Bahá’u’lláh.</w>`,
     
   spans: `We have only to refer to the warnings uttered by ‘Abdu’l-Bahá
     in order to realize the extent and character of the forces that are
@@ -22,7 +22,7 @@ module.exports = function() {
     Africa, and at a time when the auspicious light of the Bahá’í
     Revelation had only begun to break upon the West, He, in His parting
     message to the cousin of the Báb, uttered these prophetic and
-    ominous words: <q class='abd'>“How great, how very great is the Cause! How very
+    ominous words: <q class="abd">“How great, how very great is the Cause! How very
     fierce the onslaught of all the peoples and kindreds of the earth.
     Ere long shall the clamor of the multitude throughout Africa,
     throughout America, the cry of the European and of the Turk, the
@@ -33,15 +33,15 @@ module.exports = function() {
     reinforced by the legions of the Covenant, arise and make manifest
     the truth of the verse: ‘Behold the confusion that hath befallen
     the tribes of the defeated!’”</q>`,
-    spans_wrapped: `<w>We </w><w>have </w><w>only </w><w>to </w><w>refer </w><w>to </w><w>the </w><w>warnings </w><w>uttered </w><w>by </w><w data-sug="[[@ b d @U ? l ? b @ h A:]]">‘Abdu’l-Bahá
+    spans_wrapped: `<w>We </w><w>have </w><w>only </w><w>to </w><w>refer </w><w>to </w><w>the </w><w>warnings </w><w>uttered </w><w>by </w><w data-ipa="[[@ b d @U ? l ? b @ h A:]]">‘Abdu’l-Bahá
     </w><w>in </w><w>order </w><w>to </w><w>realize </w><w>the </w><w>extent </w><w>and </w><w>character </w><w>of </w><w>the </w><w>forces </w><w>that </w><w>are
     </w><w>destined </w><w>to </w><w>contest </w><w>with </w><w>God’s </w><w>holy </w><w>Faith. </w><w>In </w><w>the </w><w>darkest </w><w>moments
-    </w><w>of </w><w>His </w><w>life, </w><w>under </w><w data-sug="[[@ b d @U ? l ? h @ m i: d s]]">‘Abdu’l-Ḥamíd’s </w><w>régime, </w><w>when </w><w>He </w><w>stood
+    </w><w>of </w><w>His </w><w>life, </w><w>under </w><w data-ipa="[[@ b d @U ? l ? h @ m i: d s]]">‘Abdu’l-Ḥamíd’s </w><w>régime, </w><w>when </w><w>He </w><w>stood
     </w><w>ready </w><w>to </w><w>be </w><w>deported </w><w>to </w><w>the </w><w>most </w><w>inhospitable </w><w>regions </w><w>of </w><w>Northern
-    </w><w>Africa, </w><w>and </w><w>at </w><w>a </w><w>time </w><w>when </w><w>the </w><w>auspicious </w><w>light </w><w>of </w><w>the </w><w data-sug="[[b @ h A: ? i:]]">Bahá’í
+    </w><w>Africa, </w><w>and </w><w>at </w><w>a </w><w>time </w><w>when </w><w>the </w><w>auspicious </w><w>light </w><w>of </w><w>the </w><w data-ipa="[[b @ h A: ? i:]]">Bahá’í
     </w><w>Revelation </w><w>had </w><w>only </w><w>begun </w><w>to </w><w>break </w><w>upon </w><w>the </w><w>West, </w><w>He, </w><w>in </w><w>His </w><w>parting
-    </w><w>message </w><w>to </w><w>the </w><w>cousin </w><w>of </w><w>the </w><w data-sug="[[b A: b]]">Báb, </w><w>uttered </w><w>these </w><w>prophetic </w><w>and
-    </w><w>ominous </w><w>words: </w><w><q class='abd'>“How </w><w>great, </w><w>how </w><w>very </w><w>great </w><w>is </w><w>the </w><w>Cause! </w><w>How </w><w>very
+    </w><w>message </w><w>to </w><w>the </w><w>cousin </w><w>of </w><w>the </w><w data-ipa="[[b A: b]]">Báb, </w><w>uttered </w><w>these </w><w>prophetic </w><w>and
+    </w><w>ominous </w><w>words: </w><w><q class="abd">“How </w><w>great, </w><w>how </w><w>very </w><w>great </w><w>is </w><w>the </w><w>Cause! </w><w>How </w><w>very
     </w><w>fierce </w><w>the </w><w>onslaught </w><w>of </w><w>all </w><w>the </w><w>peoples </w><w>and </w><w>kindreds </w><w>of </w><w>the </w><w>earth.
     </w><w>Ere </w><w>long </w><w>shall </w><w>the </w><w>clamor </w><w>of </w><w>the </w><w>multitude </w><w>throughout </w><w>Africa,
     </w><w>throughout </w><w>America, </w><w>the </w><w>cry </w><w>of </w><w>the </w><w>European </w><w>and </w><w>of </w><w>the </w><w>Turk, </w><w>the

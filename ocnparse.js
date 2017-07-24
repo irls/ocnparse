@@ -1,10 +1,7 @@
 // parseblock is a set of tokenizing tools compatible with Baha'i terms
 // since \b in regex cannot deal with words that include unicode, dashes or single quotes
-// these tools are extracted from the diacritical.js library
 //
-
-// where is:
-//  self.addTermSuggestions
+ 
 
 var XRegExp = require('xregexp')
 //var bterm = require('../bahai-term-phonemes/bahai-term-phonemes')
@@ -13,66 +10,38 @@ var bterm = require('bahai-term-phonemes')
 
 var parser = {
 
-
-  reWrap(str, srcTag='w', destTag='w') {
-    let tokens = reTokenize(str, srcTag)
-    return rebuildWrap(tokens, destTag)
+  // helper function
+  // pass in a string of wrapped words
+  // words will be re-parsed, retaining class and data attributes from wrapper tags
+  reWrap: function(str, srcTag='w', destTag='w') {
+    let tokens = this.tokenize(str, srcTag) 
+    return this.rebuild(tokens, destTag)
   },
-
-  reTokenize: function(str, tag='w') {
-    let tokens = reTokenizeFromWrapper(str, tag)
-    return tokens
-    return this.tokenize(tokens, tag)
-  },
-
-
+ 
   // pass in a string to tokenize
-  // pass in a token list to re-split each token
-  tokenize: function(str, preserveWrapperTag='', type='html') {
-    if (!str) return [] 
-
-    // if preservewrapper, first tokenize and extract class and data attributes
-    if (preserveWrapperTag && (typeof str === 'string')) str = reTokenizeFromWrapper(str, preserveWrapperTag)
-
-    // Initial splitting of all text blocks into tokens
-    // We first split on HTML tags so that they will not be tokenized
-    // then we split again on m-dashes
-    // finally on pronunciation
-    let delimiters = [
-      '<span.*?>', '</span>', '<a.*?>', '</a>', '&.*?;', '<w.*?>', '</w>', '<q.*?>', '</q>',
-      // all html tags except <u>
-      '</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>',
-      // m-dashes
-      '[\\—]|[-]{2,3}',
-      // white space and remaining punctuation
-      "[\\s\\,\\.\\!\\—\\?\\;\\:\\[\\]\\+\\=\\(\\)\\*\\&\\^\\%\\$\\#\\@\\~\\|]+?"
-    ]  
-    let tokens = splitTokens(str, delimiters)
- 
-    // finally, if last token has no word, move it to previous token's suffix
-    let lastt = tokens[tokens.length-1]
-    if (tokens.length>1 && !this.isWord(lastt.word)) {
-      let tkn = lastt.prefix + lastt.word + lastt.suffix
-      tokens[tokens.length-2].suffix += tkn
-      tokens.splice(tokens.length-1, 1)
-    }
- 
+  // pass in tag to re-tokenize word-wrapped string
+  // pass in a token list to re-calculate each token
+  tokenize: function(str, tag='') {
+    let tokens = splitTokens(str, tag)  
+    tokens.map((token) => addTokenInfo(token) ) 
     return tokens 
   },
  
   // simple re-tokenizing of data that should be just one token
   tokenizeWord: function(word) { 
-    var tokens = this.tokenize(word)
-    return tokens[0]
+    let token = this.tokenize(word)[0] 
+    addTokenInfo(token)
+    return token
   }, 
 
   // given an array of token objects, rebuild the original text block
   // dictionary is optional just in case you want to pass in a raw string in place of tokens
-  rebuild: function(tokens, options, dictionary, blockid) {
+  /*
+  rebuild_old: function(tokens, options, dictionary, blockid) {
     if (!tokens) return '';
     var self = this;
     // options: [clean], showall, suggest, original, spanwords
-    if (!(['clean', 'showall', 'suggest', 'original', 'spanwords', 'spanwordsid'].indexOf(options)>-1)) {
+    if ((['clean', 'showall', 'suggest', 'original', 'spanwords', 'spanwordsid'].indexOf(options)>-1)) {
       options = 'clean';
     }
 
@@ -106,7 +75,7 @@ var parser = {
             if (options ==='spanwords') newword = "<span class='w term correct'>"+token.suggestion.html+"</span>";
             else if ((options != 'clean')) newword = "<mark class='term correct'>"+ token.word + "</mark>";
           }
-        } else if (token.info.isPossibleTerm) {
+        } else if (token.info && token.info.isPossibleTerm) {
           if (options ==='spanwords') newword = "<w class='term' data-phoneme='"+
             token.info.phoneme+"'>"+token.word+"</w>";
           else if (options != 'clean') newword = "<mark class='term unknown'>"+ token.word + "</mark>";
@@ -117,28 +86,36 @@ var parser = {
     });
     return words.join('');
   },
+  */
 
   // simplified rebuild which wraps entire rebuilt token in an html tag.
   //  any values in the "token.classes" array are added as classes
   //  any properties in the 'token.data' object are added as data attributes
-  rebuildWrap: function(tokens, tag='w') {
-    var result = [] 
+  rebuild: function(tokens, tag='') {
+    var result = []  
     tokens.map( (token) => {
       let data_attrs = ''
       let class_attr = ''
-      if (token.hasOwnProperty('data')) Object.keys(token.data).map((key) => {
-        data_attrs += ` data-${key}="${token.data[key]}"`
-      })
-      if (token.hasOwnProperty('class')) class_attr = ` class="${token.class.join(' ')}"`
-      result.push(`<${tag}${class_attr}${data_attrs}>${token.prefix}${token.word}${token.suffix}</${tag}>`)
+      if (token.info) {
+        //console.log(token.word, ':', token.info)
+        // data attributes are stored as a keyed object: token.info.data = {attrName: attrValue}
+        if (token.info.data) Object.keys(token.info.data).map((key) => {
+          data_attrs += ` data-${key}="${token.info.data[key]}"`
+        })
+        // class is stored as a simple array in tokens:  token.info.class = []
+        if (token.info.class && token.info.class.length>0) class_attr = ` class="${token.info.class.join(' ')}"`
+      } 
+      let openTag = (tag.length>0 ? `<${tag}${class_attr}${data_attrs}>` : '')
+      let closeTag = (tag.length>0 ? `</${tag}>` : '')
+      let wrappedToken = `${openTag}${token.prefix}${token.word}${token.suffix}${closeTag}`
+      result.push(wrappedToken)
     })
     return result.join('')
   },
 
   // check if this content would be tokenized to a word or not
   isWord: function(word) {  
-    var tt = this.tokenizeWord(word) 
-    return !!(tt.prefix.trim().length==0 && tt.suffix.trim().length==0 && tt.word.length>0) 
+    return !!(this.tokenizeWord(word).word.length)  
   }
 
 }
@@ -147,6 +124,7 @@ var parser = {
 // This library has a legacy use for parsing books and identifying term misspellings. 
 // We might want to split dictionary operations into a seperate module next time we 
 //  need to use it.
+/*
 parser.prepareDictionary = function(wordList) {
   // exit is this is already a prepared dictionary object
   if (('terms' in wordList) && ('total' in wordList)) return wordList;
@@ -157,13 +135,11 @@ parser.prepareDictionary = function(wordList) {
   terms.forEach(function(term) {
     addToDictionary(term.base, term, dictionary);
     if (term.known_mispellings.length>0) term.known_mispellings.forEach(function(known_misspelling) {
-      addToDictionary(term_strip_alpha(known_misspelling), term, dictionary);
+      addToDictionary(stripNonAlpha(known_misspelling), term, dictionary);
     });
   });
   return dictionary;
-
-  // =============================
-
+  // ============================= not sure what these are... legacy
   function addToDictionary(base, term, replList) {
     if (!base || !term) { 
       return;
@@ -190,8 +166,6 @@ parser.prepareDictionary = function(wordList) {
       replList.total++;
     } 
   }
-
-  // ----------------------------------------
   function removeDuplicateTerms(words) {
     // given an array of terms, return a de-duplicated array
     // but in this case, it is unique to the base (stripped) version
@@ -206,9 +180,9 @@ parser.prepareDictionary = function(wordList) {
         word_data = word.value;
         word = word.key;
         word_data.word = word;
-        word_data.base = term_strip_alpha(word);
+        word_data.base = stripNonAlpha(word);
       } else {
-        word_data = {word: word, ref:[], original: '', definition:'', alternates:[], known_mispellings:[], verified: false, base: term_strip_alpha(word)};
+        word_data = {word: word, ref:[], original: '', definition:'', alternates:[], known_mispellings:[], verified: false, base: stripNonAlpha(word)};
       }
       var base = word_data.base;
       if (!(base in list)) list[base] = {};
@@ -249,13 +223,13 @@ parser.prepareDictionary = function(wordList) {
     }
     return newList;
   }
-
   function uniqueArray(a) {
     return a.sort().filter(function(item, pos) {
         return !pos || item != a[pos - 1];
     })
   }
 }
+*/
 
 
 
@@ -317,7 +291,7 @@ function soundex(s) {
   return (r + '000').slice(0, 4).toUpperCase();
 }
 
-function term_strip_alpha(word) {
+function stripNonAlpha(word) {
   if (!word) return '';
   return word
     // replace accented vowels
@@ -367,194 +341,269 @@ function HTML2glyph(term) {
   return term;
 }
 
-function splitTokens(str, delimeters) {
-  if (!str) return []
-  let tokens = str
-  if (typeof tokens==='string') tokens = [ {prefix:'', suffix:'', word: tokens} ]
-  delimeters.map( (delimeter) => tokens = splitTokensRegex(tokens, delimeter) )
+// takes a string or token list and splits up into properly tokenized list
+function splitTokens(tokens, tag='') {
+  //console.log(tokens)
+  if (!tokens) return []   
+ 
+  // if wrapper tag, first tokenize and extract class and data attributes
+  if ((typeof tokens === 'string') && tag) { tokens = splitWrappedString(tokens, tag) }  
+  else if (typeof tokens==='string') tokens = [ {prefix:'', suffix:'', word: tokens} ]
+
+  // Initial splitting of all text blocks into tokens 
+  let delimiters = [
+    '<span.*?>', '</span>', '<a.*?>', '</a>', '&.*?;', '<w.*?>', '</w>', '<q.*?>', '</q>',
+    // all html tags except <u>
+    '</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>',
+    // m-dashes
+    '[\\—]|[-]{2,3}',
+    // white space and remaining punctuation
+    "[\\s\\,\\.\\!\\—\\?\\;\\:\\[\\]\\+\\=\\(\\)\\*\\&\\^\\%\\$\\#\\@\\~\\|]+?"
+  ]   
+  delimiters.map( (delimiterRegex) => {
+    //tokens = splitTokensRegex(tokens, delimiter)
+    // console.log('splitting token with new delimter', tokens[0], delimiterRegex)
+    let items, newList = [] 
+    tokens.map((token) => {   
+      items = splitRegex(token.word, delimiterRegex)  
+      //console.log('split: ',token.word, items)
+      if (items.length>1) { // the delimiter matched this word block, it needs to be split further 
+        // add the first token 
+        let firstToken = items[0]
+        if (token.info) firstToken.info = token.info
+        firstToken.prefix = token.prefix + firstToken.prefix 
+        newList.push(firstToken)
+        // middle tokens 
+        items.map((newToken, i) => { if (i>0 && i<items.length-1) newList.push(newToken) })
+        // last token
+        let lastToken = items[items.length-1]
+        lastToken.suffix += token.suffix 
+        newList.push(lastToken)
+      } else {
+        let newToken = items[0]
+        newToken.prefix = token.prefix + newToken.prefix
+        newToken.suffix += token.suffix
+        newList.push(newToken)
+      }
+    }) 
+    tokens = newList
+  })
+
+  //console.log (tokens)
+  
+  // clean up a little and return 
+  tokens = cleanTokens(tokens) 
   return tokens
 }
 
-function splitTokensRegex(tokens, delimeter_regex_str) {
-  var items = [],
-      templist = [],
-      token,
-      newtoken; 
-  // loop through array and split each word further based on delimiter regex 
-  tokens.forEach(function(token) { 
-    items = splitStringIntoTokens(token.word, delimeter_regex_str); 
-    if (items.length>0) { // the delimiter matched this word block, it needs to be split further 
-      templist.push({word: '', prefix: token.prefix, suffix: ''}); // these will be cleaned up at the end
-      items.forEach(function(newtoken)  { templist.push(newtoken);  });
-      templist.push({word:'', prefix: '', suffix: token.suffix});
-    } else templist.push(token);
-  });
-  // clean up a little and return -- should we do this only once?
-  return cleanTokenList(templist);
-}
- 
-function splitStringIntoTokens (str, delimeter_regex_str) {
-  // split any string by delimeter with delimeter suffixed to each
-  var tokens = [],
-      prevIndex = 0,
-      match,
-      divider_regex;
+// splits word-wrapped string into tokens -- preserving class and data attributes
+function splitWrappedString(str, tag) { 
+  let tagSplitReg = new RegExp(`(<${tag}.*?>.*?<\/${tag}>)`, 'ig')
+  let tokens = str.split(tagSplitReg).filter((str) => str.length>0)
 
-  divider_regex = new RegExp(delimeter_regex_str, 'g');
+  // format as tokens
+  tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
+
+  // tokens with wrapper tag need the tag removed and the attributes extracted 
+  let tagDataReg = new RegExp(`^<${tag}(.*?)>(.*?)<\/${tag}>$`, 'i')  
+  let classReg = /class\s*=\s*['"]([^'"]+?)['"]/i
+  tokens.map((token, i)=> {
+    let match 
+    if ((match = tagDataReg.exec(token.word)) && (match.length>2)) { 
+      token.word = match[2]
+      let tagData = match[1]
+      if (tagData.length>4) {
+        // pull out the class from the wrapper tag, if any
+        if ((matches = classReg.exec(tagData)) !== null)  tokens[i].info = {class: matches[1].trim().split(' ')}
+        // pull out data attributes from the wrapper tag, if any
+        let datareg = /data-(.*?)\s*=\s*['"]([^'"]+?)['"]/ig 
+        while ((matches = datareg.exec(tagData)) !== null) {
+          if (!tokens[i].info) tokens[i].info = {data:{}} 
+          tokens[i].info.data[matches[1]] = matches[2] 
+        }          
+      } 
+    }
+  })
+
+  return tokens 
+}
+
+// splits a string or array of strings into tokens with a regex delimiter
+function splitRegex(str, delimiterRegex) {
+  // split any string by delimiter suffixed to each
+  var tokens = [], prevIndex = 0, match 
+
+  // split into words
+  let divider_regex = new RegExp(delimiterRegex, 'g')
   while (match = divider_regex.exec(str)) {
     tokens.push({
       word: str.substring(prevIndex, match.index),
       suffix: match[0],
       prefix: ''
-    });
+    })
     prevIndex = divider_regex.lastIndex;
   }
-  // if there is no final delimiter, the last bit is ignored. Grab it into a token
-  if (prevIndex < str.length) tokens.push({word: str.substring(prevIndex, str.length), prefix:'', suffix:''});
+  // if there is no final delimiter, the last chunk is ignored. Put it into a token
+  if (prevIndex < str.length) tokens.push({word: str.substring(prevIndex, str.length), prefix:'', suffix:''})
+
+  // safe cleanup and compression 
+  //let before= JSON.stringify(tokens)
+  tokens = cleanTokens(tokens)
+  //let after= JSON.stringify(tokens)
+  //if (before!= after) console.log('Modified tokens: ', '\n', before, '\n', after, delimiter_regex_str)
+
+  //console.log('splitRegex', str, delimiterRegex, tokens)
   return tokens;
 }
-
-function cleanTokenList(tokens) {
-  // remove empty tokens and merge tokens without words
-  var prefix = '',
-      shortList = [],
-      loc;
-  // merge empty tokens pushing prefixes and suffixes forward to next non-empty word
-  tokens.forEach(function(token, index) {
-    if (token.word.length>0) {
-      token.prefix = prefix+token.prefix;
-      shortList.push(token);
-      prefix = '';
-    } else prefix = prefix + token.prefix + token.suffix;
-  });
-  if (prefix.length>0) {
-    if (shortList.length>0) shortList[shortList.length-1].suffix = shortList[shortList.length-1].suffix + prefix;
-      else shortList.push({word:'', prefix: prefix, suffix:''});
-  }
-  tokens = JSON.parse(JSON.stringify(shortList));
+ 
+// cleanup word, suffix and prefix of token list & delete empty tokens
+function cleanTokens(tokens) {  
+  // remove empty tokens
+  tokens = tokens.filter((tt) => (tt.info || tt.word.length || tt.prefix.length || tt.suffix.length) )
 
   // TODO: these two should be one loop like /^[\s]+|^[^\s]+[\s]+/gm
-  // move back beginning spaces or beginning non-space plus space
-  if (tokens.length>2) for (var i=1; i<tokens.length; i++) {
-    if (loc = /^([\s]+|^[^\s]+[\s]+)(.*)$/gm.exec(tokens[i].prefix)) {
-      tokens[i-1].suffix += loc[1];
-      tokens[i].prefix = loc[2];
+  // move back beginning spaces or beginning non-space plus space (if not an open tag)
+  if (tokens.length>2) tokens.map((token, i) => { 
+    let prevToken = tokens[i-1], tt, regex
+    regex = /^([\s]+|^[^<]+[\s]+)(.*)$/gm
+    if (tt = regex.exec(token.prefix)) {
+      prevToken.suffix += tt[1];
+      token.prefix = tt[2];
+      //console.log('Move spaces back (suffix <- prefix)', `"${token.suffix}"`, `"${token.prefix}"`, tt)
+      checkEmptyToken(tokens, index)
     }
-  }
+  })
 
-  // loop through array and cleanup edges, moving punctuation and tags 
-  let tt, regex
-  tokens.forEach(function(token, index) { 
+  // loop through array and cleanup edges, moving punctuation and tags  
+  tokens.map((token, index) => { 
+    let tt, regex
+
+    // move non-word parts out into prefix and suffix
     regex = XRegExp(`^(\\PL*)([\\pL\-\>\<\’\‘\'\`]+)(\\PL*)$`, 'mgu')  
-
     if (tt = regex.exec(token.word) && Array.isArray(tt) && (tt[1].length || tt[3].length)) { 
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
       token.suffix = tt[3] + token.suffix;
+      //console.log('Moving punctuation out of word',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
+      checkEmptyToken(tokens, index)
     } 
 
-    // Remove single quotes only if they are on both sides
+    // Split out single quotes only if they are on both sides
+    // 'Quoted' -> Quoted
+    // ‘Abd -> ‘Abd
     regex = /^([\’\‘\'\`])(.*)([\’\‘\'\`])$/mg;
+    if ((tt = regex.exec(token.word)) && (tt[1].length>0 && tt[3].length>0)) {
+      token.prefix = token.prefix + tt[1];
+      token.word = tt[2];
+      token.suffix = tt[3] + token.suffix
+      //console.log('Move out single quotes if on both sides of word: ', `"${token.prefix}" "${token.word}" "${token.suffix}"`, '\n', tt)
+      checkEmptyToken(tokens, index)
+    } 
+
+    // for some reason we still sometimes have common punctuation on the ends of the word
+    //  can create an empty token
+    regex = /^([\!\?\@\#\$\%\^\*\(\)\~\,\.]*)([^\!\?\@\#\$\%\^\*\(\)\~\,\.]*)([[\!\?\@\#\$\%\^\*\(\)\~\,\.]*)$/mg;
     if ((tt = regex.exec(token.word)) && (tt[1].length>0 || tt[3].length>0)) {
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
-      token.suffix = tt[3] + token.suffix;
+      token.suffix = tt[3] + token.suffix
+      console.log('Remove punctuation again because my regex sucks',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
+      checkEmptyToken(tokens, index)
     }
 
-    // If the word appears to be an html entity, push it back into prefix
+    // If the entire word appears to be an html entity, push it back into prefix
+    //  can create an empty token
     if ((token.prefix.slice(-1)==='&') && (token.suffix.slice(0,1)===';')) {
       token.prefix = token.prefix + token.word + ';';
       token.word = '';
       token.suffix = token.suffix.slice(1);
+      //console.log('If word is an html entity, move to prefix',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
+      checkEmptyToken(tokens, index)
     } 
 
-    // for each word, add some additional info
-    token.info = tokenInfo(token);
-
-    // replace list item with updated object
-    tokens[index] = token;
+    // if suffix ends with an open tag of some sort, move it to prefix of next word
+    regex = /^(.*?)(<[a-zA-Z]+[^>]*?>)$/ig
+    while (tokens.length>1 && index<tokens.length-1 && (match = regex.exec(token.suffix))) {
+      let nextToken = tokens[index+1]
+      token.suffix = match[1]
+      nextToken.prefix = match[2] + nextToken.prefix 
+      //console.log('If open tag in suffix, move to next prefix',`"${token}" -> "${nextToken.prefix}"`,'\n',tt)
+      checkEmptyToken(tokens, index)
+    }   
   })
  
+  // remove empty tokens 
+  tokens = tokens.filter((tt) => (tt.info || tt.word.length || tt.prefix.length || tt.suffix.length) )
+
   return tokens;
 }
  
-function tokenInfo(token) {
-  let info = {class: []}
-
-  // if token already has class, keep
-  if (token.class && token.class.length>0) {
-    if (typeof token.class==='string') info.class=token.class.trim().split(' ')
-      else info.class=token.class  
-  }
-
-  // now generate base version
-  info.stripped = term_strip_alpha(token.word);
-  // now determine if word is allcaps
-  info.isAllCaps = (info.stripped === info.stripped.toUpperCase());
-
-  //info.lookup = info.stripped.substr(0,3).toLowerCase();
-  info.isPossibleTerm = bterm.isPossibleTerm(token.word);
-  if (info.isPossibleTerm) {
-    info.phoneme = bterm.phonemes(token.word)
-    if (!token.data) token.data={}
-    token.data.sug = info.phoneme
+// check if token word is empty & move suffix/prefix forward or back
+function checkEmptyToken(tokens, index) {
+  let token = tokens[index], destToken
+  if (token.word.trim().length) return
+  if (index<tokens.length-1) { // move empty token forward
+    destToken = tokens[index+1]
+    destToken.prefix = token.prefix + token.word + token.suffix + destToken.prefix
+  } else if (index>0) { // move empty token back
+    destToken = tokens[index-1]
+    destToken.suffix += token.prefix + token.word + token.suffix
   } 
-  info.html = glyph2HTML(token.word);
-  info.glyph = HTML2glyph(token.word);
-  info.ansi = glyph2ANSI(info.glyph);
-  info.soundex = soundex(info.stripped);
-
-  //if (info.isPossibleTerm) info.class = ['term'];
-  return info;
-}
-
-function reTokenizeFromWrapper(str, tag='w') { 
-  // split into array by end tag  
-  let tokens = splitStringIntoTokens(str, `</${tag}>`)
-
-  // when content is inserted between tags, move it to a new tag 
-  for (let i=tokens.length-1; i >= 0; --i) {
-    // if any data in token before <tag, split and insert <tag data to new token  
-    if (tokens[i].word.indexOf(`<${tag}`)>0) {
-      let str = tokens[i].word
-      let index = str.indexOf(`<${tag}`)
-      let l1 = str.substring(0, index)
-      let l2 = str.substring(index+1)
-      let wrd = {word: l2, suffix: tokens[i].suffix, prefix:''}
-      arr.splice(index+1, 0, wrd)
-      tokens[i].word = l1
-      tokens[i].suffix = ''
-    }  
-  } 
-
-  // remove all wrapper close-tags from suffixes, like </w>
-  tokens.map((token) => token.suffix = token.suffix.replace(`</${tag}>`, ''))
-
-  // remove all wrapper open tags and move values into token object 
-  tokens.map((token, i) => { 
-    if (token.word.indexOf(`<${tag}`)>-1) { 
-      // remove wrapper open tag
-      let wrapperTag = token.word.substring(0, token.word.indexOf(`>`)+1) 
-      tokens[i].word = token.word.substring(token.word.indexOf(`>`)+1) 
-
-      // pull out the class from the wrapper tag, if any
-      let classreg = /class\s*=\s*['"]([^'"]+?)['"]/i, matches
-      if ((matches = classreg.exec(wrapperTag)) !== null)  tokens[i].class = [ matches[1].trim() ] 
-
-      // pull out data attributes from the wrapper tag, if any
-      let datareg = /data-(.*?)\s*=\s*['"]([^'"]+?)['"]/ig
-      while ((matches = datareg.exec(wrapperTag)) !== null) {
-        if (!tokens[i].data) tokens[i].data = {} 
-        tokens[i].data[matches[1]] = matches[2] 
-      }  
+  // move info, if exists
+  if (token.info) {
+    if (!destToken.info) destToken.info = token.info
+    else {
+      if (token.info.class) destToken.info.class = mergeArraysUniq(destToken.info.class, token.info.class)
+      if (token.info.data) destToken.info.data = mergeObjects(destToken.info.data, token.info.data) 
     } 
-  })  
-
-  return tokens
+  }
+  // clear empty token
+  tokens[index] = {word:'',prefix:'',suffix:''} // notice you cannot just assign this to token ;)
 }
 
+// gather additional info about token word (soundex etc.)
+function addTokenInfo(token) {
+  let info = {}
+  // keep existing info if exists
+  if (token.info) info = token.info 
 
+  // generate base version of word with only alphanumerics
+  info.stripped = stripNonAlpha(token.word);
+  // determine if word is allcaps
+  // TODO: make sure this works with all languages
+  info.isAllCaps = (info.stripped === info.stripped.toUpperCase())
+ 
+  info.isPossibleTerm = bterm.isPossibleTerm(token.word)
+  if (info.isPossibleTerm) {
+    if (!info.data) info.data = {}
+    info.data.ipa = bterm.phonemes(token.word) 
+  } 
+  info.html = glyph2HTML(token.word)
+  info.glyph = HTML2glyph(token.word)
+  info.ansi = glyph2ANSI(info.glyph)
+  info.soundex = soundex(info.stripped)
+ 
+  token.info = info 
+}
 
+// returns a unique array of merged values, can merge to or with a null
+function mergeArraysUniq(arr, arr2){
+  if (!arr) arr = []
+  if (!arr2) arr2 = []
+  let result = [] 
+  arr.map((item) => {if (result.indexOf(item)<0) result.push(item) })
+  arr2.map((item) => {if (result.indexOf(item)<0) result.push(item) })
+  return result
+}
+
+// merges properties from obj2 into obj if not already present, can merge to or with a null
+function mergeObjects(obj, obj2) {
+  if (!obj) obj = {}
+  if (!obj2) obj2 = {}
+  Object.keys(obj2).map((key) => { if (!obj[key]) obj[key] = obj2[key] })
+  return obj
+}
+ 
 
 
 module.exports = parser
