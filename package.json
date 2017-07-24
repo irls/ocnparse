@@ -24,12 +24,12 @@
   },
   "homepage": "https://github.com/chadananda/ocnparse",
   "devDependencies": {
-    "chai": "^4.0.2",
+    "chai": "^4.1.0",
     "mocha": "^3.4.2",
     "text-diff": "^1.0.1"
   },
   "dependencies": {
-    "bahai-term-phonemes": "^1.0.16",
+    "bahai-term-phonemes": "^1.1.0",
     "xregexp": "^3.2.0"
   }
 }

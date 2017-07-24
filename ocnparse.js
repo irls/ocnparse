@@ -343,15 +343,18 @@ function HTML2glyph(term) {
 
 // takes a string or token list and splits up into properly tokenized list
 function splitTokens(tokens, tag='') {
-  //console.log(tokens)
+  //console.log('before split',tokens)
   if (!tokens) return []   
  
   // if wrapper tag, first tokenize and extract class and data attributes
-  if ((typeof tokens === 'string') && tag) { tokens = splitWrappedString(tokens, tag) }  
-  else if (typeof tokens==='string') tokens = [ {prefix:'', suffix:'', word: tokens} ]
-
+  if ((typeof tokens === 'string') && tag)  tokens = splitWrappedString(tokens, tag)      
+  else if (typeof tokens==='string') tokens = splitUnWrappedString(tokens) 
+ 
   // Initial splitting of all text blocks into tokens 
   let delimiters = [
+    // first, split on line breaks
+    '[\n\r]+',
+    // next on most common legit inline tags which are not part of a word
     '<span.*?>', '</span>', '<a.*?>', '</a>', '&.*?;', '<w.*?>', '</w>', '<q.*?>', '</q>',
     // all html tags except <u>
     '</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>',
@@ -361,12 +364,9 @@ function splitTokens(tokens, tag='') {
     "[\\s\\,\\.\\!\\—\\?\\;\\:\\[\\]\\+\\=\\(\\)\\*\\&\\^\\%\\$\\#\\@\\~\\|]+?"
   ]   
   delimiters.map( (delimiterRegex) => {
-    //tokens = splitTokensRegex(tokens, delimiter)
-    // console.log('splitting token with new delimter', tokens[0], delimiterRegex)
     let items, newList = [] 
     tokens.map((token) => {   
-      items = splitRegex(token.word, delimiterRegex)  
-      //console.log('split: ',token.word, items)
+      items = splitRegex(token.word, delimiterRegex)   
       if (items.length>1) { // the delimiter matched this word block, it needs to be split further 
         // add the first token 
         let firstToken = items[0]
@@ -379,30 +379,61 @@ function splitTokens(tokens, tag='') {
         let lastToken = items[items.length-1]
         lastToken.suffix += token.suffix 
         newList.push(lastToken)
-      } else {
-        let newToken = items[0]
+      } else if (items.length>0)  { // single word token, but possibly modified with regard to prefix and suffix
+        let newToken = items[0] 
         newToken.prefix = token.prefix + newToken.prefix
         newToken.suffix += token.suffix
+        if (token.info) newToken.info = token.info
         newList.push(newToken)
-      }
+      } else newList.push(token) // empty word token, usually with \n in suffix
     }) 
-    tokens = newList
-  })
+    tokens = newList 
+  }) 
+ 
+  tokens = cleanTokens(tokens)  
+  return tokens
+}
 
-  //console.log (tokens)
-  
-  // clean up a little and return 
-  tokens = cleanTokens(tokens) 
+function splitUnWrappedString(str) {
+  // split by line break (line breaks mess with javascript regex multiline parsing)
+  let tagSplitReg = new RegExp(`([\n\r]+)`, 'g')
+  let tokens = str.split(tagSplitReg).filter((str) => str.length>0) 
+
+  // format as tokens
+  tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
+
+  // push all line endings to suffixes
+  // console.log('splitUnWrappedString', tokens)
+  tokens.map((token, i)=> {
+    while (token.word.length>0 && token.word[token.word.length-1].match(/[\n\r]/)) {
+      // console.log('Found line break at end of word', token)
+      token.suffix = token.word[token.word.length-1] + token.suffix
+      token.word = token.word.slice(0, token.word.length-1)
+      // console.log('Moved line break to suffix', token)
+    } 
+  })
   return tokens
 }
 
 // splits word-wrapped string into tokens -- preserving class and data attributes
 function splitWrappedString(str, tag) { 
-  let tagSplitReg = new RegExp(`(<${tag}.*?>.*?<\/${tag}>)`, 'ig')
+  // split by wrapper tag and line break (line breaks mess with javascript regex multiline parsing)
+  let tagSplitReg = new RegExp(`(<${tag}.*?>.*?<\/${tag}>|[\n\r]+)`, 'ig')
   let tokens = str.split(tagSplitReg).filter((str) => str.length>0)
 
   // format as tokens
   tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
+
+  // push all line endings to suffixes
+  //console.log('splitWrappedString', tokens)
+  tokens.map((token, i)=> {
+    while (token.word.length>0 && token.word[token.word.length-1].match(/[\n\r]/)) {
+      //console.log('Found line break at end of word', token)
+      token.suffix = token.word[token.word.length-1] + token.suffix
+      token.word = token.word.slice(0, token.word.length-1)
+      //console.log('Moved line break to suffix', token)
+    } 
+  })
 
   // tokens with wrapper tag need the tag removed and the attributes extracted 
   let tagDataReg = new RegExp(`^<${tag}(.*?)>(.*?)<\/${tag}>$`, 'i')  
@@ -447,10 +478,10 @@ function splitRegex(str, delimiterRegex) {
   if (prevIndex < str.length) tokens.push({word: str.substring(prevIndex, str.length), prefix:'', suffix:''})
 
   // safe cleanup and compression 
-  //let before= JSON.stringify(tokens)
+  let before= JSON.stringify(tokens)
   tokens = cleanTokens(tokens)
-  //let after= JSON.stringify(tokens)
-  //if (before!= after) console.log('Modified tokens: ', '\n', before, '\n', after, delimiter_regex_str)
+  let after= JSON.stringify(tokens)
+  //if (before!= after) console.log('Modified tokens: ', '\n', before, '\n', after, delimiterRegex)
 
   //console.log('splitRegex', str, delimiterRegex, tokens)
   return tokens;
@@ -459,18 +490,20 @@ function splitRegex(str, delimiterRegex) {
 // cleanup word, suffix and prefix of token list & delete empty tokens
 function cleanTokens(tokens) {  
   // remove empty tokens
-  tokens = tokens.filter((tt) => (tt.info || tt.word.length || tt.prefix.length || tt.suffix.length) )
+  tokens = packEmptyTokens(tokens)
 
   // TODO: these two should be one loop like /^[\s]+|^[^\s]+[\s]+/gm
   // move back beginning spaces or beginning non-space plus space (if not an open tag)
   if (tokens.length>2) tokens.map((token, i) => { 
-    let prevToken = tokens[i-1], tt, regex
-    regex = /^([\s]+|^[^<]+[\s]+)(.*)$/gm
-    if (tt = regex.exec(token.prefix)) {
-      prevToken.suffix += tt[1];
-      token.prefix = tt[2];
-      //console.log('Move spaces back (suffix <- prefix)', `"${token.suffix}"`, `"${token.prefix}"`, tt)
-      checkEmptyToken(tokens, index)
+    if (i>0) { // we cannot do move back for first token
+      let prevToken = tokens[i-1], tt, regex
+      regex = /^([\s]+|^[^<]+[\s]+)(.*)$/gm
+      if (tt = regex.exec(token.prefix)) {
+        prevToken.suffix += tt[1];
+        token.prefix = tt[2];
+        //console.log('Move spaces back (suffix <- prefix)', `"${token.suffix}"`, `"${token.prefix}"`, tt)
+        if (!token.word.length) moveEmptyToken(tokens, index)
+      }
     }
   })
 
@@ -485,7 +518,7 @@ function cleanTokens(tokens) {
       token.word = tt[2];
       token.suffix = tt[3] + token.suffix;
       //console.log('Moving punctuation out of word',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
-      checkEmptyToken(tokens, index)
+      if (!token.word.length) moveEmptyToken(tokens, index)
     } 
 
     // Split out single quotes only if they are on both sides
@@ -497,7 +530,7 @@ function cleanTokens(tokens) {
       token.word = tt[2];
       token.suffix = tt[3] + token.suffix
       //console.log('Move out single quotes if on both sides of word: ', `"${token.prefix}" "${token.word}" "${token.suffix}"`, '\n', tt)
-      checkEmptyToken(tokens, index)
+      if (!token.word.length) moveEmptyToken(tokens, index)
     } 
 
     // for some reason we still sometimes have common punctuation on the ends of the word
@@ -507,8 +540,9 @@ function cleanTokens(tokens) {
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
       token.suffix = tt[3] + token.suffix
-      console.log('Remove punctuation again because my regex sucks',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
-      checkEmptyToken(tokens, index)
+      //console.log('Remove punctuation again because my regex sucks',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
+      if (!token.word.length) moveEmptyToken(tokens, index)
+      //console.log('after checkEmptyToken',`"${token.suffix}" "${token.word}" "${token.prefix}"`)
     }
 
     // If the entire word appears to be an html entity, push it back into prefix
@@ -518,7 +552,7 @@ function cleanTokens(tokens) {
       token.word = '';
       token.suffix = token.suffix.slice(1);
       //console.log('If word is an html entity, move to prefix',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
-      checkEmptyToken(tokens, index)
+      if (!token.word.length) moveEmptyToken(tokens, index)
     } 
 
     // if suffix ends with an open tag of some sort, move it to prefix of next word
@@ -528,18 +562,34 @@ function cleanTokens(tokens) {
       token.suffix = match[1]
       nextToken.prefix = match[2] + nextToken.prefix 
       //console.log('If open tag in suffix, move to next prefix',`"${token}" -> "${nextToken.prefix}"`,'\n',tt)
-      checkEmptyToken(tokens, index)
+      if (!token.word.length) moveEmptyToken(tokens, index)
     }   
   })
  
-  // remove empty tokens 
-  tokens = tokens.filter((tt) => (tt.info || tt.word.length || tt.prefix.length || tt.suffix.length) )
+  tokens = packEmptyTokens(tokens)
 
   return tokens;
 }
- 
+
+function packEmptyTokens(tokens) {
+  if (tokens.length<1) return []
+  // run through all tokens from the end checking for empties 
+  for (i=tokens.length-1; i>=1; i--) if (tokens[i].word.length===0) {
+    let prevToken = tokens[i-1]
+    let token = tokens[i]
+    prevToken.suffix += token.prefix + token.suffix
+    token.suffix=''
+    token.prefix=''
+    token.info=null
+  } 
+  // now check token#1
+  moveEmptyToken(tokens, 0)
+  // remove empty tokens 
+  return tokens.filter((tt) => (tt.info || tt.word.length || tt.prefix.length || tt.suffix.length) )
+}
+
 // check if token word is empty & move suffix/prefix forward or back
-function checkEmptyToken(tokens, index) {
+function moveEmptyToken(tokens, index) {
   let token = tokens[index], destToken
   if (token.word.trim().length) return
   if (index<tokens.length-1) { // move empty token forward
