@@ -92,6 +92,7 @@ var parser = {
     tokens.map( (token) => {
       let data_attrs = ''
       let class_attr = ''
+      let class_id = ''
       if (token.info) {
         //console.log(token.word, ':', token.info)
         // data attributes are stored as a keyed object: token.info.data = {attrName: attrValue}
@@ -100,8 +101,10 @@ var parser = {
         })
         // class is stored as a simple array in tokens:  token.info.class = []
         if (token.info.class && token.info.class.length>0) class_attr = ` class="${token.info.class.join(' ')}"`
+        // add id 
+        if (token.info.id) class_id = ` id="${token.info.id}"`
       } 
-      let openTag = (tag.length>0 ? `<${tag}${class_attr}${data_attrs}>` : '')
+      let openTag = (tag.length>0 ? `<${tag}${class_id}${class_attr}${data_attrs}>` : '')
       let closeTag = (tag.length>0 ? `</${tag}>` : '')
       let wrappedToken = `${openTag}${token.prefix}${token.word}${token.suffix}${closeTag}`
       result.push(wrappedToken)
@@ -441,6 +444,7 @@ function splitWrappedString(str, tag) {
   // tokens with wrapper tag need the tag removed and the attributes extracted 
   let tagDataReg = new RegExp(`^<${tag}(.*?)>(.*?)<\/${tag}>$`, 'i')  
   let classReg = /class\s*=\s*['"]([^'"]+?)['"]/i
+  let idReg = /id\s*=\s*['"]([^'"]+?)['"]/i
   tokens.map((token, i)=> {
     let match 
     if ((match = tagDataReg.exec(token.word)) && (match.length>2)) { 
@@ -448,7 +452,13 @@ function splitWrappedString(str, tag) {
       let tagData = match[1]
       if (tagData.length>4) {
         // pull out the class from the wrapper tag, if any
-        if ((matches = classReg.exec(tagData)) !== null)  tokens[i].info = {class: matches[1].trim().split(' ')}
+        if ((matches = classReg.exec(tagData)) !== null)  token.info = {class: matches[1].trim().split(' ')}
+        // pull out the wrapper tag id, if any
+        if ((matches = idReg.exec(tagData)) !== null) {
+          if (!token.info) token.info = {}
+          token.info.id = matches[1].trim()   
+          //console.log('match found', matches)
+        }      
         // pull out data attributes from the wrapper tag, if any
         let datareg = /data-(.*?)\s*=\s*['"]([^'"]+?)['"]/ig 
         while ((matches = datareg.exec(tagData)) !== null) {
