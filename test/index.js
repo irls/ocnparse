@@ -203,12 +203,30 @@ describe('Ocean Parser Behaviour Tests', function() {
         if (dest!=wrapped) console.log('      '+src, '\n      '+wrapped, '\n      '+dest)
         return expect(wrapped===dest).to.be.true
       })
+    })
+  }) //  String with tokens correctly re-tokenizes
 
+  describe('Add IDs to tags', function () {
+    let testString, tag 
 
+    describe('Sending a token list through tokenize() should work', function () { 
+      let tokens = parser.tokenize("Jack jumped over the bean stalk")
+      let cmp = `<w id="word_1">Jack </w><w id="word_2">jumped </w><w id="word_3">over </w><w id="word_4">the </w><w id="word_5">bean </w><w id="word_6">stalk</w>`
+      // console.log(tokens)
+      tokens.map((token, index) => token.info.id = 'word_'+(index+1))
+      let wrapped = parser.rebuild(tokens, 'w') 
+      it(`ID injected words match expectations`, () => expect(wrapped).to.equal(cmp))  
+    })
+
+    describe('Rewrapping string with id values should match original', function () { 
+      //let tokens = parser.tokenize("Jack jumped over the bean stalk")
+      let cmp = `<w id="word_1">Jack </w><w id="word_2">jumped </w><w id="word_3">over </w><w id="word_4">the </w><w id="word_5">bean </w><w id="word_6">stalk</w>`
+      let wrapped = parser.reWrap(cmp, 'w') 
+      it(`Rewrapping tags with ids exactly matched original string`, () => expect(wrapped).to.equal(cmp))  
     })
 
 
- }) //  String with tokens correctly re-tokenizes
+  }) //  String with tokens correctly re-tokenizes
 
 });
 
