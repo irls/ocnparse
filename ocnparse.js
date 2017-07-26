@@ -422,13 +422,29 @@ function splitUnWrappedString(str) {
 }
 
 // splits word-wrapped string into tokens -- preserving class and data attributes
-function splitWrappedString(str, tag) { 
+function splitWrappedString(str, tag='w') { 
+  console.log('splitWrappedString', str)
+
   // split by wrapper tag and line break (line breaks mess with javascript regex multiline parsing)
-  let tagSplitReg = new RegExp(`(<${tag}.*?>.*?<\/${tag}>|[\n\r]+)`, 'ig')
-  let tokens = str.split(tagSplitReg).filter((str) => str.length>0)
+  let tagSplitReg = new RegExp(`<${tag}.*?>[\s\S]*?<\/${tag}>`, 'img')
+  let matches, tokens = []
+  while (matches = tagSplitReg.exec(str)) {
+    console.log('match: ', matches)
+  }
+
+
+  //let tokens = str.split(tagSplitReg).filter((str) => str.length>0)
+
+  //console.log('Initial split', tokens)
+
+
 
   // format as tokens
   tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
+
+  //console.log('Initial token split', tokens)
+
+  //
 
   // push all line endings to suffixes
   //console.log('splitWrappedString', tokens)
@@ -442,13 +458,21 @@ function splitWrappedString(str, tag) {
   })
 
   // tokens with wrapper tag need the tag removed and the attributes extracted 
-  let tagDataReg = new RegExp(`^<${tag}(.*?)>(.*?)<\/${tag}>$`, 'i')  
-  let classReg = /class\s*=\s*['"]([^'"]+?)['"]/i
-  let idReg = /id\s*=\s*['"]([^'"]+?)['"]/i
+  let tagDataReg = new RegExp(`<${tag}(.*?)>([\s\S]*?)<\/${tag}>`, 'im')  
+  let classReg = /class\s*=\s*['"]([^'"]+?)['"]/im
+  let idReg = /id\s*=\s*['"]([^'"]+?)['"]/im
   tokens.map((token, i)=> {
     let match 
     if ((match = tagDataReg.exec(token.word)) && (match.length>2)) { 
       token.word = match[2]
+      token = trimToken(token) // split out whitespace in word
+      // word may still contain illegal internal line-breaks
+      
+
+
+      
+      
+
       let tagData = match[1]
       if (tagData.length>4) {
         // pull out the class from the wrapper tag, if any
@@ -470,6 +494,20 @@ function splitWrappedString(str, tag) {
   })
 
   return tokens 
+}
+
+// move any whitespace on edges of word in word to suffix and prefix -- works with multiline whitespace
+function trimToken(token) { 
+  console.log('pre-trimmed token', token)
+    // regex = XRegExp(`^(\\PL*)([\\pL\-\>\<\’\‘\'\`]+)(\\PL*)$`, 'mgu')    
+  let padReg = /\A(\s*?)(\S[\s\S]*?)(\s*?)\z/im
+  if (match = padReg.exec(token.word) && Array.isArray(match)) {
+    token.prefix += match[1]
+    token.word = match[2]
+    token.suffix = match[3] + token.suffix
+  }
+  console.log('trimmed token', token)
+  return token
 }
 
 // splits a string or array of strings into tokens with a regex delimiter

@@ -11,7 +11,7 @@ var tests = require('./testblocks.js')()
  
 
 describe('Ocean Parser Behaviour Tests', function() {
-
+/*
   describe('Parse and rebuild English strings', function () {
     it('Tokenizing then rebuilding plaintext should result in identical block', function () {
       let src = tests.plaintext  
@@ -227,6 +227,40 @@ describe('Ocean Parser Behaviour Tests', function() {
 
 
   }) //  String with tokens correctly re-tokenizes
+
+*/
+  describe('Reparse a few times', function () {
+    let testString, tag 
+
+    // describe('Sending a token list through tokenize() should work', function () { 
+    //   let tokens = parser.tokenize("Jack jumped over the bean stalk")
+    //   //let cmp = `<w id="word_1">Jack </w><w id="word_2">jumped </w><w id="word_3">over </w><w id="word_4">the </w><w id="word_5">bean </w><w id="word_6">stalk</w>`
+    //   let wrapped = parser.rebuild(tokens, 'w')
+    //   let rewrapped = parser.reWrap(parser.reWrap(parser.reWrap(wrapped)))  
+    //   it(`rewrapped short phrase several times correctly`, () => expect(wrapped).to.equal(rewrapped))  
+    // })
+
+     describe('Sending a token list through tokenize() should work', function () { 
+      let src = tests.spans
+      src =`test \n\n test2`
+      let tokens = parser.tokenize(src) 
+      //console.log('tokenized',tokens)
+      let wrapped = parser.rebuild(tokens, 'w')
+      //console.log(wrapped)
+      let retokenized = parser.tokenize(wrapped, 'w')
+      //console.log('retokenized:', retokenized)
+      let rewrapped = parser.reWrap(wrapped, 'w')  
+      //console.log(rewrapped)
+      if (wrapped!=rewrapped) {
+        var diff = new Diff()
+       // console.log('Rebuild failed to match exactly', diff.main(wrapped, rewrapped))
+      }
+      it(`rewrapped long phrase correctly`, () => expect(wrapped).to.equal(rewrapped))  
+    })
+
+
+  }) //  String with tokens correctly re-tokenizes
+
 
 });
 
