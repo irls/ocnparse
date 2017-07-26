@@ -11,55 +11,52 @@ var tests = require('./testblocks.js')()
  
 
 describe('Ocean Parser Behaviour Tests', function() {
-/*
+
   describe('Parse and rebuild English strings', function () {
-    it('Tokenizing then rebuilding plaintext should result in identical block', function () {
-      let src = tests.plaintext  
-      let tokens = parser.tokenize(src)
-      let dest = parser.rebuild(tokens)
-      if (dest!=src) console.log(`"${dest}"`)
-      expect(tokens.length).to.equal(45)
-      expect(dest===src).to.be.true;
-    })
-    it('Tokenizing then rebuilding block with <q> wrapper should result in identical block', function () {
-      let src = tests.spans
-      //src = `This,\n.`
-      let tokens = parser.tokenize(src)
-      //console.log('Final tokens', tokens)
-      let dest = parser.rebuild(tokens)
-      if (dest!=src) {
-        var diff = new Diff()
-        console.log('Rebuild failed to match exactly', diff.main(src, dest))
-      }
-      expect(dest===src).to.be.true;
-    })
-    it('Correctly wrap a simple block in <w> tags', function () {
-      let src = tests.plaintext
-      let cmp = tests.plaintext_wrapped
-      let wrapped = parser.reWrap(src, 'w')
-      if (wrapped!=cmp) console.log(wrapped) 
-      expect(wrapped===cmp).to.be.true;
-    })
+    // it('Tokenizing then rebuilding plaintext should result in identical block', function () {
+    //   let src = tests.plaintext  
+    //   let tokens = parser.tokenize(src)
+    //   let dest = parser.rebuild(tokens)
+    //   if (dest!=src) console.log(`"${dest}"`)
+    //   expect(tokens.length).to.equal(45)
+    //   expect(dest===src).to.be.true;
+    // })
+    // it('Tokenizing then rebuilding block with <q> wrapper should result in identical block', function () {
+    //   let src = tests.spans
+    //   //src = `This,\n.`
+    //   let tokens = parser.tokenize(src)
+    //   //console.log('Final tokens', tokens)
+    //   let dest = parser.rebuild(tokens)
+    //   if (dest!=src) {
+    //     var diff = new Diff()
+    //     console.log('Rebuild failed to match exactly', diff.main(src, dest))
+    //   }
+    //   expect(dest===src).to.be.true;
+    // })
+    // it('Correctly wrap a simple block in <w> tags', function () {
+    //   let src = tests.plaintext
+    //   let cmp = tests.plaintext_wrapped 
+    //   let tokens = parser.tokenize(src)
+    //   let wrapped = parser.rebuild(tokens, 'w') 
+    //   if (wrapped!=cmp) console.log(tokens, wrapped, '\n', cmp) 
+    //   expect(wrapped).to.equal(cmp)
+    // })
     it('Correctly wrap a complex block in <w> tags', function () {
       let src = tests.spans
       let cmp = tests.spans_wrapped
-     // src =`words: <q class="abd">“How great, how very great is the Cause!`
-     // cmp=`<w>words: </w><w><q class="abd">“How </w><w>great, </w><w>how </w><w>very </w><w>great </w><w>is </w><w>the </w><w>Cause!</w>`
-
-     // src=`words: <q class="abd">“How great`
-     // cmp=`<w>words: </w><w><q class="abd">“How </w><w>great</w>`
-      let wrapped = parser.reWrap(src, 'w')
-      //if (wrapped!=cmp)  console.log(' should be: ', cmp, '\n', 'result:  ', wrapped) 
+      // src =`words: <q class="abd">“How great, how very great is the Cause!`
+      // cmp=`<w>words: </w><w><q class="abd">“How </w><w>great, </w><w>how </w><w>very </w><w>great </w><w>is </w><w>the </w><w>Cause!</w>`
+      let tokens = parser.tokenize(src)
+      let wrapped = parser.rebuild(tokens, 'w')
+      if (wrapped!=cmp)  console.log(' should be: ', cmp, '\n', 'result:  ', wrapped) 
       if (wrapped!=cmp) {
         var diff = new Diff()
-        console.log('Rebuild failed to match exactly', '\n\n should be:  ', cmp, '\n actually is:', wrapped)
-
+         console.log('Rebuild failed to match exactly', '\n\n should be:  ', cmp, '\n actually is:', wrapped)
       }
       expect(wrapped===cmp).to.be.true;
     })
+
   }) // Parse and rebuild English strings
-
-
 
   describe('Parse and rebuild Farsi strings', function () {
     it('Tokenizing then rebuilding Farsi plaintext should result in identical block', function () {
@@ -83,6 +80,7 @@ describe('Ocean Parser Behaviour Tests', function() {
       expect(wrapped===cmp).to.be.true;
     })
   }) // Parse and rebuild Farsi strings
+
 
   describe(`Test "tokenize('!!hello!!')"`, function () {
     let token = parser.tokenize('!!hello!!')[0]
@@ -228,39 +226,28 @@ describe('Ocean Parser Behaviour Tests', function() {
 
   }) //  String with tokens correctly re-tokenizes
 
-*/
-  describe('Reparse a few times', function () {
-    let testString, tag 
 
-    // describe('Sending a token list through tokenize() should work', function () { 
-    //   let tokens = parser.tokenize("Jack jumped over the bean stalk")
-    //   //let cmp = `<w id="word_1">Jack </w><w id="word_2">jumped </w><w id="word_3">over </w><w id="word_4">the </w><w id="word_5">bean </w><w id="word_6">stalk</w>`
-    //   let wrapped = parser.rebuild(tokens, 'w')
-    //   let rewrapped = parser.reWrap(parser.reWrap(parser.reWrap(wrapped)))  
-    //   it(`rewrapped short phrase several times correctly`, () => expect(wrapped).to.equal(rewrapped))  
-    // })
+  describe('Multiple reparse does not distort text', function () {
+    let testString, tag, src, tokens, wrapped, rewrapped
+  
+    tokens = parser.tokenize("Jack jumped over the bean stalk") 
+    wrapped = parser.rebuild(tokens, 'w')
+    rewrapped = parser.reWrap(parser.reWrap(parser.reWrap(wrapped)))  
+    it(`Multiple rewrap of short phrase several times`, () => expect(wrapped).to.equal(rewrapped))  
 
-     describe('Sending a token list through tokenize() should work', function () { 
-      let src = tests.spans
-      src =`test \n\n test2`
-      let tokens = parser.tokenize(src) 
-      //console.log('tokenized',tokens)
-      let wrapped = parser.rebuild(tokens, 'w')
-      //console.log(wrapped)
-      let retokenized = parser.tokenize(wrapped, 'w')
-      //console.log('retokenized:', retokenized)
-      let rewrapped = parser.reWrap(wrapped, 'w')  
-      //console.log(rewrapped)
-      if (wrapped!=rewrapped) {
-        var diff = new Diff()
-       // console.log('Rebuild failed to match exactly', diff.main(wrapped, rewrapped))
-      }
-      it(`rewrapped long phrase correctly`, () => expect(wrapped).to.equal(rewrapped))  
-    })
-
-
+    src = tests.spans 
+    tokens = parser.tokenize(src, 'w')  
+    wrapped = parser.rebuild(tokens, 'w') 
+    retokenized = parser.tokenize(wrapped, 'w') 
+    rewrapped = parser.reWrap(parser.reWrap(wrapped, 'w'), 'w')  
+    if (wrapped!=rewrapped) {
+      var diff = new Diff()
+      console.log('Multiple rebuild failed to match exactly', diff.main(wrapped, rewrapped))
+    }
+    it(`Multiple rewrap of long phrase`, () => expect(wrapped).to.equal(rewrapped))  
   }) //  String with tokens correctly re-tokenizes
 
+ 
 
 });
 
