@@ -403,73 +403,81 @@ function splitTokens(tokens, tag='') {
 function splitUnWrappedString(str) {
   // split by line break (line breaks mess with javascript regex multiline parsing)
   let tagSplitReg = new RegExp(`([\n\r]+)`, 'g')
-  let tokens = str.split(tagSplitReg).filter((str) => str.length>0) 
-
-  // format as tokens
-  tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
-
-  // push all line endings to suffixes
-  // console.log('splitUnWrappedString', tokens)
-  tokens.map((token, i)=> {
-    while (token.word.length>0 && token.word[token.word.length-1].match(/[\n\r]/)) {
-      // console.log('Found line break at end of word', token)
-      token.suffix = token.word[token.word.length-1] + token.suffix
-      token.word = token.word.slice(0, token.word.length-1)
-      // console.log('Moved line break to suffix', token)
-    } 
-  })
+  let tokens = str.split(tagSplitReg).filter((str) => str.length>0).map((word) => {
+    return trimToken({word: word, suffix: '', prefix: ''})
+  })  
+  tokens = packEmptyTokens(tokens)
+  //console.log('Initial split', tokens)
   return tokens
 }
 
 // splits word-wrapped string into tokens -- preserving class and data attributes
-function splitWrappedString(str, tag) { 
+function splitWrappedString(str, tag='w') {  
   // split by wrapper tag and line break (line breaks mess with javascript regex multiline parsing)
-  let tagSplitReg = new RegExp(`(<${tag}.*?>.*?<\/${tag}>|[\n\r]+)`, 'ig')
-  let tokens = str.split(tagSplitReg).filter((str) => str.length>0)
-
-  // format as tokens
-  tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
-
-  // push all line endings to suffixes
-  //console.log('splitWrappedString', tokens)
-  tokens.map((token, i)=> {
-    while (token.word.length>0 && token.word[token.word.length-1].match(/[\n\r]/)) {
-      //console.log('Found line break at end of word', token)
-      token.suffix = token.word[token.word.length-1] + token.suffix
-      token.word = token.word.slice(0, token.word.length-1)
-      //console.log('Moved line break to suffix', token)
-    } 
+  let matches, tokens = []  
+  // let tagSplitReg = new RegExp(`<${tag}.*?>[\\s\\S]*?<\\/${tag}>`, 'img')
+  // while (matches = tagSplitReg.exec(str)) tokens.push({word: matches[0], prefix:'', suffix:''})  
+  // this approach rquires an extra step but is more clear
+  tagSplitReg = new RegExp(`(<${tag}.*?>[\\s\\S]*?<\\/${tag}>)`, 'img')
+  //tokens = str.split(tagSplitReg).filter((item)=>item.length>0)
+  //tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
+  str.split(tagSplitReg).filter((s)=>s.length>0).map((word)=>{  
+    let token = {word: word, suffix: '', prefix: ''}
+    token = extractWrapperTag(token, tag)
+    token = trimToken(token)
+    tokens.push(token) 
   })
-
-  // tokens with wrapper tag need the tag removed and the attributes extracted 
-  let tagDataReg = new RegExp(`^<${tag}(.*?)>(.*?)<\/${tag}>$`, 'i')  
-  let classReg = /class\s*=\s*['"]([^'"]+?)['"]/i
-  let idReg = /id\s*=\s*['"]([^'"]+?)['"]/i
-  tokens.map((token, i)=> {
-    let match 
-    if ((match = tagDataReg.exec(token.word)) && (match.length>2)) { 
-      token.word = match[2]
-      let tagData = match[1]
-      if (tagData.length>4) {
-        // pull out the class from the wrapper tag, if any
-        if ((matches = classReg.exec(tagData)) !== null)  token.info = {class: matches[1].trim().split(' ')}
-        // pull out the wrapper tag id, if any
-        if ((matches = idReg.exec(tagData)) !== null) {
-          if (!token.info) token.info = {}
-          token.info.id = matches[1].trim()   
-          //console.log('match found', matches)
-        }      
-        // pull out data attributes from the wrapper tag, if any
-        let datareg = /data-(.*?)\s*=\s*['"]([^'"]+?)['"]/ig 
-        while ((matches = datareg.exec(tagData)) !== null) {
-          if (!tokens[i].info) tokens[i].info = {data:{}} 
-          tokens[i].info.data[matches[1]] = matches[2] 
-        }          
-      } 
-    }
-  })
-
+  //console.log('Initial split', tokens) 
+  tokens = packEmptyTokens(tokens)
   return tokens 
+}
+
+// extracts wrapper tag and attribute data (class, data-attrs and id)
+function extractWrapperTag(token, tag='w') {
+  let tagDataReg = new RegExp(`<${tag}(.*?)>([\\s\\S]*?)<\\/${tag}>`, 'im')  
+  let classReg = /class\s*=\s*['"]([^'"]+?)['"]/im
+  let idReg = /id\s*=\s*['"]([^'"]+?)['"]/im
+  let match 
+  if ((match = tagDataReg.exec(token.word)) && (match.length>2)) { 
+    token.word = match[2]
+    token = trimToken(token) // split out whitespace in word
+    // word may still contain illegal internal line-breaks and will need re-split
+    let tagData = match[1]
+    if (tagData.length>4) {
+      // pull out the class from the wrapper tag, if any
+      if ((matches = classReg.exec(tagData)) !== null)  token.info = {class: matches[1].trim().split(' ')}
+      // pull out the wrapper tag id, if any
+      if ((matches = idReg.exec(tagData)) !== null) {
+        if (!token.info) token.info = {}
+        token.info.id = matches[1].trim()   
+        //console.log('match found', matches)
+      }      
+      // pull out data attributes from the wrapper tag, if any
+      let datareg = /data-(.*?)\s*=\s*['"]([^'"]+?)['"]/img 
+      while ((matches = datareg.exec(tagData)) !== null) {
+        if (!token.info) token.info = {data:{}} 
+        token.info.data[matches[1]] = matches[2] 
+      }          
+    } 
+  } 
+
+  return token
+}
+
+// move any whitespace on edges of word in word to suffix and prefix -- works with multiline whitespace
+// TODO: update to use multiline begin and end anchors
+function trimToken(token) { 
+  //console.log('pre-trimmed token', token) 
+  //let padReg = XRegExp(`\\A(\\s*?)(\\S[\\s\\S]*?)(\\s*?)\\z`, 'imgus') // fails, does not accept \A
+  //let padReg = new RegExp(`^(\\s*?)(\\S[\\S\\s]+?\\S)(\\s*)$`, 'gmu')
+  let padReg = XRegExp(`^(\\s*?)(\\S[\\S\\s]+?\\S)(\\s*)$`, 'imgus') // does not accept \A
+  if (match = padReg.exec(token.word)) {  
+    token.prefix += match[1]
+    token.word = match[2]
+    token.suffix = match[3] + token.suffix
+  }
+  //console.log('trimmed token', token)
+  return token
 }
 
 // splits a string or array of strings into tokens with a regex delimiter
@@ -510,6 +518,7 @@ function cleanTokens(tokens) {
   if (tokens.length>2) tokens.map((token, i) => { 
     if (i>0) { // we cannot do move back for first token
       let prevToken = tokens[i-1], tt, regex
+      if (!prevToken) console.error('Corrupt token list', i, tokens)
       regex = /^([\s]+|^[^<]+[\s]+)(.*)$/gm
       if (tt = regex.exec(token.prefix)) {
         prevToken.suffix += tt[1];
@@ -585,24 +594,30 @@ function cleanTokens(tokens) {
 }
 
 function packEmptyTokens(tokens) {
-  if (tokens.length<1) return []
-  // run through all tokens from the end checking for empties 
-  for (i=tokens.length-1; i>=1; i--) if (tokens[i].word.length===0) {
-    let prevToken = tokens[i-1]
+  if (!tokens || !Array.isArray(tokens) || tokens.length<1) return []
+
+  let intialCount = tokens.length
+  for (i=intialCount-1; i>=1; i--) {
     let token = tokens[i]
-    prevToken.suffix += token.prefix + token.suffix
-    token.suffix=''
-    token.prefix=''
-    token.info=null
-  } 
+    //if (!token.hasOwnProperty('word')) console.log('error token', token)
+    if (!token.word.length || !token.word.trim().length) {
+      let prevToken = tokens[i-1]
+      let token = tokens[i]
+      //console.log('empty token', i, token)
+      prevToken.suffix += token.prefix + token.word + token.suffix 
+      tokens.splice(i, 1);  //delete(tokens[i])
+    }
+  }  
   // now check token#1
-  moveEmptyToken(tokens, 0)
+  if (tokens.length) moveEmptyToken(tokens, 0)
   // remove empty tokens 
-  return tokens.filter((tt) => (tt.info || tt.word.length || tt.prefix.length || tt.suffix.length) )
+  // return tokens.filter((tt) => (tt.info || tt.word.length || tt.prefix.length || tt.suffix.length) )
+  return tokens
 }
 
 // check if token word is empty & move suffix/prefix forward or back
 function moveEmptyToken(tokens, index) {
+  if (!tokens[index]) return tokens
   let token = tokens[index], destToken
   if (token.word.trim().length) return
   if (index<tokens.length-1) { // move empty token forward
@@ -621,7 +636,9 @@ function moveEmptyToken(tokens, index) {
     } 
   }
   // clear empty token
-  tokens[index] = {word:'',prefix:'',suffix:''} // notice you cannot just assign this to token ;)
+  tokens.splice(index, 1);  //delete(tokens[i])
+  // tokens[index] = {word:'',prefix:'',suffix:''} // notice you cannot just assign this to token ;)
+  return tokens
 }
 
 // gather additional info about token word (soundex etc.)
