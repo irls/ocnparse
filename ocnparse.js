@@ -426,16 +426,18 @@ function splitWrappedString(str, tag='w') {
   console.log('splitWrappedString', str)
 
   // split by wrapper tag and line break (line breaks mess with javascript regex multiline parsing)
-  let tagSplitReg = new RegExp(`<${tag}.*?>[\s\S]*?<\/${tag}>`, 'img')
-  let matches, tokens = []
-  while (matches = tagSplitReg.exec(str)) {
-    console.log('match: ', matches)
-  }
+  let delimiterRegex = `<${tag}.*?>[\s\S]*?<\/${tag}>`
+  //let tagSplitReg = new RegExp(`<${tag}.*?>[\s\S]*?<\/${tag}>`, 'img')
+  //let matches, tokens = []
+  // while (matches = tagSplitReg.exec(str)) {
+  //   console.log('match: ', matches)
+  // }
+  let tokens = splitRegex(str, delimiterRegex) 
 
 
   //let tokens = str.split(tagSplitReg).filter((str) => str.length>0)
 
-  //console.log('Initial split', tokens)
+  console.log('Initial split', tokens)
 
 
 
