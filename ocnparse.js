@@ -7,6 +7,8 @@ var XRegExp = require('xregexp')
 //var bterm = require('../bahai-term-phonemes/bahai-term-phonemes')
 var bterm = require('bahai-term-phonemes')
 
+let html_open_regex = '<((?!(u>|u |[><\\/])).)+>', html_close_regex = '<\\/((?!(u>|\\W)).)+>';
+
 
 var parser = {
 
@@ -104,10 +106,23 @@ var parser = {
         // add id 
         if (token.info.id) class_id = ` id="${token.info.id}"`
       } 
-      let openTag = (tag.length>0 ? `<${tag}${class_id}${class_attr}${data_attrs}>` : '')
-      let closeTag = (tag.length>0 ? `</${tag}>` : '')
-      let wrappedToken = `${openTag}${token.prefix}${token.word}${token.suffix}${closeTag}`
-      result.push(wrappedToken)
+      if (token.info.type === 'html') {// special type of token, meaning opening or closing HTML tag
+        let after_close_tag = '';
+        if (token.suffix.indexOf(' ') !== -1) {
+          after_close_tag = ' ';
+        }
+        token.prefix = token.prefix.trim();
+        token.suffix = token.suffix.trim();
+        let openTag = (token.prefix.length>0 ? `<${token.prefix}${class_id}${class_attr}${data_attrs}>` : '')
+        let closeTag = (token.suffix.length>0 ? `</${token.suffix}>` : '')
+        let wrappedToken = `${openTag}${token.word}${closeTag}${after_close_tag}`
+        result.push(wrappedToken)
+      } else {
+        let openTag = (tag.length>0 ? `<${tag}${class_id}${class_attr}${data_attrs}>` : '')
+        let closeTag = (tag.length>0 ? `</${tag}>` : '')
+        let wrappedToken = `${openTag}${token.prefix}${token.word}${token.suffix}${closeTag}`
+        result.push(wrappedToken)
+      }
     })
     return result.join('')
   },
@@ -355,13 +370,13 @@ function splitTokens(tokens, tag='') {
   // if wrapper tag, first tokenize and extract class and data attributes
   if ((typeof tokens === 'string') && tag)  tokens = splitWrappedString(tokens, tag)      
   else if (typeof tokens==='string') tokens = splitUnWrappedString(tokens) 
- 
+  
   // Initial splitting of all text blocks into tokens 
   let delimiters = [
     // first, split on line breaks
     '[\n\r]+',
     // next on most common legit inline tags which are not part of a word
-    '<span.*?>', '</span>', '<a.*?>', '</a>', '&.*?;', '<w.*?>', '</w>', '<q.*?>', '</q>',
+    '&.*?;', html_open_regex, html_close_regex,
     // all html tags except <u>
     '</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>',
     // m-dashes
@@ -395,8 +410,9 @@ function splitTokens(tokens, tag='') {
     }) 
     tokens = newList 
   }) 
- 
+  
   tokens = cleanTokens(tokens)  
+  tokens = prepareHtmlTokens(tokens);
   return tokens
 }
 
@@ -422,7 +438,7 @@ function splitWrappedString(str, tag='w') {
   //tokens = str.split(tagSplitReg).filter((item)=>item.length>0)
   //tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
   str.split(tagSplitReg).filter((s)=>s.length>0).map((word)=>{  
-    let token = {word: word, suffix: '', prefix: ''}
+    let token = {word: word.replace(/(?:\r\n|\r|\n)/g, " "), suffix: '', prefix: ''}// need to replace line breaks, otherwise text after line break is lost
     token = extractWrapperTag(token, tag)
     token = trimToken(token)
     tokens.push(token) 
@@ -510,7 +526,7 @@ function splitRegex(str, delimiterRegex) {
  
 // cleanup word, suffix and prefix of token list & delete empty tokens
 function cleanTokens(tokens) {  
-  // remove empty tokens
+  tokens = prepareHtmlTokens(tokens)
   tokens = packEmptyTokens(tokens)
 
   // TODO: these two should be one loop like /^[\s]+|^[^\s]+[\s]+/gm
@@ -518,21 +534,51 @@ function cleanTokens(tokens) {
   if (tokens.length>2) tokens.map((token, i) => { 
     if (i>0) { // we cannot do move back for first token
       let prevToken = tokens[i-1], tt, regex
-      if (!prevToken) console.error('Corrupt token list', i, tokens)
-      regex = /^([\s]+|^[^<]+[\s]+)(.*)$/gm
-      if (tt = regex.exec(token.prefix)) {
-        prevToken.suffix += tt[1];
-        token.prefix = tt[2];
-        //console.log('Move spaces back (suffix <- prefix)', `"${token.suffix}"`, `"${token.prefix}"`, tt)
-        if (!token.word.length) moveEmptyToken(tokens, index)
+      if (!prevToken.info || prevToken.info.type !== 'html') {
+        if (!prevToken) console.error('Corrupt token list', i, tokens)
+        regex = /^([\s]+|^[^<]+[\s]+)(.*)$/gm
+        if (tt = regex.exec(token.prefix)) {
+          prevToken.suffix += tt[1];
+          token.prefix = tt[2];
+          //console.log('Move spaces back (suffix <- prefix)', `"${token.suffix}"`, `"${token.prefix}"`, tt)
+          if (!token.word.length) moveEmptyToken(tokens, i)
+        }
       }
     }
   })
+  
+  let open_tag_regex = new RegExp('^' + html_open_regex + '$', 'g')
+  let close_tag_regex = new RegExp('^' + html_close_regex + '$', 'g')
 
   // loop through array and cleanup edges, moving punctuation and tags  
-  tokens.map((token, index) => { 
+  for (let index = 0; index < tokens.length; ++index) { 
+    let token = tokens[index];
     let tt, regex
 
+    // check token word to match HTML tag. If matches - move it to separate special tag
+    if (open_tag_regex.test(token.word)) {
+      token.prefix = token.word;
+      token.word = '';
+      token.info = token.info || {};
+      token.info.type = 'html';
+    }
+    if (close_tag_regex.test(token.word)) {
+      if (!token.suffix) {
+        token.suffix = token.word;
+        token.word = '';
+        token.info = token.info || {};
+        token.info.type = 'html';
+      } else {
+        tokens.splice(index, 0, {
+          suffix: token.word,
+          prefix: '',
+          word: '',
+          info: {type: 'html'}
+        });
+        //++index;
+        token.word = ''
+      }
+    }
     // move non-word parts out into prefix and suffix
     regex = XRegExp(`^(\\PL*)([\\pL\-\>\<\’\‘\'\`]+)(\\PL*)$`, 'mgu')  
     if (tt = regex.exec(token.word) && Array.isArray(tt) && (tt[1].length || tt[3].length)) { 
@@ -579,15 +625,21 @@ function cleanTokens(tokens) {
 
     // if suffix ends with an open tag of some sort, move it to prefix of next word
     regex = /^(.*?)(<[a-zA-Z]+[^>]*?>)$/ig
-    while (tokens.length>1 && index<tokens.length-1 && (match = regex.exec(token.suffix))) {
+    while (tokens.length>1 && index<tokens.length-1 && (match = regex.exec(token.suffix)) && (!token.info || token.info.type !== 'html')) {
       let nextToken = tokens[index+1]
       token.suffix = match[1]
-      nextToken.prefix = match[2] + nextToken.prefix 
+      //nextToken.prefix = match[2] + nextToken.prefix 
+      tokens.splice(index + 1, 0, {
+        prefix: match[2],
+        suffix: '',
+        word: ''
+      })
       //console.log('If open tag in suffix, move to next prefix',`"${token}" -> "${nextToken.prefix}"`,'\n',tt)
       if (!token.word.length) moveEmptyToken(tokens, index)
     }   
-  })
- 
+  }
+  
+  tokens = prepareHtmlTokens(tokens);
   tokens = packEmptyTokens(tokens)
 
   return tokens;
@@ -595,12 +647,12 @@ function cleanTokens(tokens) {
 
 function packEmptyTokens(tokens) {
   if (!tokens || !Array.isArray(tokens) || tokens.length<1) return []
-
+  
   let intialCount = tokens.length
   for (i=intialCount-1; i>=1; i--) {
     let token = tokens[i]
     //if (!token.hasOwnProperty('word')) console.log('error token', token)
-    if (!token.word.length || !token.word.trim().length) {
+    if ((!token.word.length || !token.word.trim().length) && (!token.info || token.info.type !== 'html')) {
       let prevToken = tokens[i-1]
       let token = tokens[i]
       //console.log('empty token', i, token)
@@ -619,7 +671,7 @@ function packEmptyTokens(tokens) {
 function moveEmptyToken(tokens, index) {
   if (!tokens[index]) return tokens
   let token = tokens[index], destToken
-  if (token.word.trim().length) return
+  if (token.word.trim().length || (token.info && token.info.type === 'html')) return
   if (index<tokens.length-1) { // move empty token forward
     destToken = tokens[index+1]
     destToken.prefix = token.prefix + token.word + token.suffix + destToken.prefix
@@ -628,7 +680,7 @@ function moveEmptyToken(tokens, index) {
     destToken.suffix += token.prefix + token.word + token.suffix
   } 
   // move info, if exists
-  if (token.info) {
+  if (token.info && destToken) {
     if (!destToken.info) destToken.info = token.info
     else {
       if (token.info.class) destToken.info.class = mergeArraysUniq(destToken.info.class, token.info.class)
@@ -682,6 +734,96 @@ function mergeObjects(obj, obj2) {
   if (!obj2) obj2 = {}
   Object.keys(obj2).map((key) => { if (!obj[key]) obj[key] = obj2[key] })
   return obj
+}
+
+// Chack all tokens. If token prefix or suffix matches HTML tag then move it to special token
+function prepareHtmlTokens(tokens, log) {
+  //console.log('Entering', tokens);
+  let rg_open = new RegExp(html_open_regex);
+  let rg_close = new RegExp(html_close_regex);
+  for (let i = 0; i < tokens.length; ++i) {
+    let t = tokens[i];
+    if (t.prefix) {
+      //console.log('Checking prefix ', t.prefix);
+      //console.log(rg_open.test(t.prefix))
+      if (rg_open.test(t.prefix)) {
+        let html_attributes_regex = new RegExp('<(\\w+)([^>]*)>', 'gu');
+        let html_attribute_regex = new RegExp('[^ ]+=["\']{1}[^"\']+["\']{1}', 'gu');
+        //console.log('++++++++++Found open tag', t);
+        let token = {
+          word: '',
+          prefix: t.prefix,
+          suffix: '',
+          info: {
+            type: 'html'
+          }
+        };
+        let attributes = html_attributes_regex.exec(t.prefix);
+        //console.log('Checking attributes');
+        //console.log(attributes)
+        
+        if (attributes && attributes[1] && attributes[2]) {
+          //console.log('Parsed attributes for', token, attributes)
+          token.prefix = attributes[1];
+          while (attr = html_attribute_regex.exec(attributes[2])) {
+            let name = attr[0].substr(0, attr[0].indexOf('='));
+            let value = attr[0].substr(attr[0].indexOf('=') + 1, attr[0].length);
+            if (name && value) {
+              value = value.replace(/"|'/g, '')
+              if (name.indexOf('data-') === 0) {
+                if (!token.info.data) {
+                  token.info.data = {};
+                }
+                token.info.data[name.substr(5, name.length)] = value;
+              } else if (name === 'class') {
+                if (!token.info.class) {
+                  token.info.class = [];
+                }
+                token.info.class.push(value.split(' '));
+              } else {
+                token.info[name] = value;
+              }
+            }
+          }
+        } else {
+          let open_tag = /<(\w+)/u.exec(t.prefix);
+          if (open_tag && open_tag[1]) {
+            token.prefix = open_tag[1];
+          }
+        }
+        if (t.word) {
+          tokens[i].prefix = '';
+          tokens.splice(i, 0, token);
+        } else {
+          tokens[i] = token;
+        }
+      }
+    }
+    if (t.suffix) {
+      if (rg_close.test(t.suffix.trim())) {
+        //console.log('++++++++++Found close tag', t)
+        let close_tag = /<\/(\w+)>/gu.exec(t.suffix);
+        if (close_tag && close_tag[1]) {
+          t.suffix = close_tag[1];
+        }
+        let token = {
+          word: '',
+          prefix: '',
+          suffix: t.suffix,
+          info: {
+            type: 'html'
+          }
+        };
+        if (t.word) {
+          tokens[i].suffix = '';
+          tokens.splice(i + 1, 0, token);
+        } else {
+          tokens[i] = token;
+        }
+      }
+    }
+  }
+  return tokens;
 }
  
 
