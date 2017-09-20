@@ -26,7 +26,30 @@ var parser = {
   // pass in a token list to re-calculate each token
   tokenize: function(str, tag='') {
     let tokens = splitTokens(str, tag)  
-    tokens.map((token) => addTokenInfo(token) ) 
+    let open_tag = false
+    tokens.map((token) => {
+      addTokenInfo(token) 
+      if (token.info.type === 'html') {
+        token.info.class = token.info.class || []
+        if (token.info.class.indexOf('service-info') === -1) {
+          token.info.class.push('service-info')
+        }
+        if (!open_tag && token.prefix) {
+          open_tag = token.prefix;
+        } else if (open_tag && token.suffix === open_tag) {
+          open_tag = false;
+        }
+      } else if (open_tag) {
+        if (['sup', 'sub'].indexOf(open_tag) !== -1) {
+          token.info.data = token.info.data || {}
+          token.info.data.sugg = ''
+          token.info.class = token.info.class || []
+          if (token.info.class.indexOf('service-info') === -1) {
+            token.info.class.push('service-info')
+          }
+        }
+      }
+    }) 
     return tokens 
   },
  
@@ -779,7 +802,10 @@ function prepareHtmlTokens(tokens, log) {
                 if (!token.info.class) {
                   token.info.class = [];
                 }
-                token.info.class.push(value.split(' '));
+                let classes = value.split(' ')
+                classes.forEach(c => {
+                  token.info.class.push(c);
+                })
               } else {
                 token.info[name] = value;
               }
