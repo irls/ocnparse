@@ -273,10 +273,10 @@ describe('Ocean Parser Behaviour Tests', function() {
   })
   
   describe('Adding service classes', function() {
-    let str = '“There! I might<sup class="js-footnote-el" data-idx="1">1</sup> ‘a’ <qq data-author="quote123">thought</qq> of that closet. What you been doing in there?”';
+    let str = '“There! <f id="flag1">I might<sup class="js-footnote-el" data-idx="1">1</sup> ‘a’ <qq data-author="quote123">thought</qq> of that closet</f>. What you been doing in there?”';
     let tokens = parser.tokenize(str, 'w');
     let wrapped = parser.rebuild(tokens, 'w')
-    let check_string = '<w>“There! </w><w>I </w><w>might</w><sup class="js-footnote-el service-info" data-idx="1"><w class="service-info" data-sugg="">1</w></sup><w> ‘a’ </w><qq class="service-info" data-author="quote123"><w>thought</w></qq><w> of </w><w>that </w><w>closet. </w><w>What </w><w>you </w><w>been </w><w>doing </w><w>in </w><w>there?</w><w>”</w>';
+    let check_string = '<w>“There! </w><f id="flag1" class="service-info"><w>I </w><w>might</w><sup class="js-footnote-el service-info" data-idx="1"><w class="service-info" data-sugg="">1</w></sup><w> ‘a’ </w><qq class="service-info" data-author="quote123"><w>thought</w></qq><w> of </w><w>that </w><w>closet</w></f><w>. What </w><w>you </w><w>been </w><w>doing </w><w>in </w><w>there?</w><w>”</w>';
     it ('Wrapped string contains service classes', () => expect(wrapped).to.equal(check_string))
   })
 
