@@ -63,7 +63,7 @@ describe('Ocean Parser Behaviour Tests', function() {
       let src = tests.plaintext_fa
       let tokens = parser.tokenize(src)
       let dest = parser.rebuild(tokens) 
-      expect(tokens.length).to.equal(165)
+      expect(tokens.length).to.equal(167)
       if (dest!=src) {
         var diff = new Diff()
         console.log('Rebuild failed to match exactly', diff.main(src, dest))
@@ -246,6 +246,39 @@ describe('Ocean Parser Behaviour Tests', function() {
     }
     it(`Multiple rewrap of long phrase`, () => expect(wrapped).to.equal(rewrapped))  
   }) //  String with tokens correctly re-tokenizes
+  
+  describe('Wrapping text with HTML', function() {
+    let string = 'Plain text with <p data-attribute="test" data-attr="attr2">paragraph in the text</p> and <f>custom data</f>';
+    let tokens = parser.tokenize(string, 'w');
+    let wrapped = parser.rebuild(tokens, 'w');
+    let reWrapped = parser.reWrap(wrapped, 'w');
+    let reWrapped_ = parser.reWrap(wrapped, 'w');
+    it(`Wrapped and rewrapped HTML strings are equal`, () => expect(wrapped).to.equal(reWrapped));
+    it(`Rewrapped twice text is equal`, () => expect(reWrapped).to.equal(reWrapped_));
+  })
+  
+  describe('Wrapping multiline text', function() {
+    let string = 'The old lady <f data-flag="ts1_en_39:j7r8udpr" data-status="open">pulled</f> her spectacles<sup class="js-footnote-el" data-idx="1">1</sup> down and looked over them <f data-flag="ts1_en_39:j7r8undm" data-status="open">about the\n' +
+'room</f>; then she put them up and looked out under them. She seldom<sup class="js-footnote-el" data-idx="2">2</sup> or never \n'+
+'looked <i>through</i> them for so small a thing as a boy; they were her state \n' +
+'pair, the pride of her heart, and were built for “style,” not <w data-author="quote 1">service</w> — she \n'+
+'could have seen <w data-author="quote 2">through</w> a pair of stove-lids just as well. She looked \n'+
+'perplexed for a moment, and then said, not fiercely, but still loud enough \n'+
+'for the furniture to hear:';
+    
+    let wrapped = parser.rebuild(parser.tokenize(string, 'w'), 'w')
+    let check_string = '<w>The </w><w>old </w><w>lady </w><f class="service-info" data-flag="ts1_en_39:j7r8udpr" data-status="open"><w>pulled</w></f><w> her </w><w>spectacles</w><sup class="js-footnote-el service-info" data-idx="1"><w class="service-info" data-sugg="">1</w></sup><w> down </w><w>and </w><w>looked </w><w>over </w><w>them </w><f class="service-info" data-flag="ts1_en_39:j7r8undm" data-status="open"><w>about </w><w>the </w><w>room</w></f><w>; then </w><w>she </w><w>put </w><w>them </w><w>up </w><w>and </w><w>looked </w><w>out </w><w>under </w><w>them. </w><w>She </w><w>seldom</w><sup class="js-footnote-el service-info" data-idx="2"><w class="service-info" data-sugg="">2</w></sup><w> or </w><w>never  </w><w>looked </w><i class="service-info"><w>through</w></i><w> them </w><w>for </w><w>so </w><w>small </w><w>a </w><w>thing </w><w>as </w><w>a </w><w>boy; </w><w>they </w><w>were </w><w>her </w><w>state  </w><w>pair, </w><w>the </w><w>pride </w><w>of </w><w>her </w><w>heart, </w><w>and </w><w>were </w><w>built </w><w>for </w><w>“style,</w><w>” </w><w>not </w><w data-author="quote 1">service </w><w>— she  </w><w>could </w><w>have </w><w>seen </w><w data-author="quote 2">through </w><w>a </w><w>pair </w><w>of </w><w>stove-lids </w><w>just </w><w>as </w><w>well. </w><w>She </w><w>looked  </w><w>perplexed </w><w>for </w><w>a </w><w>moment, </w><w>and </w><w>then </w><w>said, </w><w>not </w><w>fiercely, </w><w>but </w><w>still </w><w>loud </w><w>enough  </w><w>for </w><w>the </w><w>furniture </w><w>to </w><w>hear:</w>';
+    
+    it ('Wrapped string did not remove words after line breaks', () => expect(wrapped).to.equal(check_string))
+  })
+  
+  describe('Adding service classes', function() {
+    let str = '“There! <f id="flag1">I might<sup class="js-footnote-el" data-idx="1">1</sup> ‘a’ <qq data-author="quote123">thought</qq> of that closet</f>. What you been doing in there?”';
+    let tokens = parser.tokenize(str, 'w');
+    let wrapped = parser.rebuild(tokens, 'w')
+    let check_string = '<w>“There! </w><f id="flag1" class="service-info"><w>I </w><w>might</w><sup class="js-footnote-el service-info" data-idx="1"><w class="service-info" data-sugg="">1</w></sup><w> ‘a’ </w><qq class="service-info" data-author="quote123"><w>thought</w></qq><w> of </w><w>that </w><w>closet</w></f><w>. What </w><w>you </w><w>been </w><w>doing </w><w>in </w><w>there?</w><w>”</w>';
+    it ('Wrapped string contains service classes', () => expect(wrapped).to.equal(check_string))
+  })
 
  
 
