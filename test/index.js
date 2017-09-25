@@ -279,6 +279,14 @@ describe('Ocean Parser Behaviour Tests', function() {
     let check_string = '<w>“There! </w><f id="flag1" class="service-info"><w>I </w><w>might</w><sup class="js-footnote-el service-info" data-idx="1"><w class="service-info" data-sugg="">1</w></sup><w> ‘a’ </w><qq class="service-info" data-author="quote123"><w>thought</w></qq><w> of </w><w>that </w><w>closet</w></f><w>. What </w><w>you </w><w>been </w><w>doing </w><w>in </w><w>there?</w><w>”</w>';
     it ('Wrapped string contains service classes', () => expect(wrapped).to.equal(check_string))
   })
+  
+  describe('Blocks intersection', function() {
+    let str = '<w data-map="0,1310">“My! </w><w data-map="1310,30">Look </w><w data-map="1340,720"><sg data-suggestion="vvvvvvv">behind</sg> </w><w data-map="2060,1240">you, </w><w data-map="3300,95">aunt!</w><w data-map="3395,125">”</w>'
+    let check_str = '<w>“My! </w><w>Look </w><sg class="service-info" data-suggestion="vvvvvvv"><w>behind</w></sg><w> you, </w><w>aunt!</w><w>”</w>'
+    let clean_content = parser.rebuild(parser.tokenize(str, "w"), "");
+    let reWrapped = parser.reWrap(clean_content, 'w');
+    it('Re wrapped string still contains suggestion', () => expect(reWrapped).to.be.equal(check_str))
+  });
 
  
 

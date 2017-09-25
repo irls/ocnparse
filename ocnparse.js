@@ -414,7 +414,11 @@ function splitTokens(tokens, tag='') {
       if (items.length>1) { // the delimiter matched this word block, it needs to be split further 
         // add the first token 
         let firstToken = items[0]
-        if (token.info) firstToken.info = token.info
+        if (token.info) {
+          if (!firstToken.info || firstToken.info.type !== 'html') {
+            firstToken.info = token.info
+          }
+        }
         firstToken.prefix = token.prefix + firstToken.prefix 
         newList.push(firstToken)
         // middle tokens 
