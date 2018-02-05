@@ -446,8 +446,21 @@ function splitTokens(tokens, tag='') {
 function splitUnWrappedString(str) {
   // split by line break (line breaks mess with javascript regex multiline parsing)
   let tagSplitReg = new RegExp(`([\n\r]+)`, 'g')
-  let tokens = str.split(tagSplitReg).filter((str) => str.length>0).map((word) => {
-    return trimToken({word: word, suffix: '', prefix: ''})
+  htmlOpenReg = new RegExp(html_open_regex, 'img');
+  htmlCloseReg = new RegExp(html_close_regex, 'img');
+  htmlReg = new RegExp('(<[^>]+>)', 'img');
+  let tokens = [];
+  str.split(tagSplitReg).filter((str) => str.length>0).map((word) => {
+    let token = {word: word, suffix: '', prefix: ''};
+    if (htmlOpenReg.test(token.word) || htmlCloseReg.test(token.word)) {
+      let words = token.word.split(htmlReg).filter((_s, i)=>_s.length>0);
+      words.map((w, i) => {
+        let t = {word: w, suffix: token.suffix === " " && i == words.length - 1 ? ' ' : '', prefix: token.prefix === " " && i == 0 ? ' ' : ''};
+        tokens.push(t);
+      });
+    } else {
+      tokens.push(trimToken(token))
+    }
   })  
   tokens = packEmptyTokens(tokens)
   //console.log('Initial split', tokens)
@@ -464,11 +477,22 @@ function splitWrappedString(str, tag='w') {
   tagSplitReg = new RegExp(`(<${tag}.*?>[\\s\\S]*?<\\/${tag}>)`, 'img')
   //tokens = str.split(tagSplitReg).filter((item)=>item.length>0)
   //tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
+  htmlOpenReg = new RegExp(html_open_regex, 'img');
+  htmlCloseReg = new RegExp(html_close_regex, 'img');
+  htmlReg = new RegExp('(<[^>]+>)', 'img');
   str.split(tagSplitReg).filter((s)=>s.length>0).map((word)=>{  
     let token = {word: word.replace(/(?:\r\n|\r|\n)/g, " "), suffix: '', prefix: ''}// need to replace line breaks, otherwise text after line break is lost
     token = extractWrapperTag(token, tag)
     token = trimToken(token)
-    tokens.push(token) 
+    if (htmlOpenReg.test(token.word) || htmlCloseReg.test(token.word)) {
+      let words = token.word.split(htmlReg).filter((_s, i)=>_s.length>0);
+      words.map((w, i) => {
+        let t = {word: w, suffix: token.suffix === " " && i == words.length - 1 ? ' ' : '', prefix: token.prefix === " " && i == 0 ? ' ' : ''};
+        tokens.push(t);
+      });
+    } else {
+      tokens.push(token) 
+    }
   })
   //console.log('Initial split', tokens) 
   tokens = packEmptyTokens(tokens)
@@ -540,13 +564,13 @@ function splitRegex(str, delimiterRegex) {
   }
   // if there is no final delimiter, the last chunk is ignored. Put it into a token
   if (prevIndex < str.length) tokens.push({word: str.substring(prevIndex, str.length), prefix:'', suffix:''})
-
+  
   // safe cleanup and compression 
   let before= JSON.stringify(tokens)
   tokens = cleanTokens(tokens)
   let after= JSON.stringify(tokens)
   //if (before!= after) console.log('Modified tokens: ', '\n', before, '\n', after, delimiterRegex)
-
+  
   //console.log('splitRegex', str, delimiterRegex, tokens)
   return tokens;
 }
@@ -770,6 +794,10 @@ function prepareHtmlTokens(tokens, log) {
   let rg_close = new RegExp(html_close_regex);
   for (let i = 0; i < tokens.length; ++i) {
     let t = tokens[i];
+    if (!t.prefix && t.suffix && rg_open.test(t.suffix.trim())) {
+      t.prefix = t.suffix;
+      t.suffix = '';
+    }
     if (t.prefix) {
       //console.log('Checking prefix ', t.prefix);
       //console.log(rg_open.test(t.prefix))

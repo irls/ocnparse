@@ -287,7 +287,30 @@ describe('Ocean Parser Behaviour Tests', function() {
     let reWrapped = parser.reWrap(clean_content, 'w');
     it('Re wrapped string still contains suggestion', () => expect(reWrapped).to.be.equal(check_str))
   });
-
+  
+  describe('Blocks inside', function() {
+    let str = '<a>The</a> Yellow <b><f data-flag="yellow-wallpaper_en_2s:j81nafbq" data-status="resolved">Wallpaper</f></b>';
+    let clean_content = parser.rebuild(parser.tokenize(str.replace(/(?:\r\n|\r|\n)/g, ""), "w"), "");
+    let reWrapped = parser.reWrap(clean_content, 'w');
+    let check = '<a class="service-info"><w>The</w></a><w> Yellow </w><b class="service-info"><f class="service-info" data-flag="yellow-wallpaper_en_2s:j81nafbq" data-status="resolved"><w>Wallpaper</w></f></b>';
+    it('Re wrapped string still contains html', () => expect(reWrapped).to.be.equal(check))
+  });
+  describe('Flags and <br/>', function() {
+    let str = '<w data-map="0,235">O.</w><br class="service-info"><f class="service-info" data-flag="tgom-3_en_2u:jda3nf1r" data-status="resolved"><w data-map="235,925">Henry</w></f>';
+    let check = '<w>O.</w><br class="service-info"><f class="service-info" data-flag="tgom-3_en_2u:jda3nf1r" data-status="resolved"><w>Henry</w></f>';
+    let tokenized = parser.tokenize(str, 'w');
+    let rebuild = parser.rebuild(tokenized, '');//clean w
+    let reWrap = parser.reWrap(rebuild, 'w');
+    it('Re wrapped string still contains br', () => expect(reWrap).to.be.equal(check))
+  });
+  //First
+  //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
+//First cleaned
+//<w data-map="0,1245">The </w><f class="service-info" data-flag="tgom-2_en_2s:jd5rdfre" data-status="resolved"><w data-map="1245,430">Gift</w></f><w data-map="1675,455"> of</w><p><f class="service-info" data-flag="tgom-2_en_2s:jd5rdpsq" data-status="resolved"><w data-map="2130,290">the</w></f><w data-map="2420,2300"> Magi</w></p><div><w data-map="1675,455"></w></div>
+//Second
+//<w data-map=\"0,1360\">The </w><w data-map=\"1360,495\"><f data-flag=\"tgom-3_en_2s:jda3mun6\" data-status=\"resolved\">Gift</f> </w><w data-map=\"1855,925\">of </w><w data-map=\"2780,275\"><f data-flag=\"tgom-3_en_2s:jda3n32v\" data-status=\"resolved\">the</f> </w><w data-map=\"3055,1545\">Magi</w>
+//Second cleaned
+//<w data-map="0,1360">The </w><w data-map="1360,495"><f data-flag="tgom-3_en_2s:jda3mun6" data-status="resolved">Gift</f> </w><w data-map="1855,925">of </w><w data-map="2780,275"><f data-flag="tgom-3_en_2s:jda3n32v" data-status="resolved">the</f> </w><w data-map="3055,1545">Magi</w>
  
 
 });
