@@ -282,7 +282,7 @@ describe('Ocean Parser Behaviour Tests', function() {
   
   describe('Blocks intersection', function() {
     let str = '<w data-map="0,1310">“My! </w><w data-map="1310,30">Look </w><w data-map="1340,720"><sg data-suggestion="vvvvvvv">behind</sg> </w><w data-map="2060,1240">you, </w><w data-map="3300,95">aunt!</w><w data-map="3395,125">”</w>'
-    let check_str = '<w>“My! </w><w>Look </w><sg class="service-info" data-suggestion="vvvvvvv"><w>behind</w></sg><w> you, </w><w>aunt!</w><w>”</w>'
+    let check_str = '<w>“My! </w><w>Look </w><sg class="service-info" data-suggestion="vvvvvvv"><w data-sugg="vvvvvvv">behind</w></sg><w> you, </w><w>aunt!</w><w>”</w>'
     let clean_content = parser.rebuild(parser.tokenize(str, "w"), "");
     let reWrapped = parser.reWrap(clean_content, 'w');
     it('Re wrapped string still contains suggestion', () => expect(reWrapped).to.be.equal(check_str))
@@ -302,6 +302,22 @@ describe('Ocean Parser Behaviour Tests', function() {
     let rebuild = parser.rebuild(tokenized, '');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
     it('Re wrapped string still contains br', () => expect(reWrap).to.be.equal(check))
+  });
+  describe('Dot and HTML tags', function() {
+    let str = '.<i>begin</i><sg data-suggestion=\"Chapter one\">I</sg>.<br> Down the Rabbit-Hole<i>end</i>.';
+    let check = '<i class="service-info"><w>.begin</w></i><sg class="service-info" data-suggestion="Chapter one"><w data-sugg="Chapter one">I.</w></sg><br class="service-info"><w> Down </w><w>the </w><w>Rabbit-Hole</w><i class="service-info"><w>end.</w></i>';
+    let tokenized = parser.tokenize(str, 'w');
+    let rebuild = parser.rebuild(tokenized, '');//clean w
+    let reWrap = parser.reWrap(rebuild, 'w');
+    it('Dot does not brake HTML tags', () => expect(reWrap).to.be.equal(check))
+  });
+  describe('Suggestion and HTML tags', function() {
+    let str = '.<i>begin</i><sg data-suggestion="Chapter one"><i>I</i></sg>.<br> Down the Rabbit-Hole<i>end</i>.';
+    let check = '<i class="service-info"><w>.begin</w></i><sg class="service-info" data-suggestion="Chapter one"><i class="service-info"><w data-sugg="Chapter one">I.</w></i></sg><br class="service-info"><w> Down </w><w>the </w><w>Rabbit-Hole</w><i class="service-info"><w>end.</w></i>';
+    let tokenized = parser.tokenize(str, 'w');
+    let rebuild = parser.rebuild(tokenized, '');//clean w
+    let reWrap = parser.reWrap(rebuild, 'w');
+    it('Suggestion does not brake HTML tags', () => expect(reWrap).to.be.equal(check))
   });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
