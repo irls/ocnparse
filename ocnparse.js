@@ -27,7 +27,7 @@ var parser = {
   tokenize: function(str, tag='') {
     let tokens = splitTokens(str, tag)  
     let open_tag = []
-    tokens.map((token) => {
+    tokens.map((token, i) => {
       addTokenInfo(token) 
       if (token.info.type === 'html') {
         token.info.class = token.info.class || []
@@ -35,6 +35,21 @@ var parser = {
           token.info.class.push('service-info')
         }
         if (token.prefix) {
+          if (token.prefix === 'sg' && token.info && token.info.data && token.info.data.suggestion) {
+            let next_index = i + 1;
+            let next_token = null;
+            do {
+              next_token = tokens[next_index];
+              if (typeof next_token !== 'undefined' && (!next_token.info || next_token.info.type !== 'html')) {
+                next_token.info = next_token.info || {};
+                let next_data = next_token.info.data || {};
+                next_data.sugg = token.info.data.suggestion;
+                tokens[next_index].info.data = next_data;
+                break;
+              }
+              ++next_index;
+            } while (next_token);
+          }
           open_tag.push(token.prefix);
         } else if (token.suffix === open_tag[open_tag.length - 1]) {
           open_tag.pop();
@@ -725,11 +740,33 @@ function moveEmptyToken(tokens, index) {
   if (token.word.trim().length || (token.info && token.info.type === 'html')) return
   if (index<tokens.length-1) { // move empty token forward
     destToken = tokens[index+1]
-    destToken.prefix = token.prefix + token.word + token.suffix + destToken.prefix
+    if (destToken && (!destToken.info || destToken.info.type !== 'html')) {
+      destToken.prefix = token.prefix + token.word + token.suffix + destToken.prefix
+    }
   } else if (index>0) { // move empty token back
     destToken = tokens[index-1]
-    destToken.suffix += token.prefix + token.word + token.suffix
+    if (destToken && (!destToken.info || destToken.info.type !== 'html')) {
+      destToken.suffix += token.prefix + token.word + token.suffix
+    }
   } 
+  if (destToken && destToken.info && destToken.info.type === 'html') {
+    let direction = token.prefix && index > 0 ? -1 : 1;
+    let dt = null;
+    let i = index + direction;
+    do {
+      dt = typeof tokens[i] === 'undefined' ? null : tokens[i];
+      if (dt && (!dt.info || dt.info.type !== 'html')) {
+        destToken = dt;
+        if (direction == -1) {
+          destToken.suffix = token.prefix + token.word + token.suffix + destToken.suffix
+        } else {
+          destToken.prefix = token.prefix + token.word + token.suffix + destToken.prefix;
+        }
+        break;
+      }
+      i+=direction;
+    } while (dt);
+  }
   // move info, if exists
   if (token.info && destToken) {
     if (!destToken.info) destToken.info = token.info
