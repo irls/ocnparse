@@ -719,7 +719,7 @@ function packEmptyTokens(tokens) {
   for (i=intialCount-1; i>=1; i--) {
     let token = tokens[i]
     //if (!token.hasOwnProperty('word')) console.log('error token', token)
-    if ((!token.word.length || !token.word.trim().length) && (!token.info || token.info.type !== 'html')) {
+    if ((!token.word.length || !token.word.trim().length) && (!token.info || token.info.type !== 'html') && (!tokens[i-1].info || tokens[i-1].info.type !== 'html')) {
       let prevToken = tokens[i-1]
       let token = tokens[i]
       //console.log('empty token', i, token)
