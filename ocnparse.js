@@ -538,6 +538,7 @@ function extractWrapperTag(token, tag='w') {
       let datareg = /data-(.*?)\s*=\s*['"]([^'"]+?)['"]/img 
       while ((matches = datareg.exec(tagData)) !== null) {
         if (!token.info) token.info = {data:{}} 
+        if (!token.info.data) token.info.data = {};
         token.info.data[matches[1]] = matches[2] 
       }          
     } 
