@@ -319,6 +319,21 @@ describe('Ocean Parser Behaviour Tests', function() {
     let reWrap = parser.reWrap(rebuild, 'w');
     it('Suggestion does not brake HTML tags', () => expect(reWrap).to.be.equal(check))
   });
+  describe('Suggestion and comma', function() {
+    let str = '<w>her </w><w>sister <sg data-suggestion="on the bank">o-t-b</sg></w><w>, </w><w>and </w>';
+    let check = '<w>her </w><w>sister </w><sg class="service-info" data-suggestion="on the bank"><w data-sugg="on the bank">o-t-b</w></sg><w>, and </w>';
+    let tokens = parser.tokenize(str, "w")
+    let rebuild = parser.rebuild(tokens, '');//clean w
+    let reWrap = parser.reWrap(rebuild, 'w');
+    it('Comma after suggestion does not brake HTML tags', () => expect(reWrap).to.be.equal(check))
+  });
+  describe('Check', function() {
+    let str = 'Descendants of the <u>Sh</u>áhs were thrust';
+    let check = '<w>Descendants </w><w>of </w><w>the </w><w data-ipa="s  A: h s"><u>Sh</u>áhs </w><w>were </w><w>thrust</w>';
+    str = parser.rebuild(parser.tokenize(str, "w"), "");
+    let reWrap = parser.reWrap(str, 'w');
+    it('<u> at the beginning of term does not brake HTML tags', () => expect(reWrap).to.be.equal(check))
+  });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned
