@@ -797,7 +797,7 @@ function addTokenInfo(token) {
   info.isPossibleTerm = bterm.isPossibleTerm(token.word)
   if (info.isPossibleTerm) {
     if (!info.data) info.data = {}
-    info.data.ipa = bterm.phonemes(token.word) 
+    info.data.ipa = _escapeHTML(bterm.phonemes(token.word)) 
   } 
   info.html = glyph2HTML(token.word)
   info.glyph = HTML2glyph(token.word)
@@ -920,6 +920,28 @@ function prepareHtmlTokens(tokens, log) {
     }
   }
   return tokens;
+}
+
+function _escapeHTML(str) {
+  let htmlEscapes = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '/': '&#x2F;'
+  };
+  
+  let reg_str = '[';
+  for (let i in htmlEscapes) {
+    reg_str+=i;
+  }
+  reg_str+=']';
+  // Regex containing the keys listed immediately above.
+  let htmlEscaper = new RegExp(reg_str, 'g');
+  return str.replace(htmlEscaper, function(match) {
+    return htmlEscapes[match];
+  });
 }
  
 
