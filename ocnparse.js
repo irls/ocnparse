@@ -35,20 +35,57 @@ var parser = {
           token.info.class.push('service-info')
         }
         if (token.prefix) {
-          if (token.prefix === 'sg' && token.info && token.info.data && token.info.data.suggestion) {
+          if (token.prefix === 'sg' && token.info && token.info.data && typeof token.info.data.suggestion !== 'undefined') {
+            //token.info.data.sugg = token.info.data.suggestion;
             let next_index = i + 1;
             let next_token = null;
+            let group_token = null;
+            let group_index = null;
+            let prepend_text = '';
             do {
               next_token = tokens[next_index];
-              if (typeof next_token !== 'undefined' && (!next_token.info || next_token.info.type !== 'html')) {
-                next_token.info = next_token.info || {};
-                let next_data = next_token.info.data || {};
-                next_data.sugg = token.info.data.suggestion;
-                tokens[next_index].info.data = next_data;
+              if (typeof next_token !== 'undefined' && (!next_token.suffix || next_token.suffix.trim() !== 'sg')) {
+                if (!group_token && next_token.info && next_token.info.type === 'html') {
+                  delete tokens[next_index];
+                  ++next_index;
+                  prepend_text+='<' + next_token.prefix + '>';
+                  continue;
+                }
+                if (!group_token) {
+                  next_token.info = next_token.info || {};
+                  let next_data = next_token.info.data || {};
+                  next_data.sugg = token.info.data.suggestion;
+                  tokens[next_index].info.data = next_data;
+                  group_token = next_token;
+                  group_token.word=prepend_text+group_token.word;
+                  group_index = next_index;
+                  //group_token.word+=group_token.suffix;
+                } else {
+                  if (next_token.info && next_token.info.type === 'html') {
+                    //console.log(next_token)
+                    if(next_token.prefix) {
+                      next_token.prefix = '<' + next_token.prefix + '>';
+                    }
+                    if (next_token.suffix) {
+                      next_token.suffix = '</' + next_token.suffix + '>';
+                    }
+                    //console.log(next_token)
+                  }
+                  group_token.word+=group_token.suffix + next_token.prefix + next_token.word;
+                  group_token.suffix = next_token.suffix;
+                  delete tokens[next_index];
+                }
+                //break;
+              } else {
                 break;
               }
               ++next_index;
             } while (next_token);
+            //console.log('GROUP TOKEN')
+            //console.log(group_token)
+            if (group_index) {
+              tokens[group_index] = group_token;
+            }
           }
           open_tag.push(token.prefix);
         } else if (token.suffix === open_tag[open_tag.length - 1]) {
@@ -841,7 +878,7 @@ function prepareHtmlTokens(tokens, log) {
       //console.log(rg_open.test(t.prefix))
       if (rg_open.test(t.prefix)) {
         let html_attributes_regex = new RegExp('<(\\w+)([^>]*)>', 'gu');
-        let html_attribute_regex = new RegExp('[^ ]+=["\']{1}[^"\']+["\']{1}', 'gu');
+        let html_attribute_regex = new RegExp('[^ ]+=["\']{1}[^"\']*["\']{1}', 'gu');
         //console.log('++++++++++Found open tag', t);
         let token = {
           word: '',
