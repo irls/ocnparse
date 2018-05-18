@@ -313,7 +313,7 @@ describe('Ocean Parser Behaviour Tests', function() {
   });
   describe('Suggestion and HTML tags', function() {
     let str = '.<i>begin</i><sg data-suggestion="Chapter one"><i>I</i></sg>.<br> Down the Rabbit-Hole<i>end</i>.';
-    let check = '<i class="service-info"><w>.begin</w></i><sg class="service-info" data-suggestion="Chapter one"><i class="service-info"><w data-sugg="Chapter one">I.</w></i></sg><br class="service-info"><w> Down </w><w>the </w><w>Rabbit-Hole</w><i class="service-info"><w>end.</w></i>';
+    let check = '<i class="service-info"><w>.begin</w></i><sg class="service-info" data-suggestion="Chapter one"><w data-sugg="Chapter one"><i>I.</i></w></sg><br class="service-info"><w> Down </w><w>the </w><w>Rabbit-Hole</w><i class="service-info"><w>end.</w></i>';
     let tokenized = parser.tokenize(str, 'w');
     let rebuild = parser.rebuild(tokenized, '');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
@@ -333,6 +333,32 @@ describe('Ocean Parser Behaviour Tests', function() {
     str = parser.rebuild(parser.tokenize(str, "w"), "");
     let reWrap = parser.reWrap(str, 'w');
     it('<u> at the beginning of term does not brake HTML tags', () => expect(reWrap).to.be.equal(check))
+  });
+  describe('Suggestions', function() {
+    describe('Multi word suggestion', function() {
+      let str = 'Some text <sg data-suggestion="some suggestion">inside <i>sugg</i> test.</sg> outside sugg';
+      let check = '<w>Some </w><w>text </w><sg class="service-info" data-suggestion="some suggestion"><w data-sugg="some suggestion">inside <i>sugg</i> test.</w></sg><w> outside </w><w>sugg</w>';
+      let tokens = parser.tokenize(str, "w");
+      str = parser.rebuild(tokens, "");
+      let reWrap = parser.reWrap(str, 'w');
+      it('Multi word suggestion', () => expect(reWrap).to.be.equal(check))
+    });
+    describe('Single word suggestion', function() {
+      let str = 'Some text <sg data-suggestion="some suggestion">inside </sg> outside sugg';
+      let check = '<w>Some </w><w>text </w><sg class="service-info" data-suggestion="some suggestion"><w data-sugg="some suggestion">inside </w></sg><w> outside </w><w>sugg</w>';
+      let tokens = parser.tokenize(str, "w");
+      str = parser.rebuild(tokens, "");
+      let reWrap = parser.reWrap(str, 'w');
+      it('Single word suggestion', () => expect(reWrap).to.be.equal(check))
+    });
+    describe('Empty suggestion', function() {
+      let str = 'Some text <sg data-suggestion="">inside sugg test </sg> outside sugg';
+      let check = '<w>Some </w><w>text </w><sg class="service-info" data-suggestion=""><w data-sugg="">inside sugg test </w></sg><w> outside </w><w>sugg</w>';
+      let tokens = parser.tokenize(str, "w");
+      str = parser.rebuild(tokens, "");
+      let reWrap = parser.reWrap(str, 'w');
+      it('Empty suggestion', () => expect(reWrap).to.be.equal(check))
+    })
   });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
