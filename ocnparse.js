@@ -166,7 +166,7 @@ var parser = {
   //  any properties in the 'token.data' object are added as data attributes
   rebuild: function(tokens, tag='') {
     var result = []  
-    tokens.map( (token) => {
+    tokens.map( (token, index) => {
       let data_attrs = ''
       let class_attr = ''
       let class_id = ''
@@ -184,7 +184,15 @@ var parser = {
       if (token.info.type === 'html') {// special type of token, meaning opening or closing HTML tag
         let after_close_tag = '';
         if (token.suffix.indexOf(' ') !== -1) {
-          after_close_tag = ' ';
+          //after_close_tag = ' ';
+          let i = index + 1;
+          while(tokens[i]) {
+            if (!tokens[i].info || tokens[i].info.type !== 'html') {
+              tokens[i].prefix+= ' ';
+              break;
+            }
+            ++i;
+          }
         }
         token.prefix = token.prefix.trim();
         token.suffix = token.suffix.trim();
