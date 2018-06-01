@@ -360,6 +360,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Empty suggestion', () => expect(reWrap).to.be.equal(check))
     })
   });
+  describe('Double rebuild', function() {
+    let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
+    let check = '<span class="service-info"><w>So</w></span><span class="service-info"><w> she</w></span><span class="service-info"><w> was</w></span><span class="service-info"><w> considering.</w></span>'
+    str = parser.reWrap(str, 'w');
+    let tokens = parser.tokenize(str, 'w')
+    let rebuild = parser.rebuild(tokens, 'w')
+    let rebuild_check = parser.rebuild(tokens, 'w')
+    it('Double rebuild', () => expect(check).to.be.equal(rebuild_check));
+  });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned
