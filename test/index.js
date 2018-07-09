@@ -369,6 +369,14 @@ describe('Ocean Parser Behaviour Tests', function() {
     let rebuild_check = parser.rebuild(tokens, 'w')
     it('Double rebuild', () => expect(check).to.be.equal(rebuild_check));
   });
+  describe('Underlines and sup', function() {
+    let str = 'Mírzá,<sup data-idx=\"26\">26</sup> <u>Sh</u>ay<u>kh</u> Aḥmad, freed from';
+    let checkStr = '<w data-ipa="m i: r z A:">Mírzá,</w><sup class="service-info" data-idx="26"><w class="service-info" data-sugg="">26</w></sup><w> <u>Sh</u>ay<u>kh</u> </w><w data-ipa="@ h m @ d">Aḥmad, </w><w>freed </w><w>from</w>';
+    str = parser.reWrap(str, 'w');
+    let tokens = parser.tokenize(str, 'w')
+    let rebuild = parser.rebuild(tokens, 'w')
+    it('u tags are not wrapped', () => expect(checkStr).to.be.equal(rebuild));
+  });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned

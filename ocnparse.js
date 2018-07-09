@@ -30,6 +30,8 @@ var parser = {
     tokens.map((token, i) => {
       addTokenInfo(token) 
       if (token.info.type === 'html') {
+        //token.prefix = token.prefix.trim();
+        //token.suffix = token.suffix.trim();
         token.info.class = token.info.class || []
         if (token.info.class.indexOf('service-info') === -1) {
           token.info.class.push('service-info')
@@ -539,13 +541,24 @@ function splitWrappedString(str, tag='w') {
   //tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
   htmlOpenReg = new RegExp(html_open_regex, 'img');
   htmlCloseReg = new RegExp(html_close_regex, 'img');
-  htmlReg = new RegExp('(<[^>]+>)', 'img');
+  htmlReg = new RegExp('<(?!\/?(u)(?=>|\s?.*>))\/?.*?>', 'img');
   str.split(tagSplitReg).filter((s)=>s.length>0).map((word)=>{  
     let token = {word: word.replace(/(?:\r\n|\r|\n)/g, " "), suffix: '', prefix: ''}// need to replace line breaks, otherwise text after line break is lost
     token = extractWrapperTag(token, tag)
     token = trimToken(token)
     if (htmlOpenReg.test(token.word) || htmlCloseReg.test(token.word)) {
-      let words = token.word.split(htmlReg).filter((_s, i)=>_s.length>0);
+      let words = [];
+      let matchPos = 0;
+      while ((matches = htmlReg.exec(token.word))) {
+        if (matches.index > 0) {
+          words.push(matches.input.substr(matchPos, matches.index - matchPos));
+        }
+        words.push(matches[0]);
+        matchPos = matches.index + matches[0].length;
+      }
+      if (matchPos < token.word.length) {
+        words.push(token.word.substr(matchPos, token.word.length - matchPos))
+      }
       words.map((w, i) => {
         let t = {word: w, suffix: token.suffix === " " && i == words.length - 1 ? ' ' : '', prefix: token.prefix === " " && i == 0 ? ' ' : ''};
         tokens.push(t);
