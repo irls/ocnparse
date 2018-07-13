@@ -104,6 +104,97 @@ var parser = {
         }
       }
     }) 
+    tokens.forEach((token, index) => {
+      if (['(', '[', '{'].indexOf(token.suffix.trim()) !== -1) {
+        let nextToken = tokens[index + 1];
+        if (nextToken) {
+          if (nextToken.info && nextToken.info.type === 'html') {
+            if (typeof nextToken.before === 'undefined') {
+              nextToken.before = '';
+            }
+            nextToken.before = token.suffix.trim() + nextToken.before;
+          } else {
+            nextToken.prefix = token.suffix.trim() + nextToken.prefix;
+          }
+          token.suffix = token.suffix.replace(token.suffix.trim(), '');
+          //tokens[index + 1] = nextToken;
+        }
+      }
+      if ([')', ']', '}'].indexOf(token.prefix.trim()) !== -1) {
+        let prevToken = tokens[index - 1];
+        if (prevToken) {
+          if (prevToken.info && prevToken.info.type === 'html') {
+            if (typeof prevToken.after === 'undefined') {
+              prevToken.after = '';
+            }
+            prevToken.after+= token.prefix.trim();
+          } else {
+            prevToken.suffix+= token.prefix.trim();
+          }
+          token.prefix = token.prefix.replace(token.prefix.trim(), '');;
+          //console.log(token, prevToken)
+          //tokens[index - 1] = prevToken;
+        }
+      }
+      if (['"', "'", '“', '”', '‘', '’'].indexOf(token.word.trim()) !== -1) {
+        //console.log(token)
+        let quote = token.word.trim();
+        let direction = 0;
+        if (quote === '“' || quote === '‘') {
+          direction = 1;
+        } else if (quote === '”' || quote === '’') {
+          direction = -1;
+        } else {
+          let quotes = 0;
+          let ind = index - 1;
+          let prev = tokens[ind];//
+          while (prev) {
+            if ((prev.suffix && prev.suffix.indexOf(quote) !== -1) || 
+                    (prev.prefix && prev.prefix.indexOf(quote) !== -1) || 
+                    (prev.before && prev.before.indexOf(quote) !== -1) || 
+                    (prev.after && prev.after.indexOf(quote) !== -1)) {
+              ++quotes;
+            }
+            --ind;
+            prev = tokens[ind];
+          }
+          if (quotes === 0 || quotes % 2 === 0) {
+            direction = 1;
+          } else {
+            direction = -1;
+          }
+        }
+        if (direction === 1) {
+          let next = tokens[index + 1];
+          if (next) {
+            //console.log(token, next)
+            if (next.info && next.info.type === 'html') {
+              if (typeof next.before === 'undefined') {
+                next.before = '';
+              }
+              next.before = token.prefix + token.word + token.suffix + next.before;
+            } else {
+              next.prefix = token.prefix + token.word + token.suffix + next.prefix;
+            }
+            tokens.splice(index, 1);
+          }
+        } else if (direction === -1) {
+          let prev = tokens[index - 1];
+          if (prev) {
+            //console.log(token, prev)
+            if (prev.info && prev.info.type === 'html') {
+              if (typeof prev.after === 'undefined') {
+                prev.after = '';
+              }
+              prev.after = prev.after + token.prefix + token.word + token.suffix;
+            } else {
+              prev.suffix = prev.suffix + token.prefix + token.word + token.suffix;
+            }
+            tokens.splice(index, 1);
+          }
+        }
+      }
+    })
     return tokens 
   },
  
@@ -184,7 +275,6 @@ var parser = {
         if (token.info.id) class_id = ` id="${token.info.id}"`
       } 
       if (token.info.type === 'html') {// special type of token, meaning opening or closing HTML tag
-        let after_close_tag = '';
         if (token.suffix.indexOf(' ') !== -1) {
           //after_close_tag = ' ';
           let i = index + 1;
@@ -200,7 +290,9 @@ var parser = {
         token.suffix = token.suffix.trim();
         let openTag = (token.prefix.length>0 ? `<${token.prefix}${class_id}${class_attr}${data_attrs}>` : '')
         let closeTag = (token.suffix.length>0 ? `</${token.suffix}>` : '')
-        let wrappedToken = `${openTag}${token.word}${closeTag}${after_close_tag}`
+        let before = token.before ? token.before : '';
+        let after = token.after ? token.after : '';
+        let wrappedToken = `${before}${openTag}${token.word}${closeTag}${after}`
         result.push(wrappedToken)
       } else {
         let openTag = (tag.length>0 ? `<${tag}${class_id}${class_attr}${data_attrs}>` : '')
@@ -496,6 +588,7 @@ function splitTokens(tokens, tag='') {
         if (token.info) newToken.info = token.info
         newList.push(newToken)
       } else newList.push(token) // empty word token, usually with \n in suffix
+      //cleanTokens(newList)
     }) 
     tokens = newList 
   }) 
@@ -777,12 +870,14 @@ function packEmptyTokens(tokens) {
   for (i=intialCount-1; i>=1; i--) {
     let token = tokens[i]
     //if (!token.hasOwnProperty('word')) console.log('error token', token)
-    if ((!token.word.length || !token.word.trim().length) && (!token.info || token.info.type !== 'html') && (!tokens[i-1].info || tokens[i-1].info.type !== 'html')) {
-      let prevToken = tokens[i-1]
-      let token = tokens[i]
-      //console.log('empty token', i, token)
-      prevToken.suffix += token.prefix + token.word + token.suffix 
-      tokens.splice(i, 1);  //delete(tokens[i])
+    if ((!token.word.length || !token.word.trim().length) && (!token.info || token.info.type !== 'html')) {
+        if (!tokens[i-1].info || tokens[i-1].info.type !== 'html') {
+          let prevToken = tokens[i-1]
+          let token = tokens[i]
+          //console.log('empty token', i, token)
+          prevToken.suffix += token.prefix + token.word + token.suffix 
+          tokens.splice(i, 1);  //delete(tokens[i])
+        }
     }
   }  
   // now check token#1
