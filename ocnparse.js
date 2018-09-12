@@ -136,13 +136,12 @@ var parser = {
           //tokens[index - 1] = prevToken;
         }
       }
-      if (['"', "'", '“', '”', '‘', '’'].indexOf(token.word.trim()) !== -1) {
-        //console.log(token)
+      if (/^["'“”‘’]+$/.test(token.word.trim())) {
         let quote = token.word.trim();
         let direction = 0;
-        if (quote === '“' || quote === '‘') {
+        if (/[“‘]/.test(quote)) {
           direction = 1;
-        } else if (quote === '”' || quote === '’') {
+        } else if (/[”’]/.test(quote)) {
           direction = -1;
         } else {
           let quotes = 0;
@@ -195,6 +194,28 @@ var parser = {
         }
       }
     })
+    tokens.forEach((token, index) => {
+      if (/(?:\r\n|\r|\n)/.test(token.suffix)) {
+        let next = tokens[index + 1];
+        if (next && next.info && next.info.type === 'html') {
+          if (!next.after) {
+            next.after = '';
+          }
+          next.after += "\n";
+          token.suffix = token.suffix.replace(/(?:\r\n|\r|\n)/img, '');
+          tokens[index + 1] = next;
+        } else {
+          let suff = token.suffix.split(/(?:\r\n|\r|\n)/);
+          token.after = "\n";
+          token.suffix = suff[0];
+          if (suff[suff.length - 1]) {
+            if (next) {
+              next.prefix+= suff[suff.length - 1];
+            }
+          }
+        }
+      }
+    });
     return tokens 
   },
  
@@ -297,7 +318,9 @@ var parser = {
       } else {
         let openTag = (tag.length>0 ? `<${tag}${class_id}${class_attr}${data_attrs}>` : '')
         let closeTag = (tag.length>0 ? `</${tag}>` : '')
-        let wrappedToken = `${openTag}${token.prefix}${token.word}${token.suffix}${closeTag}`
+        let before = token.before ? token.before : '';
+        let after = token.after ? token.after : '';
+        let wrappedToken = `${before}${openTag}${token.prefix}${token.word}${token.suffix}${closeTag}${after}`
         result.push(wrappedToken)
       }
     })
@@ -635,30 +658,43 @@ function splitWrappedString(str, tag='w') {
   htmlOpenReg = new RegExp(html_open_regex, 'img');
   htmlCloseReg = new RegExp(html_close_regex, 'img');
   htmlReg = new RegExp('<(?!\/?(u)(?=>|\s?.*>))\/?.*?>', 'img');
-  str.split(tagSplitReg).filter((s)=>s.length>0).map((word)=>{  
-    let token = {word: word.replace(/(?:\r\n|\r|\n)/g, " "), suffix: '', prefix: ''}// need to replace line breaks, otherwise text after line break is lost
-    token = extractWrapperTag(token, tag)
-    token = trimToken(token)
-    if (htmlOpenReg.test(token.word) || htmlCloseReg.test(token.word)) {
-      let words = [];
-      let matchPos = 0;
-      while ((matches = htmlReg.exec(token.word))) {
-        if (matches.index > 0) {
-          words.push(matches.input.substr(matchPos, matches.index - matchPos));
+  str.split(tagSplitReg).filter((s)=>s.length>0).map((_word)=>{  
+    let _words = _word.split(/(?:\r\n|\r|\n)/);
+    if (_words.length > 0) {
+      _words.forEach((w, i) => {
+        if (i < _words.length - 1) {
+          _words[i]+="\n";
         }
-        words.push(matches[0]);
-        matchPos = matches.index + matches[0].length;
-      }
-      if (matchPos < token.word.length) {
-        words.push(token.word.substr(matchPos, token.word.length - matchPos))
-      }
-      words.map((w, i) => {
-        let t = {word: w, suffix: token.suffix === " " && i == words.length - 1 ? ' ' : '', prefix: token.prefix === " " && i == 0 ? ' ' : ''};
-        tokens.push(t);
-      });
+      })
     } else {
-      tokens.push(token) 
+      _words = [_word];
     }
+    _words.forEach(word => {
+      let token = {word: word, suffix: '', prefix: ''}// need to replace line breaks, otherwise text after line break is lost
+      token = extractWrapperTag(token, tag)
+      token = trimToken(token)
+      if (htmlOpenReg.test(token.word) || htmlCloseReg.test(token.word)) {
+        let words = [];
+        let matchPos = 0;
+        while ((matches = htmlReg.exec(token.word))) {
+          if (matches.index > 0) {
+            words.push(matches.input.substr(matchPos, matches.index - matchPos));
+          }
+          words.push(matches[0]);
+          matchPos = matches.index + matches[0].length;
+        }
+        if (matchPos < token.word.length) {
+          words.push(token.word.substr(matchPos, token.word.length - matchPos))
+        }
+        words.map((w, i) => {
+          let t = {word: w, suffix: i == words.length - 1 ? token.suffix : '', prefix: token.prefix === " " && i == 0 ? ' ' : ''};
+          tokens.push(t);
+        });
+        //console.log('=============', "'" + token.suffix + "'")
+      } else {
+        tokens.push(token) 
+      }
+    });
   })
   //console.log('Initial split', tokens) 
   tokens = packEmptyTokens(tokens)

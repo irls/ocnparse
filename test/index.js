@@ -267,8 +267,14 @@ describe('Ocean Parser Behaviour Tests', function() {
 'for the furniture to hear:';
     
     let wrapped = parser.rebuild(parser.tokenize(string, 'w'), 'w')
-    let check_string = '<w>The </w><w>old </w><w>lady </w><f class="service-info" data-flag="ts1_en_39:j7r8udpr" data-status="open"><w>pulled</w></f><w> her </w><w>spectacles</w><sup class="js-footnote-el service-info" data-idx="1"><w class="service-info" data-sugg="">1</w></sup><w> down </w><w>and </w><w>looked </w><w>over </w><w>them </w><f class="service-info" data-flag="ts1_en_39:j7r8undm" data-status="open"><w>about </w><w>the </w><w>room</w></f><w>; then </w><w>she </w><w>put </w><w>them </w><w>up </w><w>and </w><w>looked </w><w>out </w><w>under </w><w>them. </w><w>She </w><w>seldom</w><sup class="js-footnote-el service-info" data-idx="2"><w class="service-info" data-sugg="">2</w></sup><w> or </w><w>never  </w><w>looked </w><i class="service-info"><w>through</w></i><w> them </w><w>for </w><w>so </w><w>small </w><w>a </w><w>thing </w><w>as </w><w>a </w><w>boy; </w><w>they </w><w>were </w><w>her </w><w>state  </w><w>pair, </w><w>the </w><w>pride </w><w>of </w><w>her </w><w>heart, </w><w>and </w><w>were </w><w>built </w><w>for </w><w>“style,” </w><w>not </w><w data-author="quote 1">service </w><w>— she  </w><w>could </w><w>have </w><w>seen </w><w data-author="quote 2">through </w><w>a </w><w>pair </w><w>of </w><w>stove-lids </w><w>just </w><w>as </w><w>well. </w><w>She </w><w>looked  </w><w>perplexed </w><w>for </w><w>a </w><w>moment, </w><w>and </w><w>then </w><w>said, </w><w>not </w><w>fiercely, </w><w>but </w><w>still </w><w>loud </w><w>enough  </w><w>for </w><w>the </w><w>furniture </w><w>to </w><w>hear:</w>';
-    
+    let check_string = `<w>The </w><w>old </w><w>lady </w><f class="service-info" data-flag="ts1_en_39:j7r8udpr" data-status="open"><w>pulled</w></f><w> her </w><w>spectacles</w><sup class="js-footnote-el service-info" data-idx="1"><w class="service-info" data-sugg="">1</w></sup><w> down </w><w>and </w><w>looked </w><w>over </w><w>them </w><f class="service-info" data-flag="ts1_en_39:j7r8undm" data-status="open"><w>about </w><w>the</w>
+<w>room</w></f><w>; then </w><w>she </w><w>put </w><w>them </w><w>up </w><w>and </w><w>looked </w><w>out </w><w>under </w><w>them. </w><w>She </w><w>seldom</w><sup class="js-footnote-el service-info" data-idx="2"><w class="service-info" data-sugg="">2</w></sup><w> or </w><w>never </w>
+<w>looked </w><i class="service-info"><w>through</w></i><w> them </w><w>for </w><w>so </w><w>small </w><w>a </w><w>thing </w><w>as </w><w>a </w><w>boy; </w><w>they </w><w>were </w><w>her </w><w>state </w>
+<w>pair, </w><w>the </w><w>pride </w><w>of </w><w>her </w><w>heart, </w><w>and </w><w>were </w><w>built </w><w>for </w><w>“style,” </w><w>not </w><w data-author="quote 1">service </w><w>— she </w>
+<w>could </w><w>have </w><w>seen </w><w data-author="quote 2">through </w><w>a </w><w>pair </w><w>of </w><w>stove-lids </w><w>just </w><w>as </w><w>well. </w><w>She </w><w>looked </w>
+<w>perplexed </w><w>for </w><w>a </w><w>moment, </w><w>and </w><w>then </w><w>said, </w><w>not </w><w>fiercely, </w><w>but </w><w>still </w><w>loud </w><w>enough </w>
+<w>for </w><w>the </w><w>furniture </w><w>to </w><w>hear:</w>`;
+
     it ('Wrapped string did not remove words after line breaks', () => expect(wrapped).to.equal(check_string))
   })
   
@@ -413,6 +419,100 @@ describe('Ocean Parser Behaviour Tests', function() {
     strQuoteSingle = parser.reWrap(strQuoteSingle, 'w');
     it('Single Quotes in token with words it covers', () => expect(strQuoteSingle).to.be.equal(checkQuoteSingle));
     //console.log(str);
+  });
+  describe('Line breaks', function () {
+    let str = `‘Fury said to a 
+mouse, That he 
+met in the 
+house, 
+“Let us 
+both go to 
+law: <i>I</i> will 
+prosecute 
+<i>you</i>. — Come, 
+I’ll take no 
+denial; We 
+must have a 
+trial: For 
+really this 
+morning I’ve 
+nothing 
+to do.” 
+Said the 
+mouse to the 
+cur, “Such 
+a trial, 
+dear Sir, 
+With 
+no jury 
+or judge, 
+would be 
+wasting 
+our 
+breath.” 
+“I’ll be 
+judge, I’ll 
+be jury,” 
+Said 
+cunning 
+old Fury: 
+“I’ll 
+try the 
+whole 
+cause, 
+and 
+condemn 
+you 
+to 
+death.”’`;
+    let check_str = `<w>‘Fury </w><w>said </w><w>to </w><w>a </w>
+<w>mouse, </w><w>That </w><w>he </w>
+<w>met </w><w>in </w><w>the </w>
+<w>house, </w>
+<w>“Let </w><w>us </w>
+<w>both </w><w>go </w><w>to </w>
+<w>law: </w><i class="service-info"><w>I</w></i><w> will </w>
+<w>prosecute </w><i class="service-info">
+<w>you</w></i><w>. — Come, </w>
+<w data-ipa="e ? l l">I’ll </w><w>take </w><w>no </w>
+<w>denial; </w><w>We </w>
+<w>must </w><w>have </w><w>a </w>
+<w>trial: </w><w>For </w>
+<w>really </w><w>this </w>
+<w>morning </w><w data-ipa="e ? v e">I’ve </w>
+<w>nothing </w>
+<w>to </w><w>do.” </w>
+<w>Said </w><w>the </w>
+<w>mouse </w><w>to </w><w>the </w>
+<w>cur, </w><w>“Such </w>
+<w>a </w><w>trial, </w>
+<w>dear </w><w>Sir, </w>
+<w>With </w>
+<w>no </w><w>jury </w>
+<w>or </w><w>judge, </w>
+<w>would </w><w>be </w>
+<w>wasting </w>
+<w>our </w>
+<w>breath.” </w>
+<w data-ipa="e ? l l">“I’ll </w><w>be </w>
+<w>judge, </w><w data-ipa="e ? l l">I’ll </w>
+<w>be </w><w>jury,” </w>
+<w>Said </w>
+<w>cunning </w>
+<w>old </w><w>Fury: </w>
+<w data-ipa="e ? l l">“I’ll </w>
+<w>try </w><w>the </w>
+<w>whole </w>
+<w>cause, </w>
+<w>and </w>
+<w>condemn </w>
+<w>you </w>
+<w>to </w>
+<w>death.”’</w>`;
+    str = parser.reWrap(str, 'w');
+    it('Re wrap keeps line breaks', () => expect(str).to.be.equal(check_str));
+    str = parser.reWrap(str, 'w');
+    it('Double re wrap keeps line breaks', () => expect(str).to.be.equal(check_str));
   });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
