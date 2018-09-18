@@ -7,7 +7,7 @@ var XRegExp = require('xregexp')
 //var bterm = require('../bahai-term-phonemes/bahai-term-phonemes')
 var bterm = require('bahai-term-phonemes')
 
-let html_open_regex = '<((?!(u>|u |[><\\/])).)+>', html_close_regex = '<\\/((?!(u>|\\W)).)+>';
+let html_open_regex = '<((?!(u>|u |\\/)))[^><]+>', html_close_regex = '<\\/((?!(u>|\\W)).)+>';
 
 
 var parser = {
@@ -284,6 +284,7 @@ var parser = {
       let data_attrs = ''
       let class_attr = ''
       let class_id = ''
+      let attrs = '';
       if (token.info) {
         //console.log(token.word, ':', token.info)
         // data attributes are stored as a keyed object: token.info.data = {attrName: attrValue}
@@ -294,6 +295,9 @@ var parser = {
         if (token.info.class && token.info.class.length>0) class_attr = ` class="${token.info.class.join(' ')}"`
         // add id 
         if (token.info.id) class_id = ` id="${token.info.id}"`
+        if (token.info.href) {
+          attrs = ` href="${token.info.href}"`;
+        }
       } 
       if (token.info.type === 'html') {// special type of token, meaning opening or closing HTML tag
         if (token.suffix.indexOf(' ') !== -1) {
@@ -309,7 +313,7 @@ var parser = {
         }
         token.prefix = token.prefix.trim();
         token.suffix = token.suffix.trim();
-        let openTag = (token.prefix.length>0 ? `<${token.prefix}${class_id}${class_attr}${data_attrs}>` : '')
+        let openTag = (token.prefix.length>0 ? `<${token.prefix}${class_id}${class_attr}${data_attrs}${attrs}>` : '')
         let closeTag = (token.suffix.length>0 ? `</${token.suffix}>` : '')
         let before = token.before ? token.before : '';
         let after = token.after ? token.after : '';
