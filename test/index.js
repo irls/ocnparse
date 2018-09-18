@@ -514,6 +514,14 @@ death.”’`;
     str = parser.reWrap(str, 'w');
     it('Double re wrap keeps line breaks', () => expect(str).to.be.equal(check_str));
   });
+  describe('Links', () => {
+    let str = 'test2 test2 <a href="http://mysite.com">block link</a> content <i><a href="www.google.com/search">link</a></i>';
+    let checkStr = '<w>test2 </w><w>test2 </w><a class="service-info" href="http://mysite.com"><w>block </w><w>link</w></a><w> content </w><i class="service-info"><a class="service-info" href="www.google.com/search"><w>link</w></a></i>';
+    let reWrap = parser.reWrap(str, 'w');
+    it('Re wrap keeps links with ref', () => expect(reWrap).to.be.equal(checkStr));
+    let reWrapRe = parser.reWrap(reWrap, 'w');
+    it('Re wrap keeps links with ref', () => expect(reWrapRe).to.be.equal(checkStr));
+  });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned
