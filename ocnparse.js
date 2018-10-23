@@ -90,7 +90,7 @@ var parser = {
             }
           }
           open_tag.push(token.prefix);
-        } else if (token.suffix === open_tag[open_tag.length - 1]) {
+        } else if (open_tag[open_tag.length - 1] && token.suffix.trim() === open_tag[open_tag.length - 1].trim()) {
           open_tag.pop();
         }
       } else if (open_tag.length) {
