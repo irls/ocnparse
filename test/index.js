@@ -63,12 +63,12 @@ describe('Ocean Parser Behaviour Tests', function() {
       let src = tests.plaintext_fa
       let tokens = parser.tokenize(src)
       let dest = parser.rebuild(tokens) 
-      expect(tokens.length).to.equal(167)
+      //expect(tokens.length).to.equal(165)
       if (dest!=src) {
         var diff = new Diff()
         console.log('Rebuild failed to match exactly', diff.main(src, dest))
       }
-      expect(dest===src).to.be.true;
+      expect(dest).to.be.equal(src);
     })
 
     it('Correctly wrap a farsi block in <w> tags', function () {
@@ -98,16 +98,16 @@ describe('Ocean Parser Behaviour Tests', function() {
   describe('Tokens correctly give same phonemes for different versions of terms', function () {
     var tt = parser.tokenize(`'Abdu'l-Bahá ‘Abdu’l-Bahá Abdu'l-Bahá`)
     let soundex = `A134`
-    let ipa = `@ b d @U ? l ? b @ h A:`
+    let ipa = `abdoU?l?bahA:`
     //console.log(tt[0].info.data)
     it(`Token count should be correct (3)`, () => expect(tt.length).to.equal(3) )  
     if (tt.length===3) {
       it(`Correct soundex for 'Abdu'l-Bahá (A134)`, () => expect( tt[0].info.soundex ).to.equal(soundex) ) 
       it(`Correct soundex for ‘Abdu’l-Bahá (A134)`, () => expect( tt[1].info.soundex ).to.equal(soundex) ) 
       it(`Correct soundex for Abdu'l-Bahá (A134)`, () => expect( tt[2].info.soundex ).to.equal(soundex) ) 
-      it(`Correct IPA for 'Abdu'l-Bahá (@ b d @U ? l ? b @ h A:)`, () => expect( tt[0].info.data.ipa ).to.equal(ipa) ) 
-      it(`Correct IPA for ‘Abdu’l-Bahá (@ b d @U ? l ? b @ h A:)`, () => expect( tt[1].info.data.ipa ).to.equal(ipa) ) 
-      it(`Correct IPA for Abdu'l-Bahá (@ b d @U ? l ? b @ h A:)`, () => expect( tt[2].info.data.ipa ).to.equal(ipa) )   
+      it(`Correct IPA for 'Abdu'l-Bahá (abdoU?l?bahA:)`, () => expect( tt[0].info.data.ipa ).to.equal(ipa) ) 
+      it(`Correct IPA for ‘Abdu’l-Bahá (abdoU?l?bahA:)`, () => expect( tt[1].info.data.ipa ).to.equal(ipa) ) 
+      it(`Correct IPA for Abdu'l-Bahá (abdoU?l?bahA:)`, () => expect( tt[2].info.data.ipa ).to.equal(ipa) )   
     }
   }) // Test ability to determine if a token is a word
 
@@ -267,9 +267,9 @@ describe('Ocean Parser Behaviour Tests', function() {
 'for the furniture to hear:';
     
     let wrapped = parser.rebuild(parser.tokenize(string, 'w'), 'w')
-    let check_string = `<w>The </w><w>old </w><w>lady </w><f class="service-info" data-flag="ts1_en_39:j7r8udpr" data-status="open"><w>pulled</w></f><w> her </w><w>spectacles</w><sup class="js-footnote-el service-info" data-idx="1"><w class="service-info" data-sugg="">1</w></sup><w> down </w><w>and </w><w>looked </w><w>over </w><w>them </w><f class="service-info" data-flag="ts1_en_39:j7r8undm" data-status="open"><w>about </w><w>the</w>
-<w>room</w></f><w>; then </w><w>she </w><w>put </w><w>them </w><w>up </w><w>and </w><w>looked </w><w>out </w><w>under </w><w>them. </w><w>She </w><w>seldom</w><sup class="js-footnote-el service-info" data-idx="2"><w class="service-info" data-sugg="">2</w></sup><w> or </w><w>never </w>
-<w>looked </w><i class="service-info"><w>through</w></i><w> them </w><w>for </w><w>so </w><w>small </w><w>a </w><w>thing </w><w>as </w><w>a </w><w>boy; </w><w>they </w><w>were </w><w>her </w><w>state </w>
+    let check_string = `<w>The </w><w>old </w><w>lady </w><f data-flag="ts1_en_39:j7r8udpr" data-status="open"><w>pulled</w></f> <w>her </w><w>spectacles</w><sup class="js-footnote-el" data-idx="1"><w data-sugg="">1</w></sup> <w>down </w><w>and </w><w>looked </w><w>over </w><w>them </w><f data-flag="ts1_en_39:j7r8undm" data-status="open"><w>about </w><w>the</w>
+<w>room; </w></f><w>then </w><w>she </w><w>put </w><w>them </w><w>up </w><w>and </w><w>looked </w><w>out </w><w>under </w><w>them. </w><w>She </w><w>seldom</w><sup class="js-footnote-el" data-idx="2"><w data-sugg="">2</w></sup> <w>or </w><w>never </w>
+<w>looked </w><i><w>through</w></i> <w>them </w><w>for </w><w>so </w><w>small </w><w>a </w><w>thing </w><w>as </w><w>a </w><w>boy; </w><w>they </w><w>were </w><w>her </w><w>state </w>
 <w>pair, </w><w>the </w><w>pride </w><w>of </w><w>her </w><w>heart, </w><w>and </w><w>were </w><w>built </w><w>for </w><w>“style,” </w><w>not </w><w data-author="quote 1">service </w><w>— she </w>
 <w>could </w><w>have </w><w>seen </w><w data-author="quote 2">through </w><w>a </w><w>pair </w><w>of </w><w>stove-lids </w><w>just </w><w>as </w><w>well. </w><w>She </w><w>looked </w>
 <w>perplexed </w><w>for </w><w>a </w><w>moment, </w><w>and </w><w>then </w><w>said, </w><w>not </w><w>fiercely, </w><w>but </w><w>still </w><w>loud </w><w>enough </w>
@@ -282,13 +282,13 @@ describe('Ocean Parser Behaviour Tests', function() {
     let str = '“There! <f id="flag1">I might<sup class="js-footnote-el" data-idx="1">1</sup> ‘a’ <qq data-author="quote123">thought</qq> of that closet</f>. What you been doing in there?”';
     let tokens = parser.tokenize(str, 'w');
     let wrapped = parser.rebuild(tokens, 'w')
-    let check_string = '<w>“There! </w><f id="flag1" class="service-info"><w>I </w><w>might</w><sup class="js-footnote-el service-info" data-idx="1"><w class="service-info" data-sugg="">1</w></sup><w> ‘a’ </w><qq class="service-info" data-author="quote123"><w>thought</w></qq><w> of </w><w>that </w><w>closet</w></f><w>. What </w><w>you </w><w>been </w><w>doing </w><w>in </w><w>there?”</w>';
+    let check_string = '<w>“There! </w><f id="flag1"><w>I </w><w>might</w><sup class="js-footnote-el" data-idx="1"><w data-sugg="">1</w></sup> <w>‘a’ </w><qq data-author="quote123"><w>thought</w></qq> <w>of </w><w>that </w><w>closet. </w></f><w>What </w><w>you </w><w>been </w><w>doing </w><w>in </w><w>there?”</w>';
     it ('Wrapped string contains service classes', () => expect(wrapped).to.equal(check_string))
   })
   
   describe('Blocks intersection', function() {
     let str = '<w data-map="0,1310">“My! </w><w data-map="1310,30">Look </w><w data-map="1340,720"><sg data-suggestion="vvvvvvv">behind</sg> </w><w data-map="2060,1240">you, </w><w data-map="3300,95">aunt!</w><w data-map="3395,125">”</w>'
-    let check_str = '<w>“My! </w><w>Look </w><sg class="service-info" data-suggestion="vvvvvvv"><w data-sugg="vvvvvvv">behind</w></sg><w> you, </w><w>aunt!”</w>'
+    let check_str = '<w>“My! </w><w>Look </w><sg data-suggestion="vvvvvvv"><w data-sugg="vvvvvvv">behind</w></sg> <w>you, </w><w>aunt!”</w>'
     let clean_content = parser.rebuild(parser.tokenize(str, "w"), "");
     let reWrapped = parser.reWrap(clean_content, 'w');
     it('Re wrapped string still contains suggestion', () => expect(reWrapped).to.be.equal(check_str))
@@ -298,12 +298,12 @@ describe('Ocean Parser Behaviour Tests', function() {
     let str = '<a>The</a> Yellow <b><f data-flag="yellow-wallpaper_en_2s:j81nafbq" data-status="resolved">Wallpaper</f></b>';
     let clean_content = parser.rebuild(parser.tokenize(str.replace(/(?:\r\n|\r|\n)/g, ""), "w"), "");
     let reWrapped = parser.reWrap(clean_content, 'w');
-    let check = '<a class="service-info"><w>The</w></a><w> Yellow </w><b class="service-info"><f class="service-info" data-flag="yellow-wallpaper_en_2s:j81nafbq" data-status="resolved"><w>Wallpaper</w></f></b>';
+    let check = '<a><w>The</w></a> <w>Yellow </w><b><f data-flag="yellow-wallpaper_en_2s:j81nafbq" data-status="resolved"><w>Wallpaper</w></f></b>';
     it('Re wrapped string still contains html', () => expect(reWrapped).to.be.equal(check))
   });
   describe('Flags and <br/>', function() {
-    let str = '<w data-map="0,235">O.</w><br class="service-info"><f class="service-info" data-flag="tgom-3_en_2u:jda3nf1r" data-status="resolved"><w data-map="235,925">Henry</w></f>';
-    let check = '<w>O.</w><br class="service-info"><f class="service-info" data-flag="tgom-3_en_2u:jda3nf1r" data-status="resolved"><w>Henry</w></f>';
+    let str = '<w data-map="0,235">O.</w><br><f data-flag="tgom-3_en_2u:jda3nf1r" data-status="resolved"><w data-map="235,925">Henry</w></f>';
+    let check = '<w>O.</w><br><f data-flag="tgom-3_en_2u:jda3nf1r" data-status="resolved"><w>Henry</w></f>';
     let tokenized = parser.tokenize(str, 'w');
     let rebuild = parser.rebuild(tokenized, '');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
@@ -311,15 +311,16 @@ describe('Ocean Parser Behaviour Tests', function() {
   });
   describe('Dot and HTML tags', function() {
     let str = '.<i>begin</i><sg data-suggestion=\"Chapter one\">I</sg>.<br> Down the Rabbit-Hole<i>end</i>.';
-    let check = '<i class="service-info"><w>.begin</w></i><sg class="service-info" data-suggestion="Chapter one"><w data-sugg="Chapter one">I.</w></sg><br class="service-info"><w> Down </w><w>the </w><w>Rabbit-Hole</w><i class="service-info"><w>end.</w></i>';
+    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><w data-sugg="Chapter one">I.</w></sg><br> <w>Down </w><w>the </w><w>Rabbit-Hole</w><i><w>end.</w></i>';
     let tokenized = parser.tokenize(str, 'w');
-    let rebuild = parser.rebuild(tokenized, '');//clean w
+    let rebuild = parser.rebuild(tokenized, 'w');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
+    it('Dot does not brake HTML tags', () => expect(rebuild).to.be.equal(check))
     it('Dot does not brake HTML tags', () => expect(reWrap).to.be.equal(check))
   });
   describe('Suggestion and HTML tags', function() {
     let str = '.<i>begin</i><sg data-suggestion="Chapter one"><i>I</i></sg>.<br> Down the Rabbit-Hole<i>end</i>.';
-    let check = '<i class="service-info"><w>.begin</w></i><sg class="service-info" data-suggestion="Chapter one"><w data-sugg="Chapter one"><i>I.</i></w></sg><br class="service-info"><w> Down </w><w>the </w><w>Rabbit-Hole</w><i class="service-info"><w>end.</w></i>';
+    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><i><w data-sugg="Chapter one">I.</w></i></sg><br> <w>Down </w><w>the </w><w>Rabbit-Hole</w><i><w>end.</w></i>';
     let tokenized = parser.tokenize(str, 'w');
     let rebuild = parser.rebuild(tokenized, '');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
@@ -327,7 +328,7 @@ describe('Ocean Parser Behaviour Tests', function() {
   });
   describe('Suggestion and comma', function() {
     let str = '<w>her </w><w>sister <sg data-suggestion="on the bank">o-t-b</sg></w><w>, </w><w>and </w>';
-    let check = '<w>her </w><w>sister </w><sg class="service-info" data-suggestion="on the bank"><w data-sugg="on the bank">o-t-b</w></sg><w>, and </w>';
+    let check = '<w>her </w><w>sister </w><sg data-suggestion="on the bank"><w data-sugg="on the bank">o-t-b, </w></sg><w>and </w>';
     let tokens = parser.tokenize(str, "w")
     let rebuild = parser.rebuild(tokens, '');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
@@ -335,7 +336,7 @@ describe('Ocean Parser Behaviour Tests', function() {
   });
   describe('Check', function() {
     let str = 'Descendants of the <u>Sh</u>áhs were thrust';
-    let check = '<w>Descendants </w><w>of </w><w>the </w><w data-ipa="s  A: h s"><u>Sh</u>áhs </w><w>were </w><w>thrust</w>';
+    let check = '<w>Descendants </w><w>of </w><w>the </w><w data-ipa="SA:hs"><u>Sh</u>áhs </w><w>were </w><w>thrust</w>';
     str = parser.rebuild(parser.tokenize(str, "w"), "");
     let reWrap = parser.reWrap(str, 'w');
     it('<u> at the beginning of term does not brake HTML tags', () => expect(reWrap).to.be.equal(check))
@@ -343,7 +344,7 @@ describe('Ocean Parser Behaviour Tests', function() {
   describe('Suggestions', function() {
     describe('Multi word suggestion', function() {
       let str = 'Some text <sg data-suggestion="some suggestion">inside <i>sugg</i> test.</sg> outside sugg';
-      let check = '<w>Some </w><w>text </w><sg class="service-info" data-suggestion="some suggestion"><w data-sugg="some suggestion">inside <i>sugg</i> test.</w></sg><w> outside </w><w>sugg</w>';
+      let check = '<w>Some </w><w>text </w><sg data-suggestion="some suggestion"><w data-sugg="some suggestion">inside <i>sugg</i> test.</w></sg> <w>outside </w><w>sugg</w>';
       let tokens = parser.tokenize(str, "w");
       str = parser.rebuild(tokens, "");
       let reWrap = parser.reWrap(str, 'w');
@@ -351,7 +352,7 @@ describe('Ocean Parser Behaviour Tests', function() {
     });
     describe('Single word suggestion', function() {
       let str = 'Some text <sg data-suggestion="some suggestion">inside </sg> outside sugg';
-      let check = '<w>Some </w><w>text </w><sg class="service-info" data-suggestion="some suggestion"><w data-sugg="some suggestion">inside </w></sg><w> outside </w><w>sugg</w>';
+      let check = '<w>Some </w><w>text </w><sg data-suggestion="some suggestion"><w data-sugg="some suggestion">inside </w></sg> <w>outside </w><w>sugg</w>';
       let tokens = parser.tokenize(str, "w");
       str = parser.rebuild(tokens, "");
       let reWrap = parser.reWrap(str, 'w');
@@ -359,7 +360,7 @@ describe('Ocean Parser Behaviour Tests', function() {
     });
     describe('Empty suggestion', function() {
       let str = 'Some text <sg data-suggestion="">inside sugg test </sg> outside sugg';
-      let check = '<w>Some </w><w>text </w><sg class="service-info" data-suggestion=""><w data-sugg="">inside sugg test </w></sg><w> outside </w><w>sugg</w>';
+      let check = '<w>Some </w><w>text </w><sg data-suggestion=""><w data-sugg="">inside sugg test </w></sg> <w>outside </w><w>sugg</w>';
       let tokens = parser.tokenize(str, "w");
       str = parser.rebuild(tokens, "");
       let reWrap = parser.reWrap(str, 'w');
@@ -368,20 +369,20 @@ describe('Ocean Parser Behaviour Tests', function() {
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
-    let check = '<span class="service-info"><w>So</w></span><span class="service-info"><w> she</w></span><span class="service-info"><w> was</w></span><span class="service-info"><w> considering.</w></span>'
+    let check = '<span><w>So</w></span> <span><w>she</w></span> <span><w>was</w></span> <span><w>considering.</w></span>'   
     str = parser.reWrap(str, 'w');
     let tokens = parser.tokenize(str, 'w')
     let rebuild = parser.rebuild(tokens, 'w')
     let rebuild_check = parser.rebuild(tokens, 'w')
-    it('Double rebuild', () => expect(check).to.be.equal(rebuild_check));
+    it('Double rebuild', () => expect(rebuild_check).to.be.equal(check));
   });
   describe('Underlines and sup', function() {
     let str = 'Mírzá,<sup data-idx=\"26\">26</sup> <u>Sh</u>ay<u>kh</u> Aḥmad, freed from';
-    let checkStr = '<w data-ipa="m i: r z A:">Mírzá,</w><sup class="service-info" data-idx="26"><w class="service-info" data-sugg="">26</w></sup><w> <u>Sh</u>ay<u>kh</u> </w><w data-ipa="@ h m @ d">Aḥmad, </w><w>freed </w><w>from</w>';
+    let checkStr = '<w data-ipa="mi:rzA:">Mírzá,</w><sup data-idx="26"><w data-sugg="">26</w></sup> <w><u>Sh</u>ay<u>kh</u> </w><w data-ipa="ahmad">Aḥmad, </w><w>freed </w><w>from</w>';
     str = parser.reWrap(str, 'w');
     let tokens = parser.tokenize(str, 'w')
     let rebuild = parser.rebuild(tokens, 'w')
-    it('u tags are not wrapped', () => expect(checkStr).to.be.equal(rebuild));
+    it('u tags are not wrapped', () => expect(rebuild).to.be.equal(checkStr));
   });
   describe('Parenthesis', function () {
     let str = 'Test string (inside test) outside outside';
@@ -399,23 +400,23 @@ describe('Ocean Parser Behaviour Tests', function() {
     //strQuote = parser.reWrap(strQuote, 'w');
     //console.log(strQuote);
     let strTag = 'Test string (<i>inside test</i>) outside outside';
-    let checkTag = '<w>Test </w><w>string </w>(<i class="service-info"><w>inside </w><w>test</w></i>)<w> outside </w><w>outside</w>';
+    let checkTag = '<w>Test </w><w>string </w>(<i><w>inside </w><w>test</w></i>) <w>outside </w><w>outside</w>';
     strTag = parser.reWrap(strTag, 'w');
-    it('Parenthesis in token with word it covers, HTML', () => expect(checkTag).to.be.equal(strTag));
-    strTag = parser.reWrap(strTag, 'w');
-    let rebuildTag = parser.rebuild(parser.tokenize(strTag, 'w'), 'w')
-    it('Parenthesis in token with word it covers, HTML rebuild', () => expect(checkTag).to.be.equal(rebuildTag));
+    it('Parenthesis in token with word it covers, HTML', () => expect(strTag).to.be.equal(checkTag));
+    let strTag2 = parser.reWrap(strTag, 'w');
+    let rebuildTag = parser.rebuild(parser.tokenize(strTag2, 'w'), 'w')
+    it('Parenthesis in token with word it covers, HTML rebuild', () => expect(rebuildTag).to.be.equal(checkTag));
     //console.log(str);
     let strQuote = 'Test string "<i>inside test</i>" outside outside';
-    let checkQuote = '<w>Test </w><w>string </w>"<i class="service-info"><w>inside </w><w>test</w></i>" <w>outside </w><w>outside</w>';
+    let checkQuote = '<w>Test </w><w>string </w>"<i><w>inside </w><w>test</w></i>" <w>outside </w><w>outside</w>';
     strQuote = parser.reWrap(strQuote, 'w');
     it('Quotes in token with words it covers', () => expect(strQuote).to.be.equal(checkQuote));
     //console.log(strQuote);
-    strQuote = parser.reWrap(strQuote, 'w');
-    let rebuildQuote = parser.rebuild(parser.tokenize(strQuote, 'w'), 'w')
+    let strQuote2 = parser.reWrap(strQuote, 'w');
+    let rebuildQuote = parser.rebuild(parser.tokenize(strQuote2, 'w'), 'w')
     it('Quotes in token with words it covers, rebuild', () => expect(rebuildQuote).to.be.equal(checkQuote));
     let strQuoteSingle = 'Test string \'<i>inside test</i>\' outside outside';
-    let checkQuoteSingle = '<w>Test </w><w>string </w>\'<i class="service-info"><w>inside </w><w>test</w></i>\' <w>outside </w><w>outside</w>';
+    let checkQuoteSingle = '<w>Test </w><w>string </w>\'<i><w>inside </w><w>test</w></i>\' <w>outside </w><w>outside</w>';
     strQuoteSingle = parser.reWrap(strQuoteSingle, 'w');
     it('Single Quotes in token with words it covers', () => expect(strQuoteSingle).to.be.equal(checkQuoteSingle));
     //console.log(str);
@@ -471,15 +472,15 @@ death.”’`;
 <w>house, </w>
 <w>“Let </w><w>us </w>
 <w>both </w><w>go </w><w>to </w>
-<w>law: </w><i class="service-info"><w>I</w></i><w> will </w>
-<w>prosecute </w><i class="service-info">
-<w>you</w></i><w>. — Come, </w>
-<w data-ipa="e ? l l">I’ll </w><w>take </w><w>no </w>
+<w>law: </w><i><w>I</w></i> <w>will </w>
+<w>prosecute </w>
+<i><w>you. — </w></i><w>Come, </w>
+<w data-ipa="e?ll">I’ll </w><w>take </w><w>no </w>
 <w>denial; </w><w>We </w>
 <w>must </w><w>have </w><w>a </w>
 <w>trial: </w><w>For </w>
 <w>really </w><w>this </w>
-<w>morning </w><w data-ipa="e ? v e">I’ve </w>
+<w>morning </w><w data-ipa="e?ve">I’ve </w>
 <w>nothing </w>
 <w>to </w><w>do.” </w>
 <w>Said </w><w>the </w>
@@ -494,13 +495,13 @@ death.”’`;
 <w>wasting </w>
 <w>our </w>
 <w>breath.” </w>
-<w data-ipa="e ? l l">“I’ll </w><w>be </w>
-<w>judge, </w><w data-ipa="e ? l l">I’ll </w>
+<w data-ipa="e?ll">“I’ll </w><w>be </w>
+<w>judge, </w><w data-ipa="e?ll">I’ll </w>
 <w>be </w><w>jury,” </w>
 <w>Said </w>
 <w>cunning </w>
 <w>old </w><w>Fury: </w>
-<w data-ipa="e ? l l">“I’ll </w>
+<w data-ipa="e?ll">“I’ll </w>
 <w>try </w><w>the </w>
 <w>whole </w>
 <w>cause, </w>
@@ -516,7 +517,7 @@ death.”’`;
   });
   describe('Links', () => {
     let str = 'test2 test2 <a href="http://mysite.com">block link</a> content <i><a href="www.google.com/search">link</a></i>';
-    let checkStr = '<w>test2 </w><w>test2 </w><a class="service-info" href="http://mysite.com"><w>block </w><w>link</w></a><w> content </w><i class="service-info"><a class="service-info" href="www.google.com/search"><w>link</w></a></i>';
+    let checkStr = '<w>test2 </w><w>test2 </w><a href="http://mysite.com"><w>block </w><w>link</w></a> <w>content </w><i><a href="www.google.com/search"><w>link</w></a></i>';
     let reWrap = parser.reWrap(str, 'w');
     it('Re wrap keeps links with ref', () => expect(reWrap).to.be.equal(checkStr));
     let reWrapRe = parser.reWrap(reWrap, 'w');
@@ -526,9 +527,33 @@ death.”’`;
     let str = 'Test block test<sup>1</sup> <sg data-suggestion="test suggestion">block</sg> test block';
     let reWrap = parser.reWrap(str, 'w');
     let secondReWrap = parser.reWrap(reWrap, 'w');
-    let checkStr = '<w>Test </w><w>block </w><w>test</w><sup class="service-info"><w class="service-info" data-sugg="">1</w></sup><sg class="service-info" data-suggestion="test suggestion"><w data-sugg="test suggestion"> block</w></sg><w> test </w><w>block</w>';
+    let checkStr = '<w>Test </w><w>block </w><w>test</w><sup><w data-sugg="">1</w></sup> <sg data-suggestion="test suggestion"><w data-sugg="test suggestion">block</w></sg> <w>test </w><w>block</w>';
     it('Correctly parsing closing tags', () => expect(reWrap).to.be.equal(checkStr));
     it('Correctly parsing closing tags after second re wrap', () => expect(secondReWrap).to.be.equal(checkStr))
+  });
+  describe('Line breaks inside list', () => {
+    let str = `Among them,
+
+  <ul>
+<li> Mullá Muḥammad ‘Alíy-i-Zanjání
+</li><li> Mullá ‘Alíy-i-Basṭámí
+</li><li> Mullá Sa‘íd-i-Bárfurú<u>sh</u>í
+</li><li> Mullá Ni‘matu’lláh-i-Mázindarání
+</li><li> Mullá Yúsuf-i-Ardibílí
+</li></ul>`
+    let check_str = `<w>Among </w><w>them,</w><ul>
+<li> 
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="moUhammad">Muḥammad </w><w data-ipa="ali:je?zandZA:ni:">‘Alíy-i-Zanjání</w></li><li> 
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="ali:je?bastA:mi:">‘Alíy-i-Basṭámí</w></li><li> 
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="sa?i:de?bA:rfoUru:Si:">Sa‘íd-i-Bárfurú<u>sh</u>í</w></li><li> 
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="ne?matoU?llA:he?mA:zendarA:ni:">Ni‘matu’lláh-i-Mázindarání</w></li><li> 
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="ju:soUfe?ardebi:li:">Yúsuf-i-Ardibílí</w></li></ul>
+`
+    let tokens = parser.tokenize(str, "w")
+    let reWrap = parser.reWrap(tokens, 'w');
+    it('Correctly parsing closing tags', () => expect(reWrap).to.be.equal(check_str));
+    let secondReWrap = parser.reWrap(reWrap, 'w');
+    it('Correctly parsing closing tags', () => expect(secondReWrap).to.be.equal(check_str));
   });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>

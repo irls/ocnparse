@@ -33,15 +33,15 @@ module.exports = function() {
     reinforced by the legions of the Covenant, arise and make manifest
     the truth of the verse: ‘Behold the confusion that hath befallen
     the tribes of the defeated!’”</q>`,
-    spans_wrapped: `<w>We </w><w>have </w><w>only </w><w>to </w><w>refer </w><w>to </w><w>the </w><w>warnings </w><w>uttered </w><w>by </w><w data-ipa="@ b d @U ? l ? b @ h A:">‘Abdu’l-Bahá</w>
+    spans_wrapped: `<w>We </w><w>have </w><w>only </w><w>to </w><w>refer </w><w>to </w><w>the </w><w>warnings </w><w>uttered </w><w>by </w><w data-ipa="abdoU?l?bahA:">‘Abdu’l-Bahá</w>
 <w>    in </w><w>order </w><w>to </w><w>realize </w><w>the </w><w>extent </w><w>and </w><w>character </w><w>of </w><w>the </w><w>forces </w><w>that </w><w>are</w>
 <w>    destined </w><w>to </w><w>contest </w><w>with </w><w>God’s </w><w>holy </w><w>Faith. </w><w>In </w><w>the </w><w>darkest </w><w>moments</w>
-<w>    of </w><w>His </w><w>life, </w><w>under </w><w data-ipa="@ b d @U ? l ? h @ m i: d s">‘Abdu’l-Ḥamíd’s </w><w>régime, </w><w>when </w><w>He </w><w>stood</w>
+<w>    of </w><w>His </w><w>life, </w><w>under </w><w data-ipa="abdoU?l?hami:ds">‘Abdu’l-Ḥamíd’s </w><w>régime, </w><w>when </w><w>He </w><w>stood</w>
 <w>    ready </w><w>to </w><w>be </w><w>deported </w><w>to </w><w>the </w><w>most </w><w>inhospitable </w><w>regions </w><w>of </w><w>Northern</w>
-<w>    Africa, </w><w>and </w><w>at </w><w>a </w><w>time </w><w>when </w><w>the </w><w>auspicious </w><w>light </w><w>of </w><w>the </w><w data-ipa="b @ h A: ? i:">Bahá’í</w>
+<w>    Africa, </w><w>and </w><w>at </w><w>a </w><w>time </w><w>when </w><w>the </w><w>auspicious </w><w>light </w><w>of </w><w>the </w><w data-ipa="bahA:?i:">Bahá’í</w>
 <w>    Revelation </w><w>had </w><w>only </w><w>begun </w><w>to </w><w>break </w><w>upon </w><w>the </w><w>West, </w><w>He, </w><w>in </w><w>His </w><w>parting</w>
-<w>    message </w><w>to </w><w>the </w><w>cousin </w><w>of </w><w>the </w><w data-ipa="b A: b">Báb, </w><w>uttered </w><w>these </w><w>prophetic </w><w>and</w>
-<w>    ominous </w><w>words: </w><q class="abd service-info"><w>“How </w><w>great, </w><w>how </w><w>very </w><w>great </w><w>is </w><w>the </w><w>Cause! </w><w>How </w><w>very</w>
+<w>    message </w><w>to </w><w>the </w><w>cousin </w><w>of </w><w>the </w><w data-ipa="bA:b">Báb, </w><w>uttered </w><w>these </w><w>prophetic </w><w>and</w>
+<w>    ominous </w><w>words: </w><q class="abd"><w>“How </w><w>great, </w><w>how </w><w>very </w><w>great </w><w>is </w><w>the </w><w>Cause! </w><w>How </w><w>very</w>
 <w>    fierce </w><w>the </w><w>onslaught </w><w>of </w><w>all </w><w>the </w><w>peoples </w><w>and </w><w>kindreds </w><w>of </w><w>the </w><w>earth.</w>
 <w>    Ere </w><w>long </w><w>shall </w><w>the </w><w>clamor </w><w>of </w><w>the </w><w>multitude </w><w>throughout </w><w>Africa,</w>
 <w>    throughout </w><w>America, </w><w>the </w><w>cry </w><w>of </w><w>the </w><w>European </w><w>and </w><w>of </w><w>the </w><w>Turk, </w><w>the</w>
@@ -56,7 +56,7 @@ module.exports = function() {
     plaintext_fa_short: `کتاب مستطاب ايقان از اعظم`,
     plaintext_fa_short_wrapped: `<w>کتاب </w><w>مستطاب </w><w>ايقان </w><w>از </w><w>اعظم</w>`,
 
-    plaintext_fa: `حيف است که انسان از اين عطيّه لطيفه خود را منع نمايد و از اين نعمت باقيه و حيات دائمه خود را محروم سازد. پس قدر اين مائده معنوی را دانسته که بلکه از الطاف بديعه آن شمس حقيقی اجسادهای مرده حيات تازه يابند و ارواح پژمرده به روح بی اندازه فائز شوند. ای برادر من، جهدی بايد تا ايّام باقی است از اکواب باقی چشيم. هميشه نسيم جان از مصر جانان نوزد و هميشه نهرهای تبيان در جريان نه و مدام ابواب رضوان مفتوح نماند. آيد وقتی که عندليبان جنان از گلستان قدسی به آشيان های الهی پرواز نمايند، ديگر نه نغمه بلبل شنوی و نه جمال گل بينی. پس تا حمامه <span id="pg١٦" class="service-info" data-pg="١٦"></span> ازلی در شور و تغنّی است و بهار الهی در جلوه و تزيين غنيمت شمرده گوش قلب را از سروش او بی بهره مکن. اين است نصيحت اين عبد آن جناب و احبّای خدا را. فَمَن شَاءَ فَلْيُقْبِلْ و مَن شَاءَ فَليُعْرِض. إنَّ اللّهَ کانَ غَنيّاً عَنهُ و عَمّا يُشاهَدُ وَ يُرَی.`,
+    plaintext_fa: `حيف است که انسان از اين عطيّه لطيفه خود را منع نمايد و از اين نعمت باقيه و حيات دائمه خود را محروم سازد. پس قدر اين مائده معنوی را دانسته که بلکه از الطاف بديعه آن شمس حقيقی اجسادهای مرده حيات تازه يابند و ارواح پژمرده به روح بی اندازه فائز شوند. ای برادر من، جهدی بايد تا ايّام باقی است از اکواب باقی چشيم. هميشه نسيم جان از مصر جانان نوزد و هميشه نهرهای تبيان در جريان نه و مدام ابواب رضوان مفتوح نماند. آيد وقتی که عندليبان جنان از گلستان قدسی به آشيان های الهی پرواز نمايند، ديگر نه نغمه بلبل شنوی و نه جمال گل بينی. پس تا حمامه <span id="pg١٦" data-pg="١٦"></span> ازلی در شور و تغنّی است و بهار الهی در جلوه و تزيين غنيمت شمرده گوش قلب را از سروش او بی بهره مکن. اين است نصيحت اين عبد آن جناب و احبّای خدا را. فَمَن شَاءَ فَلْيُقْبِلْ و مَن شَاءَ فَليُعْرِض. إنَّ اللّهَ کانَ غَنيّاً عَنهُ و عَمّا يُشاهَدُ وَ يُرَی.`,
     plaintext_fa_wrapped:  ``,
 
 
