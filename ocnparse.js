@@ -35,6 +35,22 @@ var parser = {
       if (token.before && (/[^\w]*sup[^\w]*/.test(token.before) || /[^\w]*sub[^\w]*/.test(token.before))) {
         token.info.data = token.info.data || {}
         token.info.data.sugg = ''
+        if (!(/[^\w]*sup[^\w]*/.test(token.after) || /[^\w]*sub[^\w]*/.test(token.after))) {
+          let _i = i + 1;
+          let next = false
+          do {
+            next = tokens[_i];
+            if (next) {
+              next.info = next.info || {}
+              next.info.data = next.info.data || {}
+              next.info.data.sugg = ''
+              if (next.after && (/[^\w]*sup[^\w]*/.test(next.after) || /[^\w]*sub[^\w]*/.test(next.after))) {
+                next = false
+              }
+            }
+            _i++
+          } while (next);
+        }
       }
       if (token.before && /[^\w]*sg[^\w]*/.test(token.before)) {
         let suggestion = /data-suggestion="([^"]*)"/g.exec(token.before);

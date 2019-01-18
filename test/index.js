@@ -555,6 +555,15 @@ death.”’`;
     let secondReWrap = parser.reWrap(reWrap, 'w');
     it('Correctly parsing closing tags', () => expect(secondReWrap).to.be.equal(check_str));
   });
+  describe('Suggestions for data-pg', () => {
+    let str = `the saintly heroic<sup data-pg="xxiv">pg xxiv</sup> figure`
+    let check_str = `<w>the </w><w>saintly </w><w>heroic</w><sup data-pg="xxiv"><w data-sugg="">pg </w><w data-sugg="">xxiv</w></sup> <w>figure</w>`
+    let tokens = parser.tokenize(str, "w")
+    let reWrap = parser.reWrap(tokens, 'w');
+    it('Correctly parsing data-pg', () => expect(reWrap).to.be.equal(check_str));
+    let secondReWrap = parser.reWrap(reWrap, 'w');
+    it('Correctly parsing data-pg', () => expect(secondReWrap).to.be.equal(check_str));
+  });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned
