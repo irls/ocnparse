@@ -564,6 +564,16 @@ death.”’`;
     let secondReWrap = parser.reWrap(reWrap, 'w');
     it('Correctly parsing data-pg', () => expect(secondReWrap).to.be.equal(check_str));
   });
+  
+  describe('Suggestions for data-pg, CamelCase', () => {
+    let str = `“aḥmad Begins His Search” <Sup Data-Pg=" 1">pg  1</sup>  `
+    let check_str = `<w data-ipa="ahmad">“aḥmad </w><w>Begins </w><w>His </w><w>Search” </w><Sup Data-Pg=" 1"><w data-sugg="">pg  </w><w data-sugg="">1</w></sup>  `
+    let tokens = parser.tokenize(str, "w")
+    let reWrap = parser.reWrap(tokens, 'w');
+    it('Correctly parsing data-pg', () => expect(reWrap).to.be.equal(check_str));
+    let secondReWrap = parser.reWrap(reWrap, 'w');
+    it('Correctly parsing data-pg', () => expect(secondReWrap).to.be.equal(check_str));
+  });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned
