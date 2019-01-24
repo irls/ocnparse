@@ -32,10 +32,10 @@ var parser = {
       addTokenInfo(token) 
     })
     tokens.map((token, i) => {
-      if (token.before && (/[^\w]*sup[^\w]*/.test(token.before) || /[^\w]*sub[^\w]*/.test(token.before))) {
+      if (token.before && (/[^\w]*sup[^\w]*/i.test(token.before) || /[^\w]*sub[^\w]*/i.test(token.before))) {
         token.info.data = token.info.data || {}
         token.info.data.sugg = ''
-        if (!(/[^\w]*sup[^\w]*/.test(token.after) || /[^\w]*sub[^\w]*/.test(token.after))) {
+        if (!(/[^\w]*sup[^\w]*/i.test(token.after) || /[^\w]*sub[^\w]*/i.test(token.after))) {
           let _i = i + 1;
           let next = false
           do {
@@ -44,7 +44,7 @@ var parser = {
               next.info = next.info || {}
               next.info.data = next.info.data || {}
               next.info.data.sugg = ''
-              if (next.after && (/[^\w]*sup[^\w]*/.test(next.after) || /[^\w]*sub[^\w]*/.test(next.after))) {
+              if (next.after && (/[^\w]*sup[^\w]*/i.test(next.after) || /[^\w]*sub[^\w]*/i.test(next.after))) {
                 next = false
               }
             }
@@ -52,8 +52,8 @@ var parser = {
           } while (next);
         }
       }
-      if (token.before && /[^\w]*sg[^\w]*/.test(token.before)) {
-        let suggestion = /data-suggestion="([^"]*)"/g.exec(token.before);
+      if (token.before && /[^\w]*sg[^\w]*/i.test(token.before)) {
+        let suggestion = /data-suggestion="([^"]*)"/ig.exec(token.before);
         if (suggestion && typeof suggestion[1] !== 'undefined') {
           suggestion = suggestion[1];
           if (token.word) {
@@ -66,7 +66,7 @@ var parser = {
       }
     })
     tokens.forEach((token, i) => {
-      if (token.before && /[^\w]*sg[^\w]*/.test(token.before) && (!token.after || !/\/sg[^\w]*/.test(token.after))) {
+      if (token.before && /[^\w]*sg[^\w]*/i.test(token.before) && (!token.after || !/\/sg[^\w]*/i.test(token.after))) {
         token.suffix = token.suffix || '';
         token.after = token.after || '';
         token.word+= token.suffix + token.after;
@@ -78,7 +78,7 @@ var parser = {
           ++index;
           next = tokens[index];
           if (next) {
-            if (!next.after || !/\/sg[^\w]*/.test(next.after)) {
+            if (!next.after || !/\/sg[^\w]*/i.test(next.after)) {
               /*next.info = next.info || {}
               next.info.data = next.info.data || {}
               next.info.data.sugg = suggestion;
@@ -90,7 +90,7 @@ var parser = {
               next.word = next.word || '';
               token.word+= next.before + next.prefix + next.word + next.suffix + next.after
               delete tokens[index]
-            } else if (/\/sg[^\w]*/.test(next.after)) {
+            } else if (/\/sg[^\w]*/i.test(next.after)) {
               next.before= next.before|| '';
               next.prefix = next.prefix || '';
               next.suffix = next.suffix || '';
