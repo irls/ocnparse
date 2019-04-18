@@ -970,7 +970,6 @@ function cleanTokens(tokens) {
 function packEmptyTokens(tokens) {
   if (!tokens || !Array.isArray(tokens) || tokens.length<1) return []
   
-  
   let intialCount = tokens.length
   for (i=intialCount-1; i>=0; i--) {
     let token = tokens[i]
@@ -1002,7 +1001,11 @@ function packEmptyTokens(tokens) {
           }
           tokens.splice(i, 1);  //delete(tokens[i])
         } else {
-          
+          token.before = token.before || ''
+          token.before = token.word + token.suffix
+          token.word = '';
+          //nextToken.after = nextToken.after || ''
+          //nextToken.after+=  token.suffix
         }
       }
       if (htmlCloseReg.test(token.word)) {
