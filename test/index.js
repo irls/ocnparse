@@ -581,6 +581,42 @@ death.”’`;
     let reWrap = parser.reWrap(tokens)
     it('<br> is not converted', () => expect(reWrap).to.be.equal(checkStr))
   });
+  describe('Unicode right-to-left mark', () => {
+    let str = "وَكَانَ كُلَّمَا صَارَ لِلْغُرَابِ فِرَاخٌ أَكَلَتْهَا الْحَيَّةُ، فَحَزِنَ الْغُرَابُ حُزْنًا شَدِيدًا عَلَى فِراخِهِ، وَفِي أَحَدِ الْأَيَّامِ، مَرَّ بِهِ صَدِيقُهُ الثَّعْلَبُ، وَرَآهُ حَزِينًا، فَسَأَلَهُ عَنْ سَبَبِ حُزْنِهِ، فَأَخْبَرُهُ الْغُرَابُ عَنْ الْحَيَّةِ الَّتِي تَأْكُلُ فِرَاخَهُ. ‏";
+    let tokens = parser.tokenize(str, "w")
+    it('RTL mark at the end does not create empty token', () => expect(tokens[tokens.length - 1].word.length > 1).to.be.true);
+    let rtl_u = "test1 test2‏";
+    let tokens_rtl_u = parser.tokenize(rtl_u, 'w');
+    it('RTL usual', () => expect(tokens_rtl_u[tokens_rtl_u.length - 1].word === 'test2‏').to.be.true);
+    let rtl_s = "test1 test2 ‏";
+    let checkWrapped = "<w>test1 </w><w>test2 ‏</w>";
+    let tokens_rtl_s = parser.tokenize(rtl_s, 'w');
+    it('RTL with space', () => expect(tokens_rtl_s[tokens_rtl_s.length - 1].word === 'test2').to.be.true);
+    let reWrap = parser.reWrap(tokens_rtl_s, 'w');
+    it('RTL with space reWrap', () => expect(reWrap).to.be.equal(checkWrapped));
+    let secondReWrap = parser.reWrap(reWrap, 'w');
+    it('RTL with space second reWrap', () => expect(secondReWrap).to.be.equal(checkWrapped));
+    let rtl_sd = "test1 test2 .‏";
+    let tokens_rtl_sd = parser.tokenize(rtl_sd, 'w');
+    it('RTL with space and dot', () => expect(tokens_rtl_sd[tokens_rtl_sd.length - 1].word === 'test2').to.be.true);
+    let rtl_sds = "test1 test2 . ‏";
+    let tokens_rtl_sds = parser.tokenize(rtl_sds, 'w');
+    it('RTL with space and dot and space', () => expect(tokens_rtl_sds[tokens_rtl_sds.length - 1].word === 'test2').to.be.true);
+    
+    let ltr_u = "test1 test2‎";
+    let tokens_ltr_u = parser.tokenize(ltr_u, 'w');
+    it('LTR usual', () => expect(tokens_ltr_u[tokens_ltr_u.length - 1].word === "test2‎").to.be.true);
+    let ltr_s = "test1 test2 ‎";
+    let tokens_ltr_s = parser.tokenize(ltr_s, 'w');
+    it('LTR with space', () => expect(tokens_ltr_s[tokens_ltr_s.length - 1].word === "test2").to.be.true);
+    let ltr_sd = "test1 test2 .‎";
+    let tokens_ltr_sd = parser.tokenize(ltr_sd, 'w');
+    it('LTR with space and dot', () => expect(tokens_ltr_sd[tokens_ltr_sd.length - 1].word === "test2").to.be.true);
+    let ltr_sds = "test1 test2 . ‎";
+    let tokens_ltr_sds = parser.tokenize(ltr_sds, 'w');
+    it('LTR with space and dot and space', () => expect(tokens_ltr_sds[tokens_ltr_sds.length - 1].word === "test2").to.be.true);
+
+  })
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned

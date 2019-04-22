@@ -9,6 +9,7 @@ var bterm = require('bahai-term-phonemes')
 
 let html_open_regex = '<((?!(u>|u |\\/)))[^><]+>', html_close_regex = '<\\/((?!(u>|\\W)).)+>';
 let punctuation_end_regex = /[\.\:\;\!\?\,]/;
+let control_character_codes = [8207, 8206];
 
 
 var parser = {
@@ -974,7 +975,7 @@ function packEmptyTokens(tokens) {
   for (i=intialCount-1; i>=0; i--) {
     let token = tokens[i]
     //if (!token.hasOwnProperty('word')) console.log('error token', token)
-    if ((!token.word.length || !token.word.trim().length)) {
+    if ((!token.word.length || !token.word.trim().length) || (token.word.trim().length === 1 && control_character_codes.indexOf(parseInt(token.word.trim().charCodeAt(0))) !== -1)) {
         if (tokens[i-1] && (!tokens[i-1].info || tokens[i-1].info.type !== 'html')) {
           let prevToken = tokens[i-1]
           let token = tokens[i]
