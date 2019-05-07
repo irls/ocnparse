@@ -144,11 +144,12 @@ var parser = {
         if (nextToken) {
           //if (nextToken.before) {
             nextToken.before = nextToken.before || '';
-            nextToken.before = token.suffix.trim() + nextToken.before;
+            let split = token.suffix.split(token.suffix.trim());
+            nextToken.before = token.suffix.trim() + (split[1] || '') + nextToken.before;
           //} else {
             //nextToken.prefix = token.suffix.trim() + nextToken.prefix;
           //}
-          token.suffix = token.suffix.replace(token.suffix.trim(), '');
+          token.suffix = split[0] || "";
           //tokens[index + 1] = nextToken;
         }
       }
