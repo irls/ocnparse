@@ -8,9 +8,39 @@ var XRegExp = require('xregexp')
 var bterm = require('bahai-term-phonemes')
 
 let html_open_regex = '<((?!(u>|u |\\/)))[^><]+>', html_close_regex = '<\\/((?!(u>|\\W)).)+>';
-let punctuation_end_regex = /[\.\:\;\!\?\,]/;
+// arrays with different character types to control
 let control_character_codes = [8207, 8206];
+let punctuation_characters = ['.', ':', ';', '!', '?', ',', '؟', '؛', '،'];
+let quotes_open = [`“`, `‘`];
+let quotes_close = [`”`, `’`];
+let quotes_bidirectional = [`"`, `'`];
+let brackets_open = ['(', '[', '{', '﴾'];
+let brackets_close = [')', ']', '}', '﴿'];
 
+//regular expressions for checks
+let punctuation_string = '';
+punctuation_characters.forEach(pc => {
+  punctuation_string+=`\\${pc}`;
+});
+let punctuation_end_regex = new RegExp(`[${punctuation_string}]`);
+
+let quotes_string = '';
+quotes_open.concat(quotes_close).concat(quotes_bidirectional).forEach(qc => {
+  quotes_string+=`\\${qc}`;
+});
+let quotes_regex = new RegExp(`^[${quotes_string}]+$`)
+
+let quotes_open_string = '';
+quotes_open.forEach(qo => {
+  quotes_open_string+=`\\${qo}`;
+});
+let quotes_open_regex = new RegExp(`[${quotes_open_string}]`);
+
+let quotes_close_string = '';
+quotes_close.forEach(qc => {
+  quotes_close_string+=`\\${qc}`;
+});
+let quotes_close_regex = new RegExp(`[${quotes_close_string}]`);
 
 var parser = {
 
@@ -109,52 +139,38 @@ var parser = {
       }
     });
     tokens.forEach((token, index) => {
-      if (['(', '[', '{'].indexOf(token.suffix.trim()) !== -1) {
+      if (brackets_open.indexOf(token.suffix.trim()) !== -1) {
         let nextToken = tokens[index + 1];
         if (nextToken) {
-          if (nextToken.info && nextToken.info.type === 'html') {
-            if (typeof nextToken.before === 'undefined') {
-              nextToken.before = '';
-            }
+          //if (nextToken.before) {
+            nextToken.before = nextToken.before || '';
             nextToken.before = token.suffix.trim() + nextToken.before;
-          } else {
-            //if (nextToken.before) {
-              nextToken.before = nextToken.before || '';
-              nextToken.before = token.suffix.trim() + nextToken.before;
-            //} else {
-              //nextToken.prefix = token.suffix.trim() + nextToken.prefix;
-            //}
-          }
+          //} else {
+            //nextToken.prefix = token.suffix.trim() + nextToken.prefix;
+          //}
           token.suffix = token.suffix.replace(token.suffix.trim(), '');
           //tokens[index + 1] = nextToken;
         }
       }
-      if ([')', ']', '}'].indexOf(token.prefix.trim()) !== -1) {
+      if (brackets_close.indexOf(token.prefix.trim()) !== -1) {
         let prevToken = tokens[index - 1];
         if (prevToken) {
-          if (prevToken.info && prevToken.info.type === 'html') {
-            if (typeof prevToken.after === 'undefined') {
-              prevToken.after = '';
-            }
-            prevToken.after+= token.prefix.trim();
+          if (prevToken.after) {
+            prevToken.after+= token.prefix;
           } else {
-            if (prevToken.after) {
-              prevToken.after+= token.prefix;
-            } else {
-              prevToken.suffix+= token.prefix;
-            }
+            prevToken.suffix+= token.prefix;
           }
           token.prefix = '';
           //console.log(token, prevToken)
           //tokens[index - 1] = prevToken;
         }
       }
-      if (/^["'“”‘’]+$/.test(token.word.trim())) {
+      if (quotes_regex.test(token.word.trim())) {
         let quote = token.word.trim();
         let direction = 0;
-        if (/[“‘]/.test(quote)) {
+        if (quotes_open_regex.test(quote)) {
           direction = 1;
-        } else if (/[”’]/.test(quote)) {
+        } else if (quotes_close_regex.test(quote)) {
           direction = -1;
         } else {
           let quotes = 0;
@@ -180,41 +196,47 @@ var parser = {
           let next = tokens[index + 1];
           if (next) {
             //console.log(token, next)
-            if (next.info && next.info.type === 'html') {
-              if (typeof next.before === 'undefined') {
-                next.before = '';
-              }
-              next.before = token.prefix + token.word + token.suffix + next.before;
+            if (next.before) {
+              next.before = token.prefix + token.word + token.suffix + next.before
             } else {
-              if (next.before) {
-                next.before = token.prefix + token.word + token.suffix + next.before
-              } else {
-                next.prefix = token.prefix + token.word + token.suffix + next.prefix;
-              }
+              next.prefix = token.prefix + token.word + token.suffix + next.prefix;
             }
             tokens.splice(index, 1);
-          } else {
-            
+          } else {// keep quote with previous token
+            let prev = tokens[index - 1];
+            if (prev) {
+              let append = (token.before || '') + (token.prefix || '') + token.word + (token.suffix || '') + (token.after || '');
+              if (prev.after) {
+                prev.after+= append;
+              } else {
+                prev.suffix = (prev.suffix || '') + append;
+              }
+              tokens.splice(index, 1);
+            }
           }
         } else if (direction === -1) {
           let prev = tokens[index - 1];
           if (prev) {
             //console.log(token, prev)
-            if (prev.info && prev.info.type === 'html') {
-              if (typeof prev.after === 'undefined') {
-                prev.after = '';
-              }
-              prev.after = prev.after + token.prefix + token.word + token.suffix;
+            token.after = token.after || '';
+            if (prev.after) {
+              prev.after = prev.after + token.prefix + token.word + token.suffix + token.after
             } else {
-              token.after = token.after || '';
-              if (prev.after) {
-                prev.after = prev.after + token.prefix + token.word + token.suffix + token.after
-              } else {
-                prev.suffix = prev.suffix + token.prefix + token.word + token.suffix;
-                prev.after =  token.after
-              }
+              prev.suffix = prev.suffix + token.prefix + token.word + token.suffix;
+              prev.after =  token.after
             }
             tokens.splice(index, 1);
+          } else {// keep this quote with next token
+            let next = tokens[index + 1];
+            if (next) {
+              let prepend = (token.before || '') + (token.prefix || '') + token.word + (token.suffix || '') + (token.after || '');
+              if (next.before) {
+                next.before = prepend + next.before;
+              } else {
+                next.prefix = prepend + (next.prefix || '');
+              }
+              tokens.splice(index, 1);
+            }
           }
         }
       } else {
@@ -224,22 +246,13 @@ var parser = {
     tokens.forEach((token, index) => {
       if (/(?:\r\n|\r|\n)/.test(token.suffix)) {
         let next = tokens[index + 1];
-        if (next && next.info && next.info.type === 'html') {
-          if (!next.after) {
-            next.after = '';
-          }
-          next.after += "\n";
-          token.suffix = token.suffix.replace(/(?:\r\n|\r|\n)/img, '');
-          tokens[index + 1] = next;
-        } else {
-          let suff = token.suffix.split(/(?:\r\n|\r|\n)/);
-          token.after = token.after || '';
-          token.after+= "\n";
-          token.suffix = suff[0];
-          if (suff[suff.length - 1]) {
-            if (next) {
-              next.prefix+= suff[suff.length - 1];
-            }
+        let suff = token.suffix.split(/(?:\r\n|\r|\n)/);
+        token.after = token.after || '';
+        token.after+= "\n";
+        token.suffix = suff[0];
+        if (suff[suff.length - 1]) {
+          if (next) {
+            next.prefix+= suff[suff.length - 1];
           }
         }
       }
@@ -328,42 +341,19 @@ var parser = {
           attrs = ` href="${token.info.href}"`;
         }
       } 
-      if (token.info.type === 'html') {// special type of token, meaning opening or closing HTML tag
-        if (token.suffix.indexOf(' ') !== -1) {
-          //after_close_tag = ' ';
-          let i = index + 1;
-          while(tokens[i]) {
-            if (!tokens[i].info || tokens[i].info.type !== 'html') {
-              tokens[i].prefix+= ' ';
-              break;
-            }
-            ++i;
-          }
-        }
-        token.prefix = token.prefix.trim();
-        token.suffix = token.suffix.trim();
-        let openTag = (token.prefix.length>0 ? `<${token.prefix}${class_id}${class_attr}${data_attrs}${attrs}>` : '')
-        let closeTag = (token.suffix.length>0 ? `</${token.suffix}>` : '')
-        let before = token.before ? token.before : '';
-        let after = token.after ? token.after : '';
-        let wrappedToken = `${before}${openTag}${token.word}${closeTag}${after}`
-        result.push(wrappedToken)
-      } else {
-        
-        let openTag = (tag.length>0 ? `<${tag}${class_id}${class_attr}${data_attrs}>` : '')
-        if (token.html_prefix) {
-          openTag = token.html_prefix + openTag
-        }
-        let closeTag = (tag.length>0 ? `</${tag}>` : '')
-        if (token.html_suffix) {
-          closeTag+=token.html_suffix
-        }
-        let before = token.before ? token.before : '';
-        let after = token.after ? token.after : '';
-        let wrappedToken = `${before}${openTag}${token.prefix}${token.word}${token.suffix}${closeTag}${after}`
-        
-        result.push(wrappedToken)
+      let openTag = (tag.length>0 ? `<${tag}${class_id}${class_attr}${data_attrs}>` : '')
+      if (token.html_prefix) {
+        openTag = token.html_prefix + openTag
       }
+      let closeTag = (tag.length>0 ? `</${tag}>` : '')
+      if (token.html_suffix) {
+        closeTag+=token.html_suffix
+      }
+      let before = token.before ? token.before : '';
+      let after = token.after ? token.after : '';
+      let wrappedToken = `${before}${openTag}${token.prefix}${token.word}${token.suffix}${closeTag}${after}`
+
+      result.push(wrappedToken)
     })
     return result.join('')
   },
@@ -621,10 +611,14 @@ function splitTokens(tokens, tag='') {
     // all html tags except <u>
     '</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:".*?"|\'.*?\'|[^\'">\\s]+))?)+\\s*|\\s*)/?>',
     // m-dashes
-    '[\\—]|[-]{2,3}',
-    // white space and remaining punctuation
-    "[\\s\\,\\.\\!\\—\\?\\;\\:\\[\\]\\+\\=\\(\\)\\*\\&\\^\\%\\$\\#\\@\\~\\|]+?"
+    '[\\—]|[-]{2,3}'
   ]   
+  // white space and remaining punctuation
+  let delimiter_punctuation = "\\s\\—\\+\\=\\*\\&\\^\\%\\$\\#\\@\\~\\|";
+  punctuation_characters.concat(brackets_open).concat(brackets_close).forEach(cc => {
+    delimiter_punctuation+=`\\${cc}`;
+  });
+  delimiters.push(`[${delimiter_punctuation}]+?`);
   delimiters.map( (delimiterRegex) => {
     let items, newList = [] 
     tokens.map((token) => {   
@@ -927,7 +921,11 @@ function cleanTokens(tokens) {
 
     // for some reason we still sometimes have common punctuation on the ends of the word
     //  can create an empty token
-    regex = /^([\!\?\@\#\$\%\^\*\(\)\~\,\.]*)([^\!\?\@\#\$\%\^\*\(\)\~\,\.]*)([[\!\?\@\#\$\%\^\*\(\)\~\,\.]*)$/mg;
+    let check_characters_string = '';
+    ['@', '#', '$', '%', '^', '*', '~'].concat(punctuation_characters).concat(brackets_open).concat(brackets_close).forEach(cc => {
+      check_characters_string+=`\\${cc}`;
+    });
+    regex = new RegExp(`^([${check_characters_string}]*)([^${check_characters_string}]*)([[${check_characters_string}]*)$`, 'mg');
     if ((tt = regex.exec(token.word)) && (tt[1].length>0 || tt[3].length>0)) {
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];

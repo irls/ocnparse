@@ -617,6 +617,39 @@ death.”’`;
     it('LTR with space and dot and space', () => expect(tokens_ltr_sds[tokens_ltr_sds.length - 1].word === "test2").to.be.true);
 
   })
+  
+  describe('Arabic punctuation', () => {
+    let str_with_brackets = 'اسرار ﴿ اتّقوا اللّه يعلّمکم اللّه ﴾ و يتذکّر';
+    let str_with_brackets_check = '<w>اسرار ﴿ </w><w>اتّقوا </w><w>اللّه </w><w>يعلّمکم </w><w>اللّه  </w>﴾<w>و </w><w>يتذکّر</w>';
+    let str_question = 'چه ميکنی ؟ گفت ليلی';
+    let str_question_check = '<w>چه </w><w>ميکنی ؟ </w><w>گفت </w><w>ليلی</w>';
+    let str_quotes = `” کفر کافر را و دين ديندار را	ذرّه دردت دل عطّار را“`
+    let str_quotes_check = `<w>” کفر </w><w>کافر </w><w>را </w><w>و </w><w>دين </w><w>ديندار </w><w>را	</w><w>ذرّه </w><w>دردت </w><w>دل </w><w>عطّار </w><w>را“</w>`;
+    let str_semicolon = '.إن الناس لاينظرون إلى الزمن الذي عمل فيه العمل ؛ وإنما ينظرون إلى مقدار جودته وإتقانه';
+    let str_semicolon_check = '<w>.إن </w><w>الناس </w><w>لاينظرون </w><w>إلى </w><w>الزمن </w><w>الذي </w><w>عمل </w><w>فيه </w><w>العمل ؛ </w><w>وإنما </w><w>ينظرون </w><w>إلى </w><w>مقدار </w><w>جودته </w><w>وإتقانه</w>';
+    let str_comma = 'يا محمد، أجب على السؤال.';
+    let str_comma_check = '<w>يا </w><w>محمد، </w><w>أجب </w><w>على </w><w>السؤال.</w>';
+    //let str = `“ test1 test2 ”`
+    let tokens_brackets = parser.tokenize(str_with_brackets, 'w');
+    let wrapped_brackets = parser.reWrap(tokens_brackets, 'w');
+    it('Ornate brackets do not create separate token', () => expect(str_with_brackets_check).to.be.equal(wrapped_brackets));
+    
+    let tokens_question = parser.tokenize(str_question, 'w');
+    let wrapped_question = parser.reWrap(tokens_question, 'w');
+    it('Question mark does not create separate token', () => expect(str_question_check).to.be.equal(wrapped_question));
+    
+    let tokens_quotes = parser.tokenize(str_quotes, 'w');
+    let wrapped_quotes = parser.reWrap(tokens_quotes, 'w');
+    it('Quotes do not create separate token', () => expect(str_quotes_check).to.be.equal(wrapped_quotes));
+    
+    let tokens_semicolon = parser.tokenize(str_semicolon, 'w');
+    let wrapped_semicolon = parser.reWrap(tokens_semicolon, 'w');
+    it('Semicolon does not create separate token', () => expect(str_semicolon_check).to.be.equal(wrapped_semicolon));
+    
+    let tokens_comma = parser.tokenize(str_comma, 'w');
+    let wrapped_comma = parser.reWrap(tokens_comma);
+    it('Comma does not create separate token', () => expect(str_comma_check).to.be.equal(wrapped_comma));
+  });
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned
