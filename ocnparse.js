@@ -83,7 +83,7 @@ var parser = {
           } while (next);
         }
       }
-      if (token.before && /[^\w]*sg[^\w]*/i.test(token.before)) {
+      if (token.before && /[^\w]*sg[^\w]*/i.test(token.before) && !/[^\w]*\/sg[^\w]*/i.test(token.before)) {
         let suggestion = /data-suggestion="([^"]*)"/ig.exec(token.before);
         if (suggestion && typeof suggestion[1] !== 'undefined') {
           suggestion = suggestion[1];
@@ -97,7 +97,7 @@ var parser = {
       }
     })
     tokens.forEach((token, i) => {
-      if (token.before && /[^\w]*sg[^\w]*/i.test(token.before) && (!token.after || !/\/sg[^\w]*/i.test(token.after))) {
+      if (token.before && /[^\w]*sg[^\w]*/i.test(token.before) && (!token.after || !/\/sg[^\w]*/i.test(token.after)) && !/[^\w]*\/sg[^\w]*/i.test(token.before)) {
         token.suffix = token.suffix || '';
         token.after = token.after || '';
         token.word+= token.suffix + token.after;
@@ -931,6 +931,13 @@ function cleanTokens(tokens) {
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
       token.suffix = tt[3] + token.suffix
+      if (!token.word.trim().length && token.before) {
+        token.before = token.before + token.prefix + token.word + token.suffix + (token.after || '');
+        token.after = '';
+        token.suffix = '';
+        token.word = '';
+        token.prefix = '';
+      }
       //console.log('Remove punctuation again because my regex sucks',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
       if (!token.word.length) moveEmptyToken(tokens, index)
       //console.log('after checkEmptyToken',`"${token.suffix}" "${token.word}" "${token.prefix}"`)
@@ -1047,6 +1054,7 @@ function moveEmptyToken(tokens, index) {
       }
       destToken.before = destToken.before || ''
       destToken.before = (token.before || '') + (token.after || '') + destToken.before
+      //destToken.before = (token.before || '') + (token.prefix || '') + (token.word || '') + (token.suffix || '') + (token.after || '') + (destToken.before || '')
     }
   } else if (index>0) { // move empty token back
     destToken = tokens[index-1]
