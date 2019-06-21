@@ -650,6 +650,13 @@ death.”’`;
     let wrapped_comma = parser.reWrap(tokens_comma);
     it('Comma does not create separate token', () => expect(str_comma_check).to.be.equal(wrapped_comma));
   });
+  describe('Non word suggestion', () => {
+    let text = `<sg data-suggestion="">^</sg> We perceive none`;
+    let check = `<sg data-suggestion="">^</sg> <w>We </w><w>perceive </w><w>none</w>`
+    let tokens = parser.tokenize(text, '');
+    let wrapped = parser.reWrap(tokens, 'w')
+    it('Suggestion on non word creates correct wrap', () => expect(check).to.be.equal(wrapped));
+  })
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned
