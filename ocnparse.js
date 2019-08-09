@@ -923,9 +923,10 @@ function cleanTokens(tokens) {
     // for some reason we still sometimes have common punctuation on the ends of the word
     //  can create an empty token
     let check_characters_string = '';
-    ['@', '#', '$', '%', '^', '*', '~'].concat(punctuation_characters).concat(brackets_open).concat(brackets_close).forEach(cc => {
+    ['@', '#', '$', '%', '^', '*', '~', '\\', '/'].concat(punctuation_characters).concat(brackets_open).concat(brackets_close).forEach(cc => {
       check_characters_string+=`\\${cc}`;
     });
+    // possible change to [a-zA-Zа-яА-Я0-9\u0600-\u06FF]
     regex = new RegExp(`^([${check_characters_string}]*)([^${check_characters_string}]*)([[${check_characters_string}]*)$`, 'mg');
     if ((tt = regex.exec(token.word)) && (tt[1].length>0 || tt[3].length>0)) {
       token.prefix = token.prefix + tt[1];
@@ -942,7 +943,7 @@ function cleanTokens(tokens) {
       if (!token.word.length) moveEmptyToken(tokens, index)
       //console.log('after checkEmptyToken',`"${token.suffix}" "${token.word}" "${token.prefix}"`)
     }
-
+    
     // If the entire word appears to be an html entity, push it back into prefix
     //  can create an empty token
     if ((token.prefix.slice(-1)==='&') && (token.suffix.slice(0,1)===';')) {
