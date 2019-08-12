@@ -561,6 +561,12 @@ death.”’`;
     it('Correctly parsing closing tags', () => expect(reWrap).to.be.equal(check_str));
     let secondReWrap = parser.reWrap(reWrap, 'w');
     it('Correctly parsing closing tags', () => expect(secondReWrap).to.be.equal(check_str));
+    //let text = `<ol><li><w data-map="0,315">Test </w><w data-map="315,685">HEADER</w></li><li><w data-map="315,685">Test HEADER<br></w></li><li><w data-map="315,685">Test HEADER<br></w></li></ol>`;
+    let text = `<ol><li>Test HEADER1</li><li>Test HEADER2<br></li><li>Test HEADER3<br></li></ol>`;
+    let check = `<ol><li>Test HEADER1</li><li>Test HEADER2<br></li><li>Test HEADER3<br></li></ol>`
+    tokens = parser.tokenize(text, '');
+    let wrapped = parser.reWrap(tokens, '');
+    it('Correctly parsing <br>', () => expect(wrapped).to.be.equal(check));
   });
   describe('Suggestions for data-pg', () => {
     let str = `the saintly heroic<sup data-pg="xxiv">pg xxiv</sup> figure`
@@ -664,6 +670,15 @@ death.”’`;
     let wrapped = parser.reWrap(tokens, 'w')
     it('Slash does not create non word token', () => expect(check).to.be.equal(wrapped))
   })
+  /*describe('Test', () => {
+    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+    let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
+    let check = `<w>public </w><w>affa: [/] </w><w>public </w><w>affa</w>`
+    let tokens = parser.tokenize(text, '');
+    console.log(tokens)
+    //let wrapped = parser.reWrap(tokens, 'w')
+    //it('Slash does not create non word token', () => expect(check).to.be.equal(wrapped))
+  })*/
   //First
   //<w data-map=\"0,1245\">The </w><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdfre\" data-status=\"resolved\"><w data-map=\"1245,430\">Gift</w></f><w data-map=\"1675,455\"> of</w><p><f class=\"service-info\" data-flag=\"tgom-2_en_2s:jd5rdpsq\" data-status=\"resolved\"><w data-map=\"2130,290\">the</w></f><w data-map=\"2420,2300\"> Magi</w></p><div><w data-map=\"1675,455\"></w></div>
 //First cleaned
