@@ -999,14 +999,10 @@ function packEmptyTokens(tokens) {
         let nextToken = tokens[i+1]
         //let token = tokens[i]
         if (nextToken) {
-          nextToken.before = nextToken.before || ''
-          nextToken.before = token.word + token.suffix + nextToken.before
+          nextToken.before = `${token.word}${token.suffix}${token.after || ''}${nextToken.before || ''}`;
           nextToken.suffix+= token.prefix
           //nextToken.after = nextToken.after || ''
           //nextToken.after+=  token.suffix
-          if (token.after) {
-            nextToken.before += token.after
-          }
           tokens.splice(i, 1);  //delete(tokens[i])
         } else {
           token.before = token.before || ''
