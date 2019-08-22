@@ -11,8 +11,8 @@ let html_open_regex = '<((?!(u>|u |\\/)))[^><]+>', html_close_regex = '<\\/((?!(
 // arrays with different character types to control
 let control_character_codes = [8207, 8206];
 let punctuation_characters = ['.', ':', ';', '!', '?', ',', '؟', '؛', '،'];
-let quotes_open = [`“`, `‘`];
-let quotes_close = [`”`, `’`];
+let quotes_open = [`“`, `‘`, `«`];
+let quotes_close = [`”`, `’`, `»`];
 let quotes_bidirectional = [`"`, `'`];
 let brackets_open = ['(', '[', '{', '﴾'];
 let brackets_close = [')', ']', '}', '﴿'];
@@ -248,14 +248,14 @@ var parser = {
       if (/(?:\r\n|\r|\n)/.test(token.suffix)) {
         let next = tokens[index + 1];
         let suff = token.suffix.split(/(?:\r\n|\r|\n)/);
-        token.after = token.after || '';
-        token.after+= "\n";
-        token.suffix = suff[0];
-        if (suff[suff.length - 1]) {
-          if (next) {
-            next.prefix+= suff[suff.length - 1];
+          token.after = token.after || '';
+          token.after+= "\n";
+          token.suffix = suff[0];
+          if (suff[suff.length - 1]) {
+            if (next) {
+              next.prefix+= suff[suff.length - 1];
+            }
           }
-        }
       }
     });
     return tokens 
@@ -715,7 +715,7 @@ function splitWrappedString(str, tag='w') {
   //tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
   htmlOpenReg = new RegExp(html_open_regex, 'img');
   htmlCloseReg = new RegExp(html_close_regex, 'img');
-  htmlReg = new RegExp('<(?!\/?(u)(?=>|\s?.*>))\/?.*?>', 'img');
+  htmlReg = new RegExp('<(?!\/?(u(?!l))(?=>|\s?.*>))\/?.*?>', 'img');
   str.split(tagSplitReg).filter((s)=>s.length>0).map((_word)=>{  
     let _words = _word.split(/(?:\r\n|\r|\n)/);
     if (_words.length > 0) {
@@ -923,7 +923,7 @@ function cleanTokens(tokens) {
     // for some reason we still sometimes have common punctuation on the ends of the word
     //  can create an empty token
     let check_characters_string = '';
-    ['@', '#', '$', '%', '^', '*', '~', '\\', '/'].concat(punctuation_characters).concat(brackets_open).concat(brackets_close).forEach(cc => {
+    ['@', '#', '$', '%', '^', '*', '~', '\\', '/', '-', '—'].concat(punctuation_characters).concat(brackets_open).concat(brackets_close).forEach(cc => {
       check_characters_string+=`\\${cc}`;
     });
     // possible change to [a-zA-Zа-яА-Я0-9\u0600-\u06FF]
