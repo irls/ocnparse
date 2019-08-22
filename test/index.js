@@ -670,6 +670,13 @@ death.”’`;
     let wrapped = parser.reWrap(tokens, 'w')
     it('Slash does not create non word token', () => expect(check).to.be.equal(wrapped))
   })
+  describe('Bulleted list, split wrapped string', () => {
+    let text = `test Content<ul><li><w>Item </w><w>one</w></li><li><w>item </w><w>two</w></li></ul>Teas after`;
+    let check = `<w>test </w><w>Content</w><ul><li><w>Item </w><w>one</w></li><li><w>item </w><w>two</w></li></ul><w>Teas </w><w>after</w>`;
+    let tokens = parser.tokenize(text, 'w');
+    let wrapped = parser.reWrap(tokens, 'w');
+    it('Bulleted list without <br> is parsed correctly', () => expect(check).to.be.equal(wrapped));
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
