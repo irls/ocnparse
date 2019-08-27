@@ -923,7 +923,7 @@ function cleanTokens(tokens) {
     // for some reason we still sometimes have common punctuation on the ends of the word
     //  can create an empty token
     let check_characters_string = '';
-    ['@', '#', '$', '%', '^', '*', '~', '\\', '/', '-', '—'].concat(punctuation_characters).concat(brackets_open).concat(brackets_close).forEach(cc => {
+    ['@', '#', '$', '%', '^', '*', '~', '\\', '/', '-', '—', '<', '>'].concat(punctuation_characters).concat(brackets_open).concat(brackets_close).forEach(cc => {
       check_characters_string+=`\\${cc}`;
     });
     // possible change to [a-zA-Zа-яА-Я0-9\u0600-\u06FF]
