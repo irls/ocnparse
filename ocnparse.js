@@ -63,7 +63,7 @@ var parser = {
       addTokenInfo(token) 
     })
     tokens.map((token, i) => {
-      if (token.before && (/[^\w]*sup[^\w]*/i.test(token.before) || /[^\w]*sub[^\w]*/i.test(token.before))) {
+      if (token.before && ((/[^\w]*sup[^\w]*/i.test(token.before) && !/\/sup[^\w]*/i.test(token.before))) || (/[^\w]*sub[^\w]*/i.test(token.before) && !/\/sub[^\w]*/i.test(token.before))) {
         token.info.data = token.info.data || {}
         token.info.data.sugg = ''
         if (!(/[^\w]*sup[^\w]*/i.test(token.after) || /[^\w]*sub[^\w]*/i.test(token.after))) {
