@@ -732,6 +732,7 @@ function splitWrappedString(str, tag='w') {
       token = extractWrapperTag(token, tag)
       token = trimToken(token)
       if (htmlOpenReg.test(token.word) || htmlOpenReg.test(token.word) || htmlCloseReg.test(token.word) || htmlCloseReg.test(token.word)) {
+        let info = token.info ? Object.assign({}, token.info) : false;
         let words = [];
         let matchPos = 0;
         while ((matches = htmlReg.exec(token.word))) {
@@ -746,6 +747,12 @@ function splitWrappedString(str, tag='w') {
         }
         words.map((w, i) => {
           let t = {word: w, suffix: i == words.length - 1 ? token.suffix : '', prefix: token.prefix === " " && i == 0 ? ' ' : ''};
+          if (!w.match(htmlOpenReg)) {
+            if (info !== false) {
+              t.info = Object.assign({}, info);
+              info = false;
+            }
+          }
           tokens.push(t);
         });
         //console.log('=============', "'" + token.suffix + "'")

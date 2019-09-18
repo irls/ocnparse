@@ -373,6 +373,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       let wrapped = parser.reWrap(tokens, 'w')
       it('Suggestion on non word creates correct wrap', () => expect(check).to.be.equal(wrapped));
     })
+    describe('Suggestion and data-attributes', () => {
+      let str = `<w data-map="1165,369">Test </w><w data-map="1534,341">two </w><w data-map="1875,340">two </w><w data-sugg="two" data-map="2215,305" class=""><sg data-suggestion="two">twos</sg></w>`;
+      let tokens = parser.tokenize(str, 'w');
+      let t = tokens.pop();
+      let map = t.info && t.info.data && t.info.data.map ? t.info.data.map : false;
+      it('Suggestion does not remove alignment from token', () => expect(map).to.be.equal('2215,305'));
+      //console.log(t);
+      //console.log(parser.reWrap(tokens, 'w'))
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
