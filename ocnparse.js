@@ -84,9 +84,9 @@ var parser = {
         }
       }
       if (token.before && /[^\w]*sg[^\w]*/i.test(token.before) && !/[^\w]*\/sg[^\w]*/i.test(token.before)) {
-        let suggestion = /data-suggestion="([^"]*)"/ig.exec(token.before);
-        if (suggestion && typeof suggestion[1] !== 'undefined') {
-          suggestion = suggestion[1];
+        let suggestion = /data-suggestion(="([^"]*)")?/ig.exec(token.before);
+        if (suggestion) {
+          suggestion = suggestion[1] && suggestion[2] ? suggestion[2] : '';
           if (token.word) {
             token.info = token.info || {}
             token.info.data = token.info.data || {};
