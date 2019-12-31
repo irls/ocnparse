@@ -389,6 +389,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       //console.log(wrapped)
       it('Empty suggestion not set', () => expect(tokens[0].info.data.sugg).to.be.equal(''));
     });
+    describe('Test', () => {
+      let text = `Test<sg data-suggestion=""> for sug</sg>gestion alignment`;
+      let check = `<w>Test</w><sg data-suggestion=""> <w data-sugg="">for sug</w></sg><w>gestion </w><w>alignment</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let wrapped = parser.reWrap(tokens, 'w');
+      let suggestionToken = tokens[1];
+      it('Second token contains suggestion', () => expect(suggestionToken.info.data).to.have.property('sugg'));
+      it('Suggestion parsed correctly', () => expect(check).to.be.equal(wrapped));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
