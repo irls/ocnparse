@@ -37,6 +37,7 @@ let quotes_open_string = "";
 quotes_open.forEach(qo => {
   quotes_open_string += `\\${qo}`;
 });
+let quotes_open_regex = new RegExp(`[${quotes_open_string}]`);
 
 let quotes_close_string = "";
 quotes_close.forEach(qc => {
@@ -236,6 +237,15 @@ var parser = {
               next.prefix =
                 token.prefix + token.word + token.suffix + next.prefix;
             }
+            if (token.info && token.info.data && token.info.data.map) {
+              if (!next.info) {
+                next.info = token.info;
+              } else if (!next.info.data) {
+                next.info.data = token.info.data;
+              } else if (!next.info.data.map) {
+                next.info.data.map = token.info.data.map;
+              }
+            }
             tokens.splice(index, 1);
           } else {
             // keep quote with previous token
@@ -251,6 +261,15 @@ var parser = {
                 prev.after += append;
               } else {
                 prev.suffix = (prev.suffix || "") + append;
+              }
+              if (token.info && token.info.data && token.info.data.map) {
+                if (!prev.info) {
+                  prev.info = token.info;
+                } else if (!prev.info.data) {
+                  prev.info.data = token.info.data;
+                } else if (!prev.info.data.map) {
+                  prev.info.data.map = token.info.data.map;
+                }
               }
               tokens.splice(index, 1);
             }
@@ -272,6 +291,15 @@ var parser = {
                 prev.suffix + token.prefix + token.word + token.suffix;
               prev.after = token.after;
             }
+            if (token.info && token.info.data && token.info.data.map) {
+              if (!prev.info) {
+                prev.info = token.info;
+              } else if (!prev.info.data) {
+                prev.info.data = token.info.data;
+              } else if (!prev.info.data.map) {
+                prev.info.data.map = token.info.data.map;
+              }
+            }
             tokens.splice(index, 1);
           } else {
             // keep this quote with next token
@@ -287,6 +315,15 @@ var parser = {
                 next.before = prepend + next.before;
               } else {
                 next.prefix = prepend + (next.prefix || "");
+              }
+              if (token.info && token.info.data && token.info.data.map) {
+                if (!next.info) {
+                  next.info = token.info;
+                } else if (!next.info.data) {
+                  next.info.data = token.info.data;
+                } else if (!next.info.data.map) {
+                  next.info.data.map = token.info.data.map;
+                }
               }
               tokens.splice(index, 1);
             }
