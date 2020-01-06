@@ -389,7 +389,7 @@ describe('Ocean Parser Behaviour Tests', function() {
       //console.log(wrapped)
       it('Empty suggestion not set', () => expect(tokens[0].info.data.sugg).to.be.equal(''));
     });
-    describe('Test', () => {
+    describe('Suggestion parsing', () => {
       let text = `Test<sg data-suggestion=""> for sug</sg>gestion alignment`;
       let check = `<w>Test</w><sg data-suggestion=""> <w data-sugg="">for sug</w></sg><w>gestion </w><w>alignment</w>`;
       let tokens = parser.tokenize(text, 'w');
