@@ -64,6 +64,22 @@ var parser = {
     tokens.map((token, i) => {
       addTokenInfo(token);
     });
+    tokens.map((token, i) => {// move suggestion tag to correct token
+      if (
+        token.after &&
+        /[^\w]*sg[^\w]*/i.test(token.after) &&
+        !/[^\w]*\/sg[^\w]*/i.test(token.after)
+      ) {
+        let next = tokens[i + 1];
+        if (next) {
+          next.before = token.after;
+        }
+        delete token.after;
+        //if (token.info && token.info.data && typeof token.info.data.sugg !== 'undefined') {
+          //
+        //}
+      }
+    });
     tokens.map((token, i) => {
       if (
         (token.before &&
