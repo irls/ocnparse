@@ -952,6 +952,11 @@ function extractWrapperTag(token, tag = "w") {
         token.info.data[matches[1]] = matches[2];
       }
     }
+    let suffixMatch;
+    if ((suffixMatch = /(&lt;|&gt;)$/.exec(token.word))) {
+      token.suffix = suffixMatch[0] + (token.suffix || '');
+      token.word = token.word.replace(new RegExp(`${suffixMatch[0]}$`), '');
+    }
   }
 
   return token;
