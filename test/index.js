@@ -702,6 +702,20 @@ death.”’`;
     let wrapped = parser.reWrap(tokens, 'w');
     it('Bulleted list without <br> is parsed correctly', () => expect(check).to.be.equal(wrapped));
   });
+  describe('Tokens with &lt;', () => {
+    let text = `<p>New &lt;test block <i>with some</i> text</p>`;
+    let check = `<p><w>New &lt;</w><w>test </w><w>block </w><i><w>with </w><w>some</w></i> <w>text</w></p>`;
+    let tokens = parser.tokenize(text, 'w');
+    let rebuild = parser.rebuild(tokens, 'w');
+    it('Rebuild keeps &lt; with word', () => expect(check).to.be.equal(rebuild));
+    let retokenize = parser.tokenize(rebuild, 'w');
+    let wrapped = parser.reWrap(retokenize, 'w');
+    it('Second re wrap keeps &lt; with word', () => expect(check).to.be.equal(wrapped));
+    //rebuild.foreach(t => {
+      //console.log(t)
+    //})
+    //it('Bulleted list without <br> is parsed correctly', () => expect(check).to.be.equal(wrapped));
+  })
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
