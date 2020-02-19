@@ -8,6 +8,8 @@ var bterm = require("bahai-term-phonemes");
 
 let html_open_regex = "<((?!(u>|u |\\/)))[^><]+>",
   html_close_regex = "<\\/((?!(u>|\\W)).)+>";
+let underline_open_regex = "^([ ]*<u[^>]*>)",
+  underline_close_regex = "(<\\/u>[ ]*)$";
 // arrays with different character types to control
 let control_character_codes = [8207, 8206];
 let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—"];
@@ -348,6 +350,10 @@ var parser = {
       } else {
       }
     });
+    let underlineMatch;
+    let underlineMatchClose;
+    let underlineOpenReg = new RegExp(underline_open_regex, 'img');
+    let underlineCloseReg = new RegExp(underline_close_regex, 'img');
     tokens.forEach((token, index) => {
       if (/(?:\r\n|\r|\n)/.test(token.suffix)) {
         let next = tokens[index + 1];
@@ -358,6 +364,32 @@ var parser = {
         if (suff[suff.length - 1]) {
           if (next) {
             next.prefix += suff[suff.length - 1];
+          }
+        }
+      }
+      if (!token.info || !token.info.data || !token.info.data.ipa) {
+        underlineMatch = underlineOpenReg.exec(token.word);
+        underlineMatchClose = underlineCloseReg.exec(token.word)
+        if (underlineMatch && !underlineMatchClose) {
+          token.before = token.before || '' + underlineMatch[1];
+          token.word = token.word.replace(underlineMatch[1], '');
+        } else if (underlineMatchClose && !underlineMatch) {
+          token.after = token.after || '' + underlineMatchClose[1];
+          token.word = token.word.replace(underlineMatchClose[1], '');
+        }
+      }
+      if (token.word === 'u') {
+        if (`${token.prefix}${token.word}${token.suffix}` === '<u>') {
+          let next = tokens[index + 1];
+          if (next) {
+            next.before = '<u>' + (next.before || '');
+            tokens.splice(index, 1);
+          }
+        } else if (`${token.prefix}${token.word}${token.suffix}`.indexOf('</u>') !== -1) {
+          let previous = tokens[index - 1];
+          if (previous) {
+            previous.after = previous.after || '' + `${token.before || ''}${token.prefix}${token.word}${token.suffix}${token.after || ''}`;
+            tokens.splice(index, 1);
           }
         }
       }

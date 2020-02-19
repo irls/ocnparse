@@ -408,13 +408,30 @@ describe('Ocean Parser Behaviour Tests', function() {
     let rebuild_check = parser.rebuild(tokens, 'w')
     it('Double rebuild', () => expect(rebuild_check).to.be.equal(check));
   });
-  describe('Underlines and sup', function() {
-    let str = 'Mírzá,<sup data-idx=\"26\">26</sup> <u>Sh</u>ay<u>kh</u> Aḥmad, freed from';
-    let checkStr = '<w data-ipa="mi:rzA:">Mírzá,</w><sup data-idx="26"><w data-sugg="">26</w></sup> <w><u>Sh</u>ay<u>kh</u> </w><w data-ipa="ahmad">Aḥmad, </w><w>freed </w><w>from</w>';
-    str = parser.reWrap(str, 'w');
-    let tokens = parser.tokenize(str, 'w')
-    let rebuild = parser.rebuild(tokens, 'w')
-    it('u tags are not wrapped', () => expect(rebuild).to.be.equal(checkStr));
+  describe('Underlines', function() {
+    describe('Underlines and sup', function() {
+      let str = 'Mírzá,<sup data-idx=\"26\">26</sup> <u>Sh</u>ay<u>kh</u> Aḥmad, freed from';
+      let checkStr = '<w data-ipa="mi:rzA:">Mírzá,</w><sup data-idx="26"><w data-sugg="">26</w></sup> <w><u>Sh</u>ay<u>kh</u> </w><w data-ipa="ahmad">Aḥmad, </w><w>freed </w><w>from</w>';
+      str = parser.reWrap(str, 'w');
+      let tokens = parser.tokenize(str, 'w')
+      let rebuild = parser.rebuild(tokens, 'w')
+      it('u tags are not wrapped', () => expect(rebuild).to.be.equal(checkStr));
+    });
+    describe('Underlined several words', () => {
+      //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+      //let text = `original <u>page images with</u> text may`;
+      let text = `<w data-map="0,380">Copies </w><w data-map="380,75">of </w><w data-map="455,170">the </w><w data-map="625,610">original </w><u><w data-map="1235,310">page </w><w data-map="1545,480">images </w></u>,<w data-map="2025,220"><u>with</u> </w><w data-map="2245,385">text </w><w data-map="2630,450">may</w>`;
+      //let text = `original <u>page images with</u> text of the <u>Sh</u>áhs were thrust <u>Sh</u>ay<u>kh</u>`;
+      let check = `<w data-map="0,380">Copies </w><w data-map="380,75">of </w><w data-map="455,170">the </w><w data-map="625,610">original </w><u><w data-map="1235,310">page </w><w data-map="1545,480">images </w></u>,<w data-map="2025,220"><u>with</u> </w><w data-map="2245,385">text </w><w data-map="2630,450">may</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      //tokens.forEach(t => {
+        //console.log(t)
+      //})
+      let wrapped = parser.reWrap(tokens, 'w')
+      //console.log(text)
+      //console.log(wrapped)
+      it('Rebuild with underlined words does not create tokens', () => expect(wrapped).to.be.equal(check));
+    })
   });
   describe('Parenthesis', function () {
     let str = 'Test string (inside test) outside outside';
