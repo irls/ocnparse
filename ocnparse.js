@@ -10,6 +10,8 @@ let html_open_regex = "<((?!(u>|u |\\/)))[^><]+>",
   html_close_regex = "<\\/((?!(u>|\\W)).)+>";
 let underline_open_regex = "^([ ]*<u[^>]*>)",
   underline_close_regex = "(<\\/u>[ ]*)$";
+let underline_open_regex_end = "(<u[^>]*>[ ]*)$",
+  underline_close_regex_start = "^([ ]*<\\/u>)";
 // arrays with different character types to control
 let control_character_codes = [8207, 8206];
 let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—"];
@@ -354,6 +356,8 @@ var parser = {
     let underlineMatchClose;
     let underlineOpenReg = new RegExp(underline_open_regex, 'img');
     let underlineCloseReg = new RegExp(underline_close_regex, 'img');
+    let underlineOpenRegEnd = new RegExp(underline_open_regex_end, 'img');
+    let underlineCloseRegStart = new RegExp(underline_close_regex_start, 'img');
     tokens.forEach((token, index) => {
       if (/(?:\r\n|\r|\n)/.test(token.suffix)) {
         let next = tokens[index + 1];
@@ -376,6 +380,26 @@ var parser = {
         } else if (underlineMatchClose && !underlineMatch) {
           token.after = token.after || '' + underlineMatchClose[1];
           token.word = token.word.replace(underlineMatchClose[1], '');
+        } else {
+          underlineMatch = underlineOpenRegEnd.exec(token.word);
+          if (underlineMatch) {
+            let next = tokens[index + 1];
+            if (next) {
+              next.before = underlineMatch[1] + (token.suffix || '') + (next.before || '');
+              token.suffix = '';
+              token.word = token.word.replace(underlineMatch[1], '');
+              addTokenInfo(token);
+            }
+          }
+          underlineMatchClose = underlineCloseRegStart.exec(token.word);
+          if (underlineMatchClose) {
+            let previous = tokens[index - 1];
+            if (previous) {
+              previous.after = (previous.after || '') + underlineMatchClose[1];
+              token.word = token.word.replace(underlineMatchClose[1], '');
+              addTokenInfo(token);
+            }
+          }
         }
       }
       if (token.word === 'u') {

@@ -432,6 +432,14 @@ describe('Ocean Parser Behaviour Tests', function() {
       //console.log(wrapped)
       it('Rebuild with underlined words does not create tokens', () => expect(wrapped).to.be.equal(check));
     })
+    describe('Underline tag and space', () => {
+      //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+      let text = `content for<u> some </u>underline`;
+      let check = `<w>content </w><w>for</w><u> <w>some </w></u><w>underline</w>`;
+      let tokens = parser.tokenize(text, '');
+      let wrapped = parser.reWrap(tokens, 'w');
+      it('Underline with space with correct token', () => expect(check).to.be.equal(wrapped));
+    });
   });
   describe('Parenthesis', function () {
     let str = 'Test string (inside test) outside outside';
