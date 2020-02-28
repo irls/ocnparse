@@ -440,6 +440,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       let wrapped = parser.reWrap(tokens, 'w');
       it('Underline with space with correct token', () => expect(check).to.be.equal(wrapped));
     });
+    describe('Underline with punctuation', () => {
+      let text = `I imagine,<u> be attributed concubines </u>and children.`;
+      let check = `<w>I </w><w>imagine,</w><u> <w>be </w><w>attributed </w><w>concubines </w></u><w>and </w><w>children.</w>`
+      let tokens = parser.tokenize(text, '');
+      //console.log(tokens)
+      let wrapped = parser.reWrap(tokens, 'w')
+      //console.log(wrapped)
+      it('Underline with punctuation', () => expect(check).to.be.equal(wrapped));
+    })
   });
   describe('Parenthesis', function () {
     let str = 'Test string (inside test) outside outside';

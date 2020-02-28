@@ -8,8 +8,6 @@ var bterm = require("bahai-term-phonemes");
 
 let html_open_regex = "<((?!(u>|u |\\/)))[^><]+>",
   html_close_regex = "<\\/((?!(u>|\\W)).)+>";
-let underline_open_regex = "^([ ]*<u[^>]*>)",
-  underline_close_regex = "(<\\/u>[ ]*)$";
 let underline_open_regex_end = "(<u[^>]*>[ ]*)$",
   underline_close_regex_start = "^([ ]*<\\/u>)";
 // arrays with different character types to control
@@ -48,6 +46,11 @@ quotes_close.forEach(qc => {
   quotes_close_string += `\\${qc}`;
 });
 let quotes_close_regex = new RegExp(`[${quotes_close_string}]`);
+
+let all_punctuation_and_brackets = `\\${punctuation_characters.join('\\')}\\${quotes_open.join('\\')}\\${quotes_close.join('\\')}\\${brackets_open.join('\\')}\\${brackets_close.join('\\')}`;
+
+let openUnderlineRegexWord = new RegExp(`^[${all_punctuation_and_brackets} ]*<u[^>]*>[${all_punctuation_and_brackets} ]*`, 'img');
+let closeUnderlineRegexWord = new RegExp(`[${all_punctuation_and_brackets} ]*<\/u>[${all_punctuation_and_brackets} ]*$`);
 
 var parser = {
   // helper function
@@ -354,8 +357,6 @@ var parser = {
     });
     let underlineMatch;
     let underlineMatchClose;
-    let underlineOpenReg = new RegExp(underline_open_regex, 'img');
-    let underlineCloseReg = new RegExp(underline_close_regex, 'img');
     let underlineOpenRegEnd = new RegExp(underline_open_regex_end, 'img');
     let underlineCloseRegStart = new RegExp(underline_close_regex_start, 'img');
     tokens.forEach((token, index) => {
@@ -372,8 +373,8 @@ var parser = {
         }
       }
       if (!token.info || !token.info.data || !token.info.data.ipa) {
-        underlineMatch = underlineOpenReg.exec(token.word);
-        underlineMatchClose = underlineCloseReg.exec(token.word)
+        underlineMatch = openUnderlineRegexWord.exec(token.word);
+        underlineMatchClose = closeUnderlineRegexWord.exec(token.word);
         if (underlineMatch && !underlineMatchClose) {
           token.before = token.before || '' + underlineMatch[1];
           token.word = token.word.replace(underlineMatch[1], '');
@@ -403,16 +404,19 @@ var parser = {
         }
       }
       if (token.word === 'u') {
-        if (`${token.prefix}${token.word}${token.suffix}` === '<u>') {
+        let token_word = `${token.before || ''}${token.prefix || ''}${token.word}${token.suffix || ''}${token.after || ''}`;
+        let match = openUnderlineRegexWord.exec(token_word);
+        let matchClose = closeUnderlineRegexWord.exec(token_word);
+        if (match) {
           let next = tokens[index + 1];
           if (next) {
-            next.before = '<u>' + (next.before || '');
+            next.before = token_word + (next.before || '');
             tokens.splice(index, 1);
           }
-        } else if (`${token.prefix}${token.word}${token.suffix}`.indexOf('</u>') !== -1) {
+        } else if (matchClose) {
           let previous = tokens[index - 1];
           if (previous) {
-            previous.after = previous.after || '' + `${token.before || ''}${token.prefix}${token.word}${token.suffix}${token.after || ''}`;
+            previous.after = previous.after || '' + token_word;
             tokens.splice(index, 1);
           }
         }
