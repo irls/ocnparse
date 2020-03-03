@@ -448,7 +448,16 @@ describe('Ocean Parser Behaviour Tests', function() {
       let wrapped = parser.reWrap(tokens, 'w')
       //console.log(wrapped)
       it('Underline with punctuation', () => expect(check).to.be.equal(wrapped));
-    })
+    });
+    describe('Underline and rebuild with space', () => {
+      let text = `<w data-map="285,285">block<u> </u></w><w data-map="570,235"><u>for </u></w><w data-map="805,575">underlined </w>`;
+      let check = `<w data-map="285,285">block</w><u> <w data-map="570,235">for </w></u><w data-map="805,575">underlined </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuild = parser.rebuild(tokens, 'w');
+      let tokens_rebuild = parser.tokenize(rebuild, 'w');
+      let wrapped = parser.reWrap(tokens, 'w');
+      it('Underline and rebuild with space', () => expect(wrapped).to.be.equal(check));
+    });
   });
   describe('Parenthesis', function () {
     let str = 'Test string (inside test) outside outside';

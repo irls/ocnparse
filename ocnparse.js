@@ -8,8 +8,6 @@ var bterm = require("bahai-term-phonemes");
 
 let html_open_regex = "<((?!(u>|u |\\/)))[^><]+>",
   html_close_regex = "<\\/((?!(u>|\\W)).)+>";
-let underline_open_regex_end = "(<u[^>]*>[ ]*)$",
-  underline_close_regex_start = "^([ ]*<\\/u>)";
 // arrays with different character types to control
 let control_character_codes = [8207, 8206];
 let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—"];
@@ -49,8 +47,8 @@ let quotes_close_regex = new RegExp(`[${quotes_close_string}]`);
 
 let all_punctuation_and_brackets = `\\${punctuation_characters.join('\\')}\\${quotes_open.join('\\')}\\${quotes_close.join('\\')}\\${brackets_open.join('\\')}\\${brackets_close.join('\\')}`;
 
-let openUnderlineRegexWord = new RegExp(`^[${all_punctuation_and_brackets} ]*<u[^>]*>[${all_punctuation_and_brackets} ]*`, 'img');
-let closeUnderlineRegexWord = new RegExp(`[${all_punctuation_and_brackets} ]*<\/u>[${all_punctuation_and_brackets} ]*$`);
+let openUnderlineRegexWord = new RegExp(`[${all_punctuation_and_brackets} ]*(<u[^>]*>[${all_punctuation_and_brackets} ]*)`, 'img');
+let closeUnderlineRegexWord = new RegExp(`([${all_punctuation_and_brackets} ]*<\/u>)[${all_punctuation_and_brackets} ]*`);
 
 var parser = {
   // helper function
@@ -357,9 +355,12 @@ var parser = {
     });
     let underlineMatch;
     let underlineMatchClose;
-    let underlineOpenRegEnd = new RegExp(underline_open_regex_end, 'img');
-    let underlineCloseRegStart = new RegExp(underline_close_regex_start, 'img');
-    tokens.forEach((token, index) => {
+    tokens = tokens.filter(t => {
+      return typeof t !== 'undefined';
+    });
+    let index = 0;
+    for (index = 0; index < tokens.length; ++index) {
+      let token = tokens[index];
       if (/(?:\r\n|\r|\n)/.test(token.suffix)) {
         let next = tokens[index + 1];
         let suff = token.suffix.split(/(?:\r\n|\r|\n)/);
@@ -373,27 +374,29 @@ var parser = {
         }
       }
       if (!token.info || !token.info.data || !token.info.data.ipa) {
+        openUnderlineRegexWord.lastIndex = 0;
+        closeUnderlineRegexWord.lastIndex = 0;
         underlineMatch = openUnderlineRegexWord.exec(token.word);
         underlineMatchClose = closeUnderlineRegexWord.exec(token.word);
-        if (underlineMatch && !underlineMatchClose) {
-          token.before = token.before || '' + underlineMatch[1];
+        if (underlineMatch && underlineMatch.index === 0 && !underlineMatchClose) {
+          token.before = ((token.before || '') + underlineMatch[1]).replace('</u><u>', '');
           token.word = token.word.replace(underlineMatch[1], '');
-        } else if (underlineMatchClose && !underlineMatch) {
+        } else if (underlineMatchClose && underlineMatchClose[0].length + underlineMatchClose.index === token.word.length && !underlineMatch) {
           token.after = token.after || '' + underlineMatchClose[1];
           token.word = token.word.replace(underlineMatchClose[1], '');
         } else {
-          underlineMatch = underlineOpenRegEnd.exec(token.word);
-          if (underlineMatch) {
+          //underlineMatch = _openUnderlineRegexWord.exec(token.word);
+          if (underlineMatch && underlineMatch[0].length + underlineMatch.index === token.word.length) {
             let next = tokens[index + 1];
             if (next) {
-              next.before = underlineMatch[1] + (token.suffix || '') + (next.before || '');
+              next.before = (underlineMatch[1] + (token.suffix || '') + (next.before || '')).replace('</u><u>', '');
               token.suffix = '';
               token.word = token.word.replace(underlineMatch[1], '');
               addTokenInfo(token);
             }
           }
-          underlineMatchClose = underlineCloseRegStart.exec(token.word);
-          if (underlineMatchClose) {
+          //underlineMatchClose = _closeUnderlineRegexWord.exec(token.word);
+          if (underlineMatchClose && underlineMatchClose.index === 0) {
             let previous = tokens[index - 1];
             if (previous) {
               previous.after = (previous.after || '') + underlineMatchClose[1];
@@ -405,23 +408,27 @@ var parser = {
       }
       if (token.word === 'u') {
         let token_word = `${token.before || ''}${token.prefix || ''}${token.word}${token.suffix || ''}${token.after || ''}`;
+        openUnderlineRegexWord.lastIndex = 0;
+        closeUnderlineRegexWord.lastIndex = 0;
         let match = openUnderlineRegexWord.exec(token_word);
         let matchClose = closeUnderlineRegexWord.exec(token_word);
         if (match) {
           let next = tokens[index + 1];
           if (next) {
-            next.before = token_word + (next.before || '');
+            next.before = (token_word + (next.before || '')).replace('</u><u>', '');
             tokens.splice(index, 1);
+            --index;
           }
         } else if (matchClose) {
           let previous = tokens[index - 1];
           if (previous) {
             previous.after = previous.after || '' + token_word;
             tokens.splice(index, 1);
+            --index;
           }
         }
       }
-    });
+    }
     return tokens;
   },
 
