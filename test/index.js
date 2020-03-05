@@ -432,6 +432,32 @@ describe('Ocean Parser Behaviour Tests', function() {
       //console.log(wrapped)
       it('Rebuild with underlined words does not create tokens', () => expect(wrapped).to.be.equal(check));
     })
+    describe('Underline tag and space', () => {
+      //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+      let text = `content for<u> some </u>underline`;
+      let check = `<w>content </w><w>for</w><u> <w>some </w></u><w>underline</w>`;
+      let tokens = parser.tokenize(text, '');
+      let wrapped = parser.reWrap(tokens, 'w');
+      it('Underline with space with correct token', () => expect(check).to.be.equal(wrapped));
+    });
+    describe('Underline with punctuation', () => {
+      let text = `I imagine,<u> be attributed concubines </u>and children.`;
+      let check = `<w>I </w><w>imagine,</w><u> <w>be </w><w>attributed </w><w>concubines </w></u><w>and </w><w>children.</w>`
+      let tokens = parser.tokenize(text, '');
+      //console.log(tokens)
+      let wrapped = parser.reWrap(tokens, 'w')
+      //console.log(wrapped)
+      it('Underline with punctuation', () => expect(check).to.be.equal(wrapped));
+    });
+    describe('Underline and rebuild with space', () => {
+      let text = `<w data-map="285,285">block<u> </u></w><w data-map="570,235"><u>for </u></w><w data-map="805,575">underlined </w>`;
+      let check = `<w data-map="285,285">block</w><u> <w data-map="570,235">for </w></u><w data-map="805,575">underlined </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuild = parser.rebuild(tokens, 'w');
+      let tokens_rebuild = parser.tokenize(rebuild, 'w');
+      let wrapped = parser.reWrap(tokens, 'w');
+      it('Underline and rebuild with space', () => expect(wrapped).to.be.equal(check));
+    });
   });
   describe('Parenthesis', function () {
     let str = 'Test string (inside test) outside outside';
