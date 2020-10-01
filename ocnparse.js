@@ -365,7 +365,7 @@ var parser = {
         let next = tokens[index + 1];
         let suff = token.suffix.split(/(?:\r\n|\r|\n)/);
         token.after = token.after || "";
-        token.after += "\n";
+        token.after += "\n".repeat(suff.length - 1);
         token.suffix = suff[0];
         if (suff[suff.length - 1]) {
           if (next) {
