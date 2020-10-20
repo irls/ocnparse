@@ -69,7 +69,7 @@ var parser = {
     tokens.map((token, i) => {
       addTokenInfo(token);
     });
-    tokens.map((token, i) => {// move suggestion tag to correct token
+    tokens.forEach((token, i) => {// move suggestion tag to correct token
       if (
         token.after &&
         /[^\w]*sg[^\w]*/i.test(token.after) &&
@@ -85,7 +85,7 @@ var parser = {
         //}
       }
     });
-    tokens.map((token, i) => {
+    tokens.forEach((token, i) => {
       if (
         (token.before &&
           (/[^\w]*sup[^\w]*/i.test(token.before) &&
@@ -189,9 +189,9 @@ var parser = {
         } while (next);
       }
     });
-    tokens.forEach((token, index) => {
+    tokens.forEach((token, i) => {
       if (brackets_open.indexOf(token.suffix.trim()) !== -1) {
-        let nextToken = tokens[index + 1];
+        let nextToken = tokens[i + 1];
         if (nextToken) {
           //if (nextToken.before) {
           nextToken.before = nextToken.before || "";
@@ -202,11 +202,11 @@ var parser = {
           //nextToken.prefix = token.suffix.trim() + nextToken.prefix;
           //}
           token.suffix = split[0] || "";
-          //tokens[index + 1] = nextToken;
+          //tokens[i + 1] = nextToken;
         }
       }
       if (brackets_close.indexOf(token.prefix.trim()) !== -1) {
-        let prevToken = tokens[index - 1];
+        let prevToken = tokens[i - 1];
         if (prevToken) {
           if (prevToken.after) {
             prevToken.after += token.prefix;
@@ -215,7 +215,7 @@ var parser = {
           }
           token.prefix = "";
           //console.log(token, prevToken)
-          //tokens[index - 1] = prevToken;
+          //tokens[i - 1] = prevToken;
         }
       }
       if (quotes_regex.test(token.word.trim())) {
@@ -227,7 +227,7 @@ var parser = {
           direction = -1;
         } else {
           let quotes = 0;
-          let ind = index - 1;
+          let ind = i - 1;
           let prev = tokens[ind]; //
           while (prev) {
             if (
@@ -248,7 +248,7 @@ var parser = {
           }
         }
         if (direction === 1) {
-          let next = tokens[index + 1];
+          let next = tokens[i + 1];
           if (next) {
             //console.log(token, next)
             if (next.before) {
@@ -267,10 +267,10 @@ var parser = {
                 next.info.data.map = token.info.data.map;
               }
             }
-            tokens.splice(index, 1);
+            tokens.splice(i, 1);
           } else {
             // keep quote with previous token
-            let prev = tokens[index - 1];
+            let prev = tokens[i - 1];
             if (prev) {
               let append =
                 (token.before || "") +
@@ -292,11 +292,11 @@ var parser = {
                   prev.info.data.map = token.info.data.map;
                 }
               }
-              tokens.splice(index, 1);
+              tokens.splice(i, 1);
             }
           }
         } else if (direction === -1) {
-          let prev = tokens[index - 1];
+          let prev = tokens[i - 1];
           if (prev) {
             //console.log(token, prev)
             token.after = token.after || "";
@@ -321,10 +321,10 @@ var parser = {
                 prev.info.data.map = token.info.data.map;
               }
             }
-            tokens.splice(index, 1);
+            tokens.splice(i, 1);
           } else {
             // keep this quote with next token
-            let next = tokens[index + 1];
+            let next = tokens[i + 1];
             if (next) {
               let prepend =
                 (token.before || "") +
@@ -346,7 +346,7 @@ var parser = {
                   next.info.data.map = token.info.data.map;
                 }
               }
-              tokens.splice(index, 1);
+              tokens.splice(i, 1);
             }
           }
         }
@@ -358,8 +358,7 @@ var parser = {
     tokens = tokens.filter(t => {
       return typeof t !== 'undefined';
     });
-    let index = 0;
-    for (index = 0; index < tokens.length; ++index) {
+    for (let index = 0; index < tokens.length; ++index) {
       let token = tokens[index];
       if (/(?:\r\n|\r|\n)/.test(token.suffix)) {
         let next = tokens[index + 1];
