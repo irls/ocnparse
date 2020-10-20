@@ -993,8 +993,8 @@ function splitWrappedString(str, tag = "w") {
 // extracts wrapper tag and attribute data (class, data-attrs and id)
 function extractWrapperTag(token, tag = "w") {
   let tagDataReg = new RegExp(`<${tag}(.*?)>([\\s\\S]*?)<\\/${tag}>`, "im");
-  let classReg = /class\s*=\s*['"]([^'"]+?)['"]/im;
-  let idReg = /id\s*=\s*['"]([^'"]+?)['"]/im;
+  let classReg = /\sclass\s*=\s*['"]([^'"]+?)['"]/im;
+  let idReg = /\sid\s*=\s*['"]([^'"]+?)['"]/im;
   let match;
   if ((match = tagDataReg.exec(token.word)) && match.length > 2) {
     token.word = match[2];
