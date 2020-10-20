@@ -63,7 +63,7 @@ var parser = {
   // pass in a string to tokenize
   // pass in tag to re-tokenize word-wrapped string
   // pass in a token list to re-calculate each token
-  tokenize: function(str, tag = "") {
+  tokenize: function(str, tag = "", addIds = false) {
     let tokens = splitTokens(str, tag);
     let open_tag = [];
     tokens.map((token, i) => {
@@ -428,6 +428,27 @@ var parser = {
         }
       }
     }
+    
+    if (addIds) {
+      let maxId = tokens.reduce((acc, token) => {
+        if (token.info 
+            && token.info.data
+            && token.info.data.pid) {
+          if (acc < 1*token.info.data.pid) {
+            return 1*token.info.data.pid;
+          }
+        }
+        return acc;
+      }, 0);
+      
+      tokens.forEach((token, i) => { // set words id's
+        if (!token.info || !token.info.data) {
+          token.info.data = token.info.data || {};
+        }
+        if (!token.info.data.pid) token.info.data.pid = ++maxId;
+      })
+    }
+    
     return tokens;
   },
 
