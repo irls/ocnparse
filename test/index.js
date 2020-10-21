@@ -803,6 +803,22 @@ three`;
 //<w data-map="0,1360">The </w><w data-map="1360,495"><f data-flag="tgom-3_en_2s:jda3mun6" data-status="resolved">Gift</f> </w><w data-map="1855,925">of </w><w data-map="2780,275"><f data-flag="tgom-3_en_2s:jda3n32v" data-status="resolved">the</f> </w><w data-map="3055,1545">Magi</w>
  
 
+  describe('Verification of correct id`s assignment', () => {
+    let text =  tests.plaintext_without_ids;
+    let check = tests.plaintext_wrapped_ids;
+    let tokens = parser.tokenize(text, 'w', true);
+    let wrapped = parser.reWrap(tokens, 'w');
+    it('Id`s assigned correctly', () => expect(check).to.be.equal(wrapped));
+  });
+  
+  describe('Verification of correct id`s for new words', () => {
+    let text =  tests.plaintext_with_ids;
+    let check = tests.plaintext_wrapped_new_ids;
+    let tokens = parser.tokenize(text, 'w', true);
+    let wrapped = parser.reWrap(tokens, 'w');
+    it('Id`s added correctly', () => expect(check).to.be.equal(wrapped));
+  });
+  
 });
 
 
