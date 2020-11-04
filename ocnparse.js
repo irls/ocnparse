@@ -10,7 +10,7 @@ let html_open_regex = "<((?!(u>|u |\\/)))[^><]+>",
   html_close_regex = "<\\/((?!(u>|\\W)).)+>";
 // arrays with different character types to control
 let control_character_codes = [8207, 8206];
-let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—"];
+let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—", "–"];
 let quotes_open = [`“`, `‘`, `«`];
 let quotes_close = [`”`, `’`, `»`];
 let quotes_bidirectional = [`"`, `'`];
