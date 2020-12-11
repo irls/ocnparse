@@ -746,20 +746,33 @@ death.”’`;
     let wrapped = parser.reWrap(tokens, 'w');
     it('Bulleted list without <br> is parsed correctly', () => expect(check).to.be.equal(wrapped));
   });
-  describe('Tokens with &lt;', () => {
-    let text = `<p>New &lt;test block <i>with some</i> text</p>`;
-    let check = `<p><w>New &lt;</w><w>test </w><w>block </w><i><w>with </w><w>some</w></i> <w>text</w></p>`;
-    let tokens = parser.tokenize(text, 'w');
-    let rebuild = parser.rebuild(tokens, 'w');
-    it('Rebuild keeps &lt; with word', () => expect(check).to.be.equal(rebuild));
-    let retokenize = parser.tokenize(rebuild, 'w');
-    let wrapped = parser.reWrap(retokenize, 'w');
-    it('Second re wrap keeps &lt; with word', () => expect(check).to.be.equal(wrapped));
-    //rebuild.foreach(t => {
-      //console.log(t)
-    //})
-    //it('Bulleted list without <br> is parsed correctly', () => expect(check).to.be.equal(wrapped));
-  })
+  describe('Tokens with html entities', () => {
+    describe('Tokens with &lt;', () => {
+      let text = `<p>New &lt;test block <i>with some</i> text</p>`;
+      let check = `<p><w>New </w><w>&lt;test </w><w>block </w><i><w>with </w><w>some</w></i> <w>text</w></p>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuild = parser.rebuild(tokens, 'w');
+      it('Rebuild keeps &lt; with word', () => expect(check).to.be.equal(rebuild));
+      let retokenize = parser.tokenize(rebuild, 'w');
+      let wrapped = parser.reWrap(retokenize, 'w');
+      it('Second re wrap keeps &lt; with word', () => expect(check).to.be.equal(wrapped));
+      //rebuild.foreach(t => {
+        //console.log(t)
+      //})
+      //it('Bulleted list without <br> is parsed correctly', () => expect(check).to.be.equal(wrapped));
+    })
+    describe('Tokens with html entities and punctuation', () => {
+      let str = 'POEMS, &amp;c. LATIN &amp;c. Composed';
+      let check = '<w>POEMS, </w><w>&amp;c. </w><w>LATIN </w><w>&amp;c. </w><w>Composed</w>';
+      let tokens = parser.tokenize(str, "w", false, false);
+      let rebuild = parser.rebuild(tokens, 'w');
+      it('Rebuild keeps html entity with word', () => expect(check).to.be.equal(rebuild));
+      let reWrapped = parser.tokenize(rebuild, 'w');
+      let tokensReWrapped = parser.tokenize(parser.rebuild(reWrapped, 'w'), 'w');
+      let secondRebuild = parser.rebuild(tokensReWrapped, 'w');
+      it('Second rebuild keeps html entity with word, ()', () => expect(check).to.be.equal(secondRebuild));
+    });
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
