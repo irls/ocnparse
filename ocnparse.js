@@ -1225,6 +1225,7 @@ function cleanTokens(tokens) {
     if (
       (tt = regex.exec(token.word)) &&
       (tt[1].length > 0 || tt[3].length > 0)
+      && !token.word.match(/\&\w+;\s*$/)
     ) {
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
