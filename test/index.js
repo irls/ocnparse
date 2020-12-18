@@ -762,8 +762,8 @@ death.”’`;
       //it('Bulleted list without <br> is parsed correctly', () => expect(check).to.be.equal(wrapped));
     })
     describe('Tokens with html entities and punctuation', () => {
-      let str = 'POEMS, &amp;c. LATIN &amp;c. Composed';
-      let check = '<w>POEMS, </w><w>&amp;c. </w><w>LATIN </w><w>&amp;c. </w><w>Composed</w>';
+      let str = 'POEMS, &amp;c. LATIN &amp;c. Composed&#8230;';
+      let check = '<w>POEMS, </w><w>&amp;c. </w><w>LATIN </w><w>&amp;c. </w><w>Composed&#8230;</w>';
       let tokens = parser.tokenize(str, "w", false, false);
       let rebuild = parser.rebuild(tokens, 'w');
       it('Rebuild keeps html entity with word', () => expect(check).to.be.equal(rebuild));
