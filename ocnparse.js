@@ -85,7 +85,7 @@ var parser = {
         //}
       }
       if (token.suffix) {
-        let entity_match = /\&\w+\;$/.exec(token.suffix);
+        let entity_match = /\&\#?\w+\;$/.exec(token.suffix);
         if (entity_match && entity_match[0]) {
           let next = tokens[i + 1];
           if (next && !(next.prefix || '' + next.word || '').match(/^\s/)) {
@@ -831,7 +831,7 @@ function splitTokens(tokens, tag = "") {
     // first, split on line breaks
     "[\n\r]+",
     // next on most common legit inline tags which are not part of a word
-    "&\\w+;", //html_open_regex, html_close_regex,
+    "&\\#?\\w+;", //html_open_regex, html_close_regex,
     // all html tags except <u>
     "</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:\".*?\"|'.*?'|[^'\">\\s]+))?)+\\s*|\\s*)/?>",
     // m-dashes
@@ -1225,7 +1225,7 @@ function cleanTokens(tokens) {
     if (
       (tt = regex.exec(token.word)) &&
       (tt[1].length > 0 || tt[3].length > 0)
-      && !token.word.match(/\&\w+;\s*$/)
+      && !token.word.match(/\&\#?\w+;\s*$/)
     ) {
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
