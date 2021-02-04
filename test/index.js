@@ -773,15 +773,6 @@ death.”’`;
       it('Second rebuild keeps html entity with word, ()', () => expect(check).to.be.equal(secondRebuild));
     });
   });
-  /*describe('Test', () => {
-    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
-    let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
-    let check = `<w>public </w><w>affa: [/] </w><w>public </w><w>affa</w>`
-    let tokens = parser.tokenize(text, '');
-    console.log(tokens)
-    //let wrapped = parser.reWrap(tokens, 'w')
-    //it('Slash does not create non word token', () => expect(check).to.be.equal(wrapped))
-  })*/
   describe('Keep carriage returns for verlse, list text', () => {
     let text = `one 
 
@@ -831,6 +822,24 @@ three`;
     let wrapped = parser.reWrap(tokens, 'w');
     it('Id`s added correctly', () => expect(check).to.be.equal(wrapped));
   });
+  describe('Space added between wrap tag and HTML tag', () => {
+    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+    let text = `<w>Block </w><w>one.</w> <b><w>Block </w></b><w>two.</w>`;
+    let check = `<w>Block </w><w>one. </w><b><w>Block </w></b><w>two.</w>`;
+    let tokens = parser.tokenize(text, 'w');
+    let rebuild = parser.rebuild(tokens, 'w');
+    //let wrapped = parser.reWrap(tokens, 'w')
+    it('Space before HTML tag is kept after tokenize and rebuild', () => expect(check).to.be.equal(rebuild))
+  })
+  /*describe('Test', () => {
+    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+    let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
+    let check = `<w>public </w><w>affa: [/] </w><w>public </w><w>affa</w>`
+    let tokens = parser.tokenize(text, '');
+    console.log(tokens)
+    //let wrapped = parser.reWrap(tokens, 'w')
+    //it('Slash does not create non word token', () => expect(check).to.be.equal(wrapped))
+  })*/
   
 });
 

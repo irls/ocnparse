@@ -1315,11 +1315,22 @@ function packEmptyTokens(tokens) {
       htmlCloseReg = new RegExp(html_close_regex, "img");
       if (htmlOpenReg.test(token.word)) {
         let nextToken = tokens[i + 1];
+        let prevToken = tokens[i - 1];
         //let token = tokens[i]
+        let nextPrefix = '';
+        if (prevToken) {
+          if (prevToken.after) {
+            prevToken.after+= (token.prefix || '');
+          } else {
+            prevToken.suffix = (prevToken.suffix || '') + (token.prefix || '');
+          }
+        } else {
+          nextPrefix = token.prefix || '';
+        }
         if (nextToken) {
           nextToken.before = `${token.word}${token.suffix}${token.after ||
             ""}${nextToken.before || ""}`;
-          nextToken.suffix += token.prefix;
+          nextToken.suffix += nextPrefix;
           //nextToken.after = nextToken.after || ''
           //nextToken.after+=  token.suffix
           tokens.splice(i, 1); //delete(tokens[i])
