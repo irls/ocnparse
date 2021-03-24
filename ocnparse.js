@@ -69,6 +69,7 @@ var parser = {
     tokens.map((token, i) => {
       addTokenInfo(token);
     });
+    let coupletSeparatorRegex = /\S*([ ]{3,}\/[ ]{3,})$/img;
     tokens.forEach((token, i) => {// move suggestion tag to correct token
       if (
         token.after &&
@@ -92,6 +93,21 @@ var parser = {
             next.prefix = entity_match[0] + (next.prefix || '');
             token.suffix = token.suffix.replace(entity_match[0], '');
           }
+        }
+      }
+      let slashMatch = coupletSeparatorRegex.exec(token.word);
+      if (slashMatch && slashMatch[1]) {
+        token.after = slashMatch[1] + (token.after || '');
+        token.word = token.word.replace(slashMatch[1], '');
+        if (token.word.trim().length === 0) {
+          moveEmptyToken(tokens, i);
+        }
+      }
+      if (token.suffix) {
+        slashMatch = coupletSeparatorRegex.exec(token.suffix);
+        if (slashMatch && slashMatch[1]) {
+          token.after = slashMatch[1] + (token.after || '');
+          token.suffix = token.suffix.replace(slashMatch[1], '');
         }
       }
     });
