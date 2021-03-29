@@ -1132,7 +1132,7 @@ function cleanTokens(tokens) {
             token.before = "";
             token.prefix = tt[2];
           } else {
-            if (prevToken.after && !punctuation_end_regex.test(token.prefix)) {
+            if (prevToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/sup>/.test(prevToken.after))) {
               prevToken.after += tt[1];
             } else {
               prevToken.suffix += tt[1];
@@ -1305,9 +1305,13 @@ function packEmptyTokens(tokens) {
         let prevToken = tokens[i - 1];
         let token = tokens[i];
         //console.log('empty token', i, token)
-        prevToken.suffix += token.prefix + token.word + token.suffix;
-        prevToken.after = prevToken.after || "";
-        prevToken.after += (token.before || "") + (token.after || "");
+        let wordAppend = token.prefix + token.word + token.suffix;
+        if (prevToken.after) {
+          prevToken.after+= (token.before || "") + wordAppend + (token.after || "");
+        } else {
+          prevToken.suffix += (token.before || "") + wordAppend;
+          prevToken.after = (prevToken.after || "") + (token.after || "");
+        }
         tokens.splice(i, 1); //delete(tokens[i])
       }
     } else {
@@ -1395,7 +1399,7 @@ function moveEmptyToken(tokens, index) {
     // move empty token back
     destToken = tokens[index - 1];
     if (destToken && (!destToken.info || destToken.info.type !== "html")) {
-      if (destToken.after && !punctuation_end_regex.test(token.prefix)) {
+      if (destToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/sup>/.test(destToken.after))) {
         destToken.after += token.prefix + token.word + token.suffix;
       } else {
         destToken.suffix += token.prefix + token.word + token.suffix;
