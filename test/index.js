@@ -906,6 +906,31 @@ three`;
       //it(`Dash or hyphen does not move to superscript, rewrapped, case "${d.name}"`, () => expect(d.check).to.be.equal(wrapped));
     });
   });
+  describe('Slash should be out of <w></w> wrapper, used four couplets', () => {
+    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+    let text = `Alice was beginning to get very tired   /   of sitting by her sister on the
+bank, and of having nothing to do:   /    once or twice she had peeped into the
+book her sister was reading, but it had   /   no pictures or conversations in
+it, &lsquo;and what is the use of a book,&rsquo; thought Alice &lsquo;without pictures or
+conversations?&rsquo;`;
+    let check = `<w>Alice </w><w>was </w><w>beginning </w><w>to </w><w>get </w><w>very </w><w>tired</w>   /   <w>of </w><w>sitting </w><w>by </w><w>her </w><w>sister </w><w>on </w><w>the</w>
+<w>bank, </w><w>and </w><w>of </w><w>having </w><w>nothing </w><w>to </w><w>do:</w>   /    <w>once </w><w>or </w><w>twice </w><w>she </w><w>had </w><w>peeped </w><w>into </w><w>the</w>
+<w>book </w><w>her </w><w>sister </w><w>was </w><w>reading, </w><w>but </w><w>it </w><w>had</w>   /   <w>no </w><w>pictures </w><w>or </w><w>conversations </w><w>in</w>
+<w>it, </w><w>&lsquo;and </w><w>what </w><w>is </w><w>the </w><w>use </w><w>of </w><w>a </w><w>book,&rsquo; </w><w>thought </w><w>Alice </w><w>&lsquo;without </w><w>pictures </w><w>or</w>
+<w>conversations?&rsquo;</w>`;
+    let tokens = parser.tokenize(text, '');
+    //console.log(tokens);
+    let wrapped = parser.reWrap(tokens, 'w');
+    let rebuild = parser.rebuild(tokens, 'w');
+    //console.log(wrapped);
+    //console.log(rebuild);
+    let reWrapped = parser.tokenize(rebuild, 'w');
+    let tokensReWrapped = parser.tokenize(parser.rebuild(reWrapped, 'w'), 'w');
+    let secondRebuild = parser.rebuild(tokensReWrapped, 'w');
+    //console.log(secondRebuild);
+    it('Slash as a couplet separator is outside <w></w>', () => expect(check).to.be.equal(wrapped));
+    it('Slash as a couplet separator is outside <w></w> after second rewrap', () => expect(secondRebuild).to.be.equal(check));
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
