@@ -830,6 +830,81 @@ three`;
     let rebuild = parser.rebuild(tokens, 'w');
     //let wrapped = parser.reWrap(tokens, 'w')
     it('Space before HTML tag is kept after tokenize and rebuild', () => expect(check).to.be.equal(rebuild))
+  })
+  describe('Dash after footnote', () => {
+    let dashChecks = [
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup>-</w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup><w id="1PhVS">-Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'hyphen',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup> -</w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup> -<w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'hyphen with left space',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup>- </w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup><w id="1PhVS">- Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'hyphen with rigth space',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup> - </w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup> - <w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'hyphen with two spaces',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup>—</w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup>—<w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'dash',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup> —</w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup> —<w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'dash with left space',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup>— </w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup>— <w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'dash with rigth space',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup> — </w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup> — <w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'dash with two spaces',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup>–</w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup>–<w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'dash 8211',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup> –</w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup> –<w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'dash 8211 with left space',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup>– </w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup>– <w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'dash 8211 with rigth space',
+      },
+      {
+        text: `<w id="1L5MQ">By<sup data-idx="1">1</sup> – </w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup> – <w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
+        name: 'dash 8211 with two spaces',
+      }
+    ];
+    dashChecks.forEach(d => {
+      let tokens = parser.tokenize(d.text, "w");
+      let rebuild = parser.rebuild(tokens, "w");
+      //console.log(d.text);
+      //console.log(rebuild)
+      //let wrapped = parser.reWrap(tokens, 'w');
+      //console.log(wrapped, wrapped === rebuild);
+      //console.log(wrapped, d.name);
+      it(`Dash or hyphen does not move to superscript, case "${d.name}"`, () => expect(rebuild).to.be.equal(d.check));
+      //it(`Dash or hyphen does not move to superscript, rewrapped, case "${d.name}"`, () => expect(d.check).to.be.equal(wrapped));
+    });
   });
   describe('Slash should be out of <w></w> wrapper, used four couplets', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
