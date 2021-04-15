@@ -931,6 +931,20 @@ conversations?&rsquo;`;
     it('Slash as a couplet separator is outside <w></w>', () => expect(check).to.be.equal(wrapped));
     it('Slash as a couplet separator is outside <w></w> after second rewrap', () => expect(secondRebuild).to.be.equal(check));
   });
+  describe('Line break inside <w></w>', () => {
+    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+    let text = `<w id="1iq7N">By </w><w id="1lUUF">Lewis </w><w id="1ppHx">Carroll
+</w>`;
+    let check = `<w id="1iq7N">By </w><w id="1lUUF">Lewis </w><w id="1ppHx">Carroll</w>
+`
+    let tokens = parser.tokenize(text, 'w');
+    //console.log(tokens)
+    let wrapped = parser.rebuild(tokens, 'w');
+    //console.log(`"${wrapped}"`, wrapped === check)
+    //});
+    it('Line break inside wrapper does not create extra <w></w> wrappers', () => expect(check).to.be.equal(wrapped));
+  })
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
