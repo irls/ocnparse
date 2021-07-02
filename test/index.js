@@ -945,6 +945,13 @@ conversations?&rsquo;`;
     //});
     it('Line break inside wrapper does not create extra <w></w> wrappers', () => expect(check).to.be.equal(wrapped));
   })
+  describe('HTML in superscript', () => {
+    let text = `<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1</w><i class="pin"></i></sup> <w id="1IEJAQ" data-map="1965,495" data-sugg="">was </w><w id="1IIVJS" data-map="2460,350" data-sugg="">very </w><w id="1IN7SU" data-map="2810,350" data-sugg="">deep, </w>`;
+    let tokens = parser.tokenize(text, 'w');
+    let rebuilt = parser.rebuild(tokens, 'w');
+    let check = '<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1</w><i class="pin"></i></sup> <w id="1IEJAQ" data-map="1965,495">was </w><w id="1IIVJS" data-map="2460,350">very </w><w id="1IN7SU" data-map="2810,350">deep, </w>';
+    it('HTML tags in superscript does not add empty suggestion to the end of sentence', () => expect(check).to.be.equal(rebuilt));
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
