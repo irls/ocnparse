@@ -131,6 +131,9 @@ var parser = {
           let next = false;
           do {
             next = tokens[_i];
+            if (next && next.before && /<\/sup>/.test(next.before)) {
+              next = false;
+            }
             if (next) {
               next.info = next.info || {};
               next.info.data = next.info.data || {};
@@ -1338,28 +1341,34 @@ function packEmptyTokens(tokens) {
         let prevToken = tokens[i - 1];
         //let token = tokens[i]
         let nextPrefix = '';
-        if (prevToken) {
-          if (prevToken.after) {
-            prevToken.after+= (token.prefix || '');
+        let checkCloseTag = `${token.word}${token.suffix}${token.after || ""}`;
+        if (prevToken && htmlCloseReg.test(checkCloseTag)) {
+          prevToken.after = (prevToken.after || "") + (token.prefix || "") + checkCloseTag;
+          tokens.splice(i, 1);
+        } else {
+          if (prevToken) {
+            if (prevToken.after) {
+              prevToken.after+= (token.prefix || '');
+            } else {
+              prevToken.suffix = (prevToken.suffix || '') + (token.prefix || '');
+            }
           } else {
-            prevToken.suffix = (prevToken.suffix || '') + (token.prefix || '');
+            nextPrefix = token.prefix || '';
           }
-        } else {
-          nextPrefix = token.prefix || '';
-        }
-        if (nextToken) {
-          nextToken.before = `${token.word}${token.suffix}${token.after ||
-            ""}${nextToken.before || ""}`;
-          nextToken.suffix += nextPrefix;
-          //nextToken.after = nextToken.after || ''
-          //nextToken.after+=  token.suffix
-          tokens.splice(i, 1); //delete(tokens[i])
-        } else {
-          token.before = token.before || "";
-          token.before = token.word + token.suffix;
-          token.word = "";
-          //nextToken.after = nextToken.after || ''
-          //nextToken.after+=  token.suffix
+          if (nextToken) {
+            nextToken.before = `${token.word}${token.suffix}${token.after ||
+              ""}${nextToken.before || ""}`;
+            nextToken.suffix += nextPrefix;
+            //nextToken.after = nextToken.after || ''
+            //nextToken.after+=  token.suffix
+            tokens.splice(i, 1); //delete(tokens[i])
+          } else {
+            token.before = token.before || "";
+            token.before = token.word + token.suffix;
+            token.word = "";
+            //nextToken.after = nextToken.after || ''
+            //nextToken.after+=  token.suffix
+          }
         }
       }
       if (htmlCloseReg.test(token.word)) {
