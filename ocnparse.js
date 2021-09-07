@@ -978,7 +978,7 @@ function splitWrappedString(str, tag = "w") {
     .split(tagSplitReg)
     .filter(s => s.length > 0)
     .map(_word => {
-      let _words = _word.split(/(?:\r\n|\r|\n)(?!\s*<\/w>)/);
+      let _words = _word.split(/(?:\r\n|\r|\n)(?![\s\S]*?<\/w>)/);
       if (_words.length > 0) {
         _words.forEach((w, i) => {
           if (i < _words.length - 1) {
