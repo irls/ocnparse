@@ -496,8 +496,70 @@ describe('Ocean Parser Behaviour Tests', function() {
     it('Single Quotes in token with words it covers', () => expect(strQuoteSingle).to.be.equal(checkQuoteSingle));
     //console.log(str);
   });
-  describe('Line breaks', function () {
-    let str = `‘Fury said to a 
+  describe('Links', () => {
+    let str = 'test2 test2 <a href="http://mysite.com">block link</a> content <i><a href="www.google.com/search">link</a></i>';
+    let checkStr = '<w>test2 </w><w>test2 </w><a href="http://mysite.com"><w>block </w><w>link</w></a> <w>content </w><i><a href="www.google.com/search"><w>link</w></a></i>';
+    let reWrap = parser.reWrap(str, 'w');
+    it('Re wrap keeps links with ref', () => expect(reWrap).to.be.equal(checkStr));
+    let reWrapRe = parser.reWrap(reWrap, 'w');
+    it('Re wrap keeps links with ref', () => expect(reWrapRe).to.be.equal(checkStr));
+  });
+  describe('Suggestion after superscript', () => {
+    let str = 'Test block test<sup>1</sup> <sg data-suggestion="test suggestion">block</sg> test block';
+    let reWrap = parser.reWrap(str, 'w');
+    let secondReWrap = parser.reWrap(reWrap, 'w');
+    let checkStr = '<w>Test </w><w>block </w><w>test</w><sup><w data-sugg="">1</w></sup> <sg data-suggestion="test suggestion"><w data-sugg="test suggestion">block</w></sg> <w>test </w><w>block</w>';
+    it('Correctly parsing closing tags', () => expect(reWrap).to.be.equal(checkStr));
+    it('Correctly parsing closing tags after second re wrap', () => expect(secondReWrap).to.be.equal(checkStr))
+  });
+  describe('Line breaks', () => {
+    describe('Line breaks inside list', () => {
+      let str = `Among them,
+
+  <ul>
+<li> Mullá Muḥammad ‘Alíy-i-Zanjání
+</li><li> Mullá ‘Alíy-i-Basṭámí
+</li><li> Mullá Sa‘íd-i-Bárfurú<u>sh</u>í
+</li><li> Mullá Ni‘matu’lláh-i-Mázindarání
+</li><li> Mullá Yúsuf-i-Ardibílí
+</li></ul>`
+      let check_str = `<w>Among </w><w>them,</w><ul>
+<li> 
+
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="moUhammad">Muḥammad </w><w data-ipa="ali:je?zandZA:ni:">‘Alíy-i-Zanjání</w></li><li> 
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="ali:je?bastA:mi:">‘Alíy-i-Basṭámí</w></li><li> 
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="sa?i:de?bA:rfoUru:Si:">Sa‘íd-i-Bárfurú<u>sh</u>í</w></li><li> 
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="ne?matoU?llA:he?mA:zendarA:ni:">Ni‘matu’lláh-i-Mázindarání</w></li><li> 
+<w data-ipa="moUllA:">Mullá </w><w data-ipa="ju:soUfe?ardebi:li:">Yúsuf-i-Ardibílí</w></li></ul>
+`
+      let tokens = parser.tokenize(str, "w")
+      let reWrap = parser.reWrap(tokens, 'w');
+      it('Correctly parsing closing tags', () => expect(reWrap).to.be.equal(check_str));
+      let secondReWrap = parser.reWrap(reWrap, 'w');
+      it('Correctly parsing closing tags', () => expect(secondReWrap).to.be.equal(check_str));
+      //let text = `<ol><li><w data-map="0,315">Test </w><w data-map="315,685">HEADER</w></li><li><w data-map="315,685">Test HEADER<br></w></li><li><w data-map="315,685">Test HEADER<br></w></li></ol>`;
+      let text = `<ol><li>Test HEADER1</li><li>Test HEADER2<br></li><li>Test HEADER3<br></li></ol>`;
+      let check = `<ol><li>Test HEADER1</li><li>Test HEADER2<br></li><li>Test HEADER3<br></li></ol>`
+      tokens = parser.tokenize(text, '');
+      let wrapped = parser.reWrap(tokens, '');
+      it('Correctly parsing <br>', () => expect(wrapped).to.be.equal(check));
+    });
+    describe('Line break inside <w></w>', () => {
+      //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+      //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+      let text = `<w id="1iq7N">By </w><w id="1lUUF">Lewis </w><w id="1ppHx">Carroll
+</w>`;
+      let check = `<w id="1iq7N">By </w><w id="1lUUF">Lewis </w><w id="1ppHx">Carroll</w>
+`
+      let tokens = parser.tokenize(text, 'w');
+      //console.log(tokens)
+      let wrapped = parser.rebuild(tokens, 'w');
+      //console.log(`"${wrapped}"`, wrapped === check)
+      //});
+      it('Line break inside wrapper does not create extra <w></w> wrappers', () => expect(check).to.be.equal(wrapped));
+    });
+    describe('Line breaks', function () {
+      let str = `‘Fury said to a 
 mouse, That he 
 met in the 
 house, 
@@ -541,7 +603,7 @@ condemn
 you 
 to 
 death.”’`;
-    let check_str = `<w>‘Fury </w><w>said </w><w>to </w><w>a </w>
+      let check_str = `<w>‘Fury </w><w>said </w><w>to </w><w>a </w>
 <w>mouse, </w><w>That </w><w>he </w>
 <w>met </w><w>in </w><w>the </w>
 <w>house, </w>
@@ -585,57 +647,24 @@ death.”’`;
 <w>you </w>
 <w>to </w>
 <w>death.”’</w>`;
-    str = parser.reWrap(str, 'w');
-    it('Re wrap keeps line breaks', () => expect(str).to.be.equal(check_str));
-    str = parser.reWrap(str, 'w');
-    it('Double re wrap keeps line breaks', () => expect(str).to.be.equal(check_str));
-  });
-  describe('Links', () => {
-    let str = 'test2 test2 <a href="http://mysite.com">block link</a> content <i><a href="www.google.com/search">link</a></i>';
-    let checkStr = '<w>test2 </w><w>test2 </w><a href="http://mysite.com"><w>block </w><w>link</w></a> <w>content </w><i><a href="www.google.com/search"><w>link</w></a></i>';
-    let reWrap = parser.reWrap(str, 'w');
-    it('Re wrap keeps links with ref', () => expect(reWrap).to.be.equal(checkStr));
-    let reWrapRe = parser.reWrap(reWrap, 'w');
-    it('Re wrap keeps links with ref', () => expect(reWrapRe).to.be.equal(checkStr));
-  });
-  describe('Suggestion after superscript', () => {
-    let str = 'Test block test<sup>1</sup> <sg data-suggestion="test suggestion">block</sg> test block';
-    let reWrap = parser.reWrap(str, 'w');
-    let secondReWrap = parser.reWrap(reWrap, 'w');
-    let checkStr = '<w>Test </w><w>block </w><w>test</w><sup><w data-sugg="">1</w></sup> <sg data-suggestion="test suggestion"><w data-sugg="test suggestion">block</w></sg> <w>test </w><w>block</w>';
-    it('Correctly parsing closing tags', () => expect(reWrap).to.be.equal(checkStr));
-    it('Correctly parsing closing tags after second re wrap', () => expect(secondReWrap).to.be.equal(checkStr))
-  });
-  describe('Line breaks inside list', () => {
-    let str = `Among them,
+      str = parser.reWrap(str, 'w');
+      it('Re wrap keeps line breaks', () => expect(str).to.be.equal(check_str));
+      str = parser.reWrap(str, 'w');
+      it('Double re wrap keeps line breaks', () => expect(str).to.be.equal(check_str));
+    });
+    describe('Line break at the beginning of the <w></w>', () => {
+      let str = `<w id="hnFGH" data-map="0,290">
+Down </w><w id="hwJJn" data-map="290,95">the </w><w id="hOdFG" data-map="385,2390">Rabbit-Hole </w>
 
-  <ul>
-<li> Mullá Muḥammad ‘Alíy-i-Zanjání
-</li><li> Mullá ‘Alíy-i-Basṭámí
-</li><li> Mullá Sa‘íd-i-Bárfurú<u>sh</u>í
-</li><li> Mullá Ni‘matu’lláh-i-Mázindarání
-</li><li> Mullá Yúsuf-i-Ardibílí
-</li></ul>`
-    let check_str = `<w>Among </w><w>them,</w><ul>
-<li> 
+<w id="i5HBZ" data-map="2775,380">CHAPTER </w><w id="inbyi" data-map="3155,555">II.</w>`;
+      let check = `<w id="hnFGH" data-map="0,290">
+Down </w><w id="hwJJn" data-map="290,95">the </w><w id="hOdFG" data-map="385,2390">Rabbit-Hole </w>
 
-<w data-ipa="moUllA:">Mullá </w><w data-ipa="moUhammad">Muḥammad </w><w data-ipa="ali:je?zandZA:ni:">‘Alíy-i-Zanjání</w></li><li> 
-<w data-ipa="moUllA:">Mullá </w><w data-ipa="ali:je?bastA:mi:">‘Alíy-i-Basṭámí</w></li><li> 
-<w data-ipa="moUllA:">Mullá </w><w data-ipa="sa?i:de?bA:rfoUru:Si:">Sa‘íd-i-Bárfurú<u>sh</u>í</w></li><li> 
-<w data-ipa="moUllA:">Mullá </w><w data-ipa="ne?matoU?llA:he?mA:zendarA:ni:">Ni‘matu’lláh-i-Mázindarání</w></li><li> 
-<w data-ipa="moUllA:">Mullá </w><w data-ipa="ju:soUfe?ardebi:li:">Yúsuf-i-Ardibílí</w></li></ul>
-`
-    let tokens = parser.tokenize(str, "w")
-    let reWrap = parser.reWrap(tokens, 'w');
-    it('Correctly parsing closing tags', () => expect(reWrap).to.be.equal(check_str));
-    let secondReWrap = parser.reWrap(reWrap, 'w');
-    it('Correctly parsing closing tags', () => expect(secondReWrap).to.be.equal(check_str));
-    //let text = `<ol><li><w data-map="0,315">Test </w><w data-map="315,685">HEADER</w></li><li><w data-map="315,685">Test HEADER<br></w></li><li><w data-map="315,685">Test HEADER<br></w></li></ol>`;
-    let text = `<ol><li>Test HEADER1</li><li>Test HEADER2<br></li><li>Test HEADER3<br></li></ol>`;
-    let check = `<ol><li>Test HEADER1</li><li>Test HEADER2<br></li><li>Test HEADER3<br></li></ol>`
-    tokens = parser.tokenize(text, '');
-    let wrapped = parser.reWrap(tokens, '');
-    it('Correctly parsing <br>', () => expect(wrapped).to.be.equal(check));
+<w id="i5HBZ" data-map="2775,380">CHAPTER </w><w id="inbyi" data-map="3155,555">II.</w>`;
+      let tokens = parser.tokenize(str, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      it('Correctly parsing line break', () => expect(rebuilt).to.be.equal(check));
+    });
   });
   describe('Suggestions for data-pg', () => {
     let str = `the saintly heroic<sup data-pg="xxiv">pg xxiv</sup> figure`
@@ -931,20 +960,6 @@ conversations?&rsquo;`;
     it('Slash as a couplet separator is outside <w></w>', () => expect(check).to.be.equal(wrapped));
     it('Slash as a couplet separator is outside <w></w> after second rewrap', () => expect(secondRebuild).to.be.equal(check));
   });
-  describe('Line break inside <w></w>', () => {
-    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
-    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
-    let text = `<w id="1iq7N">By </w><w id="1lUUF">Lewis </w><w id="1ppHx">Carroll
-</w>`;
-    let check = `<w id="1iq7N">By </w><w id="1lUUF">Lewis </w><w id="1ppHx">Carroll</w>
-`
-    let tokens = parser.tokenize(text, 'w');
-    //console.log(tokens)
-    let wrapped = parser.rebuild(tokens, 'w');
-    //console.log(`"${wrapped}"`, wrapped === check)
-    //});
-    it('Line break inside wrapper does not create extra <w></w> wrappers', () => expect(check).to.be.equal(wrapped));
-  })
   describe('HTML in superscript', () => {
     let text = `<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1</w><i class="pin"></i></sup> <w id="1IEJAQ" data-map="1965,495" data-sugg="">was </w><w id="1IIVJS" data-map="2460,350" data-sugg="">very </w><w id="1IN7SU" data-map="2810,350" data-sugg="">deep, </w>`;
     let tokens = parser.tokenize(text, 'w');
