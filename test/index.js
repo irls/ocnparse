@@ -270,7 +270,7 @@ describe('Ocean Parser Behaviour Tests', function() {
     let check_string = `<w>The </w><w>old </w><w>lady </w><f data-flag="ts1_en_39:j7r8udpr" data-status="open"><w>pulled</w></f> <w>her </w><w>spectacles</w><sup class="js-footnote-el" data-idx="1"><w data-sugg="">1</w></sup> <w>down </w><w>and </w><w>looked </w><w>over </w><w>them </w><f data-flag="ts1_en_39:j7r8undm" data-status="open"><w>about </w><w>the</w>
 <w>room; </w></f><w>then </w><w>she </w><w>put </w><w>them </w><w>up </w><w>and </w><w>looked </w><w>out </w><w>under </w><w>them. </w><w>She </w><w>seldom</w><sup class="js-footnote-el" data-idx="2"><w data-sugg="">2</w></sup> <w>or </w><w>never </w>
 <w>looked </w><i><w>through</w></i> <w>them </w><w>for </w><w>so </w><w>small </w><w>a </w><w>thing </w><w>as </w><w>a </w><w>boy; </w><w>they </w><w>were </w><w>her </w><w>state </w>
-<w>pair, </w><w>the </w><w>pride </w><w>of </w><w>her </w><w>heart, </w><w>and </w><w>were </w><w>built </w><w>for </w><w>“style,” </w><w>not </w><w data-author="quote 1">service </w><w>— she </w>
+<w>pair, </w><w>the </w><w>pride </w><w>of </w><w>her </w><w>heart, </w><w>and </w><w>were </w><w>built </w><w>for </w><w>“style,” </w><w>not </w><w data-author="quote 1">service — </w><w>she </w>
 <w>could </w><w>have </w><w>seen </w><w data-author="quote 2">through </w><w>a </w><w>pair </w><w>of </w><w>stove-lids </w><w>just </w><w>as </w><w>well. </w><w>She </w><w>looked </w>
 <w>perplexed </w><w>for </w><w>a </w><w>moment, </w><w>and </w><w>then </w><w>said, </w><w>not </w><w>fiercely, </w><w>but </w><w>still </w><w>loud </w><w>enough </w>
 <w>for </w><w>the </w><w>furniture </w><w>to </w><w>hear:</w>`;
@@ -311,7 +311,7 @@ describe('Ocean Parser Behaviour Tests', function() {
   });
   describe('Dot and HTML tags', function() {
     let str = '.<i>begin</i><sg data-suggestion=\"Chapter one\">I</sg>.<br> Down the Rabbit-Hole<i>end</i>.';
-    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><w data-sugg="Chapter one">I.</w></sg><br> <w>Down </w><w>the </w><w>Rabbit-Hole</w><i><w>end.</w></i>';
+    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><w data-sugg="Chapter one">I.</w></sg><br> <w>Down </w><w>the </w><w>Rabbit-Hole<i>end</i>.</w>';
     let tokenized = parser.tokenize(str, 'w');
     let rebuild = parser.rebuild(tokenized, 'w');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
@@ -320,7 +320,7 @@ describe('Ocean Parser Behaviour Tests', function() {
   });
   describe('Suggestion and HTML tags', function() {
     let str = '.<i>begin</i><sg data-suggestion="Chapter one"><i>I</i></sg>.<br> Down the Rabbit-Hole<i>end</i>.';
-    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><i><w data-sugg="Chapter one">I.</w></i></sg><br> <w>Down </w><w>the </w><w>Rabbit-Hole</w><i><w>end.</w></i>';
+    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><i><w data-sugg="Chapter one">I.</w></i></sg><br> <w>Down </w><w>the </w><w>Rabbit-Hole<i>end</i>.</w>';
     let tokenized = parser.tokenize(str, 'w');
     let rebuild = parser.rebuild(tokenized, '');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
@@ -422,7 +422,7 @@ describe('Ocean Parser Behaviour Tests', function() {
       //let text = `original <u>page images with</u> text may`;
       let text = `<w data-map="0,380">Copies </w><w data-map="380,75">of </w><w data-map="455,170">the </w><w data-map="625,610">original </w><u><w data-map="1235,310">page </w><w data-map="1545,480">images </w></u>,<w data-map="2025,220"><u>with</u> </w><w data-map="2245,385">text </w><w data-map="2630,450">may</w>`;
       //let text = `original <u>page images with</u> text of the <u>Sh</u>áhs were thrust <u>Sh</u>ay<u>kh</u>`;
-      let check = `<w data-map="0,380">Copies </w><w data-map="380,75">of </w><w data-map="455,170">the </w><w data-map="625,610">original </w><u><w data-map="1235,310">page </w><w data-map="1545,480">images </w></u>,<w data-map="2025,220"><u>with</u> </w><w data-map="2245,385">text </w><w data-map="2630,450">may</w>`;
+      let check = `<w data-map="0,380">Copies </w><w data-map="380,75">of </w><w data-map="455,170">the </w><w data-map="625,610">original </w><u><w data-map="1235,310">page </w><w data-map="1545,480">images </w></u>,<u><w data-map="2025,220">with</w> </u><w data-map="2245,385">text </w><w data-map="2630,450">may</w>`;
       let tokens = parser.tokenize(text, 'w');
       //tokens.forEach(t => {
         //console.log(t)
@@ -451,12 +451,21 @@ describe('Ocean Parser Behaviour Tests', function() {
     });
     describe('Underline and rebuild with space', () => {
       let text = `<w data-map="285,285">block<u> </u></w><w data-map="570,235"><u>for </u></w><w data-map="805,575">underlined </w>`;
-      let check = `<w data-map="285,285">block</w><u> <w data-map="570,235">for </w></u><w data-map="805,575">underlined </w>`;
+      let check = `<w data-map="285,285">block<u> </u></w><u><w data-map="570,235">for </w></u><w data-map="805,575">underlined </w>`;
       let tokens = parser.tokenize(text, 'w');
       let rebuild = parser.rebuild(tokens, 'w');
       let tokens_rebuild = parser.tokenize(rebuild, 'w');
       let wrapped = parser.reWrap(tokens, 'w');
       it('Underline and rebuild with space', () => expect(wrapped).to.be.equal(check));
+    });
+    describe('Tags b and i also not parsed', () => {
+      let text = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><w id="zbRKM">be<b>gin</b>ning </w><w id="zg3TO">to </w><w id="zkg2Q">g<i>et</i> </w><w id="zosbS">very </w><w id="zsEkU">ti<u>re</u>d </w><w id="zwQtW">of </w><w id="zB2CY">sitt<b>ing </b></w><w id="zFeM0"><b>b</b>y </w><w id="zJqV2">he<i>r </i></w><w id="zND44"><i>sist</i>er </w><w id="zRPd6">on </w><w id="zW1m8">th<u>e </u></w><u>
+</u><w id="A0dva"><u>ba</u>nk, </w><w id="A4pEc">and </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Tags b and u not parsed, rebuild', () => expect(rebuilt).to.be.equal(text));
+      it('Tags b and u not parsed, reWrap', () => expect(reWrap).to.be.equal(text));
     });
   });
   describe('Parenthesis', function () {
@@ -484,10 +493,10 @@ describe('Ocean Parser Behaviour Tests', function() {
     //console.log(str);
     let strQuote = 'Test string "<i>inside test</i>" outside outside';
     let checkQuote = '<w>Test </w><w>string </w>"<i><w>inside </w><w>test</w></i>" <w>outside </w><w>outside</w>';
-    strQuote = parser.reWrap(strQuote, 'w');
-    it('Quotes in token with words it covers', () => expect(strQuote).to.be.equal(checkQuote));
+    let strQuoteRewrap = parser.reWrap(strQuote, 'w');
+    it('Quotes in token with words it covers', () => expect(strQuoteRewrap).to.be.equal(checkQuote));
     //console.log(strQuote);
-    let strQuote2 = parser.reWrap(strQuote, 'w');
+    let strQuote2 = parser.reWrap(strQuoteRewrap, 'w');
     let rebuildQuote = parser.rebuild(parser.tokenize(strQuote2, 'w'), 'w')
     it('Quotes in token with words it covers, rebuild', () => expect(rebuildQuote).to.be.equal(checkQuote));
     let strQuoteSingle = 'Test string \'<i>inside test</i>\' outside outside';
@@ -611,7 +620,7 @@ death.”’`;
 <w>both </w><w>go </w><w>to </w>
 <w>law: </w><i><w>I</w></i> <w>will </w>
 <w>prosecute </w>
-<i><w>you. — </w></i><w>Come, </w>
+<i><w>you</w></i>. — <w>Come, </w>
 <w data-ipa="e?ll">I’ll </w><w>take </w><w>no </w>
 <w>denial; </w><w>We </w>
 <w>must </w><w>have </w><w>a </w>
@@ -647,10 +656,10 @@ death.”’`;
 <w>you </w>
 <w>to </w>
 <w>death.”’</w>`;
-      str = parser.reWrap(str, 'w');
-      it('Re wrap keeps line breaks', () => expect(str).to.be.equal(check_str));
-      str = parser.reWrap(str, 'w');
-      it('Double re wrap keeps line breaks', () => expect(str).to.be.equal(check_str));
+      let strWrap = parser.reWrap(str, 'w');
+      it('Re wrap keeps line breaks', () => expect(check_str).to.be.equal(strWrap));
+      let strReWrap = parser.reWrap(str, 'w');
+      it('Double re wrap keeps line breaks', () => expect(check_str).to.be.equal(strReWrap));
     });
     describe('Line break at the beginning of the <w></w>', () => {
       let str = `<w id="hnFGH" data-map="0,290">
@@ -854,7 +863,7 @@ three`;
   describe('Space added between wrap tag and HTML tag', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `<w>Block </w><w>one.</w> <b><w>Block </w></b><w>two.</w>`;
-    let check = `<w>Block </w><w>one. </w><b><w>Block </w></b><w>two.</w>`;
+    let check = `<w>Block </w><w>one.</w> <b><w>Block </w></b><w>two.</w>`;
     let tokens = parser.tokenize(text, 'w');
     let rebuild = parser.rebuild(tokens, 'w');
     //let wrapped = parser.reWrap(tokens, 'w')
@@ -874,7 +883,7 @@ three`;
       },
       {
         text: `<w id="1L5MQ">By<sup data-idx="1">1</sup>- </w><w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,//—
-        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup><w id="1PhVS">- Lewis </w><w id="1Tu4U">Carroll</w>`,
+        check: `<w id="1L5MQ">By</w><sup data-idx="1"><w data-sugg="">1</w></sup>- <w id="1PhVS">Lewis </w><w id="1Tu4U">Carroll</w>`,
         name: 'hyphen with rigth space',
       },
       {
@@ -964,7 +973,7 @@ conversations?&rsquo;`;
     let text = `<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1</w><i class="pin"></i></sup> <w id="1IEJAQ" data-map="1965,495" data-sugg="">was </w><w id="1IIVJS" data-map="2460,350" data-sugg="">very </w><w id="1IN7SU" data-map="2810,350" data-sugg="">deep, </w>`;
     let tokens = parser.tokenize(text, 'w');
     let rebuilt = parser.rebuild(tokens, 'w');
-    let check = '<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1</w><i class="pin"></i></sup> <w id="1IEJAQ" data-map="1965,495">was </w><w id="1IIVJS" data-map="2460,350">very </w><w id="1IN7SU" data-map="2810,350">deep, </w>';
+    let check = '<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1<i class="pin"></i></w></sup> <w id="1IEJAQ" data-map="1965,495">was </w><w id="1IIVJS" data-map="2460,350">very </w><w id="1IN7SU" data-map="2810,350">deep, </w>';
     it('HTML tags in superscript does not add empty suggestion to the end of sentence', () => expect(check).to.be.equal(rebuilt));
   });
   /*describe('Test', () => {
