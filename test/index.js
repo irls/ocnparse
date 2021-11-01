@@ -967,6 +967,12 @@ conversations?&rsquo;`;
     let check = '<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1</w><i class="pin"></i></sup> <w id="1IEJAQ" data-map="1965,495">was </w><w id="1IIVJS" data-map="2460,350">very </w><w id="1IN7SU" data-map="2810,350">deep, </w>';
     it('HTML tags in superscript does not add empty suggestion to the end of sentence', () => expect(check).to.be.equal(rebuilt));
   });
+  describe('Split position in arabic after quote', () => {
+    let text = `<w id="7SH2S" data-map="0,1065">قُلْ </w><w id="7UchT" data-map="1065,525">إِنَّ </w><w id="7VHwU" data-map="1590,690">هَذَا </w><w id="7XcLV" data-map="2280,530">لَمَنْظَرُ </w><w id="7YI0W" data-map="2810,335">ٱلْأَكْبَرُ </w><w id="80dfX" data-map="3145,990">ٱلَّذِي </w><w id="81IuY" data-map="4135,485">سُطِرَ </w><w id="83dJZ" data-map="4620,560">فِي </w><w id="84IZ0" data-map="5180,640">أَلْوَاحِ </w><w id="86ee1" data-map="5820,1715">ٱلْمُرْسَلِينَ * </w><w id="87Jt2" data-map="7535,1015">وَبِهِ </w><w id="89eI3" data-map="8550,635">يُفْصَلُ </w><w id="8aJX4" data-map="9185,480">ٱلْحَقُّ </w><w id="8cfc5" data-map="9665,300">عَنِ </w><w id="8dKr6" data-map="9965,2240">ٱلْبَاطِلِ </w><w id="8ffG7" data-map="12205,685">"<i class="pin"></i> وَيُفْرَقُ </w><w id="8gKV8" data-map="12890,635">كُلُّ </w><w id="8iga9" data-map="13525,510">أَمْرٍ </w><w id="8jLpa" data-map="14035,665">حَكِيْمٍ * </w><w id="8lgEb" data-map="14700,1375">قُلْ </w><w id="8mLTc" data-map="16075,660">إِنَّهُ </w><w id="8oh8d" data-map="16735,1025">لَشَجَرُ </w><w id="8pMne" data-map="17760,815">ٱلْرُّوْحِ </w><w id="8rhCf" data-map="18575,565">ٱلَّذِي </w><w id="8sMRg" data-map="19140,615">أَثْمَرَ </w><w id="8ui6h" data-map="19755,1090">بِفَوَاكِهِ </w><w id="8vNli" data-map="20845,1020">اللهِ </w><w id="8xiAj" data-map="21865,115">ٱلْعَلِي </w><w id="8yNPk" data-map="21980,190">ٱلْمُقْتَدِرِ </w><w id="8Aj4l" data-map="22170,470">ٱلْعَظِيْمِ "</w>`;
+    let tokens = parser.tokenize(text, 'w');
+    let rebuilt = parser.rebuild(tokens, 'w');
+    it('Split position does not disappear after rebuild', () => expect(text).to.be.equal(rebuilt));
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
