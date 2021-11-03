@@ -6,8 +6,8 @@ var XRegExp = require("xregexp");
 //var bterm = require('../bahai-term-phonemes/bahai-term-phonemes')
 var bterm = require("bahai-term-phonemes");
 
-let html_open_regex = "<((?!(u>|u |\\/)))[^><]+>",
-  html_close_regex = "<\\/((?!(u>|\\W)).)+>";
+let html_open_regex = "<((?!(u>|u |\\/|b>|b |i>|i )))[^><]+>",
+  html_close_regex = "<\\/((?!(u>|\\W|b>|(?<!l)i>)).)+>";
 // arrays with different character types to control
 let control_character_codes = [8207, 8206];
 let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—", "–"];
@@ -45,10 +45,15 @@ quotes_close.forEach(qc => {
 });
 let quotes_close_regex = new RegExp(`[${quotes_close_string}]`);
 
-let all_punctuation_and_brackets = `\\${punctuation_characters.join('\\')}\\${quotes_open.join('\\')}\\${quotes_close.join('\\')}\\${brackets_open.join('\\')}\\${brackets_close.join('\\')}`;
+let all_punctuation_and_brackets = `\\${punctuation_characters.join('\\')}\\${quotes_open.join('\\')}\\${quotes_close.join('\\')}\\${brackets_open.join('\\')}\\${brackets_close.join('\\')}\\${quotes_bidirectional.join('\\')}`;
 
-let openUnderlineRegexWord = new RegExp(`[${all_punctuation_and_brackets} ]*(<u[^>]*>[${all_punctuation_and_brackets} ]*)`, 'img');
-let closeUnderlineRegexWord = new RegExp(`([${all_punctuation_and_brackets} ]*<\/u>)[${all_punctuation_and_brackets} ]*`);
+let openUnderlineRegexWord = new RegExp(`[${all_punctuation_and_brackets} ]*(<(u|b|i)[^>]*>[${all_punctuation_and_brackets} ]*)`, 'img');
+let closeUnderlineRegexWord = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b|i)>)[${all_punctuation_and_brackets} ]*`);
+
+const keepHtmlBeginRegex = new RegExp(`^[${all_punctuation_and_brackets} ]*(<(u|b|i)[^>]*>[${all_punctuation_and_brackets} ]*)`, 'img');
+const keepHtmlEndRegex = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b|i)>)[${all_punctuation_and_brackets} ]*$`);
+
+const keepHtmlTags = ['u', 'b', 'i'];
 
 var parser = {
   // helper function
@@ -65,6 +70,11 @@ var parser = {
   // pass in a token list to re-calculate each token
   tokenize: function(str, tag = "", addIds = false) {
     let tokens = splitTokens(str, tag);
+    //console.log(`========================INIT==========================`);
+    //tokens.forEach(t => {
+      //console.log(JSON.stringify(t));
+    //});
+    //console.log(`======================//INIT==========================`);
     let open_tag = [];
     tokens.map((token, i) => {
       addTokenInfo(token);
@@ -412,21 +422,36 @@ var parser = {
         underlineMatch = openUnderlineRegexWord.exec(token.word);
         underlineMatchClose = closeUnderlineRegexWord.exec(token.word);
         if (underlineMatch && underlineMatch.index === 0 && !underlineMatchClose) {
-          token.before = ((token.before || '') + underlineMatch[1]).replace('</u><u>', '');
-          token.word = token.word.replace(underlineMatch[1], '');
+          token.before = ((token.before || '') + underlineMatch[0]).replace('</u><u>', '');
+          token.word = token.word.replace(underlineMatch[0], '');
+          if (!token.word.trim()) {
+            let next = tokens[index + 1];
+            if (next) {
+              next.before = (token.before || '') + (token.prefix || '') + (token.suffix || '') + (token.after || '') + (next.before || '');
+              tokens.splice(index, 1);
+              --index;
+            }
+          }
         } else if (underlineMatchClose && underlineMatchClose[0].length + underlineMatchClose.index === token.word.length && !underlineMatch) {
-          token.after = token.after || '' + underlineMatchClose[1];
-          token.word = token.word.replace(underlineMatchClose[1], '');
+          let appendAfter = underlineMatchClose[0];
+          if (token.suffix) {
+            appendAfter+= token.suffix;
+            token.suffix = "";
+          }
+          token.after = appendAfter + (token.after || '');
+          token.word = token.word.replace(underlineMatchClose[0], '');
         } else {
           //underlineMatch = _openUnderlineRegexWord.exec(token.word);
           if (underlineMatch && underlineMatch[0].length + underlineMatch.index === token.word.length) {
             let next = tokens[index + 1];
             if (next) {
-              next.before = (underlineMatch[1] + (token.suffix || '') + (next.before || '')).replace('</u><u>', '');
+              next.before = (underlineMatch[1] + (token.suffix || '') + (token.after || '') + (next.before || '')).replace('</u><u>', '');
               token.suffix = '';
+              token.after = '';
               token.word = token.word.replace(underlineMatch[1], '');
               addTokenInfo(token);
             }
+          } else {
           }
           //underlineMatchClose = _closeUnderlineRegexWord.exec(token.word);
           if (underlineMatchClose && underlineMatchClose.index === 0) {
@@ -439,7 +464,7 @@ var parser = {
           }
         }
       }
-      if (token.word === 'u') {
+      if (keepHtmlTags.includes(token.word)) {
         let token_word = `${token.before || ''}${token.prefix || ''}${token.word}${token.suffix || ''}${token.after || ''}`;
         openUnderlineRegexWord.lastIndex = 0;
         closeUnderlineRegexWord.lastIndex = 0;
@@ -455,13 +480,36 @@ var parser = {
         } else if (matchClose) {
           let previous = tokens[index - 1];
           if (previous) {
-            previous.after = previous.after || '' + token_word;
+            previous.after = (previous.after || '') + token_word;
             tokens.splice(index, 1);
             --index;
           }
         }
       }
     }
+  let checkForHTML = /^(\s*<\w+[^>]*?>)([^<]*?)(<\/\w>\s*)$/;
+  tokens.forEach(t => {
+    if (t.word && checkForHTML.test(t.word)) {
+      let match = t.word.match(checkForHTML);
+      if (match && match[1]) {
+        if (match[2]) {
+          t.before = (t.before || "") + (t.prefix || "") + match[1];
+          t.prefix = "";
+          t.word = match[2];
+          t.after = match[3] + (t.suffix || "") + (t.after || "");
+          t.suffix = "";
+        } else {
+          if (t.suffix) {
+            t.suffix = (t.suffix || "") + t.word;
+          } else {
+            t.before = (t.before || "") + t.word;
+          }
+          t.word = "";
+        }
+      }
+    }
+  });
+  tokens = cleanTokens(tokens);
     
     if (addIds) {
       let maxId = tokens.reduce((acc, token) => {
@@ -849,6 +897,11 @@ function splitTokens(tokens, tag = "") {
   if (typeof tokens === "string" && tag)
     tokens = splitWrappedString(tokens, tag);
   else if (typeof tokens === "string") tokens = splitUnWrappedString(tokens);
+  //console.log(`=======================splitWrappedString=====================`);
+  //tokens.forEach(t => {
+    //console.log(JSON.stringify(t));
+  //});
+  //console.log(`=====================//splitWrappedString=====================`);
 
   // Initial splitting of all text blocks into tokens
   let delimiters = [
@@ -856,8 +909,9 @@ function splitTokens(tokens, tag = "") {
     "[\n\r]+",
     // next on most common legit inline tags which are not part of a word
     "&\\#?\\w+;", //html_open_regex, html_close_regex,
+    "\<(u|b|i)[^>]*><\/(u|b|i)>",// empty u, b, i tags, e. g. <i class="pin"></i>
     // all html tags except <u>
-    "</?(?!u)\\w+((\\s+\\w+(\\s*=\\s*(?:\".*?\"|'.*?'|[^'\">\\s]+))?)+\\s*|\\s*)/?>",
+    "</?(?!u|b|i)\\w+((\\s+\\w+(\\s*=\\s*(?:\".*?\"|'.*?'|[^'\">\\s]+))?)+\\s*|\\s*)/?>",
     // m-dashes
     "[\\—]|[-]{2,3}"
   ];
@@ -866,15 +920,22 @@ function splitTokens(tokens, tag = "") {
   punctuation_characters
     .concat(brackets_open)
     .concat(brackets_close)
+    //.concat(quotes_open)
+    //.concat(quotes_close)
+    //.concat(quotes_bidirectional)
     .forEach(cc => {
       delimiter_punctuation += `\\${cc}`;
     });
-  delimiters.push(`[${delimiter_punctuation}]+?`);
+  delimiters.push(`[${delimiter_punctuation}]+`);
   delimiters.map(delimiterRegex => {
     let items,
       newList = [];
     tokens.map(token => {
       items = splitRegex(token.word, delimiterRegex);
+      //console.log(`==================FROM "${token.word}"`);
+      //console.log(`WITH "${delimiterRegex}"`);
+      //console.log(JSON.stringify(items));
+      //console.log(`//====================================`);
       if (items.length > 1) {
         // the delimiter matched this word block, it needs to be split further
         // add the first token
@@ -973,12 +1034,12 @@ function splitWrappedString(str, tag = "w") {
   // let tagSplitReg = new RegExp(`<${tag}.*?>[\\s\\S]*?<\\/${tag}>`, 'img')
   // while (matches = tagSplitReg.exec(str)) tokens.push({word: matches[0], prefix:'', suffix:''})
   // this approach rquires an extra step but is more clear
-  tagSplitReg = new RegExp(`(<${tag}.*?>[\\s\\S]*?<\\/${tag}>)`, "img");
+  tagSplitReg = new RegExp(`(<${tag}.*?>[\\s\\S]*?<\\/${tag}>)`, "img");//(<(u(?!l)|(?<!l)i|b(?!r))[^>]*>)?
   //tokens = str.split(tagSplitReg).filter((item)=>item.length>0)
   //tokens.map((token, i)=> tokens[i] = {word: token, suffix: '', prefix: ''} )
   htmlOpenReg = new RegExp(html_open_regex, "img");
   htmlCloseReg = new RegExp(html_close_regex, "img");
-  htmlReg = new RegExp("<(?!/?(u(?!l))(?=>|s?.*>))/?.*?>", "img");
+  htmlReg = new RegExp("<(?!/?(u(?!l)|b(?!r)|i)(?=>|s?.*>))/?.*?>", "img");
   str
     .split(tagSplitReg)
     .filter(s => s.length > 0)
@@ -1040,7 +1101,62 @@ function splitWrappedString(str, tag = "w") {
         }
       });
     });
+  //console.log(`++++++++++++++++++++++++++++++++++++++++++++`);
+  //tokens.forEach(t => {
+    //console.log(JSON.stringify(t));
+  //});
+  //console.log(`++++++++++++++++++++++++++++++++++++++++++++`);
+  let checkForHTML = /^(\s*(<.*>\s*)?<\w+[^>]*?>)([^<]*?)(<\/\w>(\s*<.*>)?\s*)$/;
+  let closeHtmlAtStart = new RegExp(`^(<\\/\\w+>)+[${punctuation_string}]*`);
+  tokens.forEach((t, i) => {
+    if (t.word && checkForHTML.test(t.word)) {
+      let match = t.word.match(checkForHTML);
+      //console.log(`MATCHHTML: "${t.word}"`);
+      if (match && match[1]) {
+        if (match[3]) {
+          t.before = (t.before || "") + (t.prefix || "") + match[1];
+          t.prefix = "";
+          t.word = match[3];
+          t.after = (t.after || "") + (t.suffix || "") + match[4];
+          t.suffix = "";
+        } else {
+          if (t.suffix) {
+            t.suffix = (t.suffix || "") + t.word;
+          } else {
+            t.before = (t.before || "") + t.word;
+          }
+          t.word = "";
+        }
+      }
+    }
+    closeHtmlAtStart.lastIndex = 0;
+    if (t.word && closeHtmlAtStart.test(t.word)) {
+      let match = t.word.match(closeHtmlAtStart);// check if word starts with closing html tag
+      //console.log(`matchClose`);
+      //console.log(JSON.stringify(t));
+      if (match && match[0]) {
+        let previous = tokens[i - 1];
+        if (previous) {
+          previous.after = (previous.after || "") + match[0];
+          //console.log(JSON.stringify(previous));
+          t.word = t.word.replace(closeHtmlAtStart, '');
+        }
+      }
+      //console.log(JSON.stringify(t));
+    }
+  });
+  //console.log(`++++++++++++++++++++++++++++++++++++++++++++`);
+  //tokens.forEach(t => {
+    //console.log(JSON.stringify(t));
+  //});
+  //console.log(`++++++++++++++++++++++++++++++++++++++++++++`);
   tokens = packEmptyTokens(tokens);
+  tokens = extractHtmlTokens(tokens);
+  //console.log(`++++++++++++++++++++++++++++++++++++++++++++`);
+  //tokens.forEach(t => {
+    //console.log(JSON.stringify(t));
+  //});
+  //console.log(`++++++++++++++++++++++++++++++++++++++++++++`);
   return tokens;
 }
 
@@ -1104,25 +1220,55 @@ function splitRegex(str, delimiterRegex) {
   // split any string by delimiter suffixed to each
   var tokens = [],
     prevIndex = 0,
-    match;
+    match,
+    oldPrefix = "",
+    keepHtmlRegex = new RegExp(`^\\s*((<\\/(u(?!l)|(?<!l)i|b(?!r))[^>]*>)+?|(<(u(?!l)|(?<!l)i|b(?!r))[^>]*>)+?)\\s*$`, 'img');// checking for opening or closing html tags, repeated once or more
 
   // split into words
   let divider_regex = new RegExp(delimiterRegex, "g");
+  //console.log(`split: "${str}"`);
   while ((match = divider_regex.exec(str))) {
-    tokens.push({
-      word: str.substring(prevIndex, match.index),
-      suffix: match[0],
-      prefix: ""
-    });
+    let matchString = str.substring(prevIndex, match.index);
+    //console.log(`matchString: "${matchString}"`);
+    //console.log(`match[0]: "${match[0]}"`);
+    if (!keepHtmlRegex.test(matchString) && !keepHtmlRegex.test(match[0])) {
+      tokens.push({
+        word: matchString,
+        suffix: match[0],
+        prefix: oldPrefix
+      });
+      oldPrefix = '';
+    } else {
+      matchString+= match[0];
+      if (tokens.length > 0) {
+        let prevToken = tokens[tokens.length - 1];
+        prevToken.after = (prevToken.after || '') + matchString;
+      } else {
+        oldPrefix+= matchString;
+      }
+    }
     prevIndex = divider_regex.lastIndex;
   }
   // if there is no final delimiter, the last chunk is ignored. Put it into a token
-  if (prevIndex < str.length)
-    tokens.push({
-      word: str.substring(prevIndex, str.length),
-      prefix: "",
-      suffix: ""
-    });
+  if (prevIndex < str.length) {
+    let lastPart = str.substring(prevIndex, str.length);
+    let matchKeepHtml = keepHtmlRegex.test(lastPart);
+    if (!matchKeepHtml || tokens.length === 0) {
+      tokens.push({
+        word: lastPart,
+        prefix: "",
+        suffix: ""
+      });
+    } else {
+      let prevToken = tokens[tokens.length - 1];
+      if (!matchKeepHtml) {
+        prevToken.after = (prevToken.after || '') + lastPart;
+      } else {
+        prevToken.word+= (prevToken.suffix || "") + lastPart;
+        prevToken.suffix = "";
+      }
+    }
+  }
 
   // safe cleanup and compression
   let before = JSON.stringify(tokens);
@@ -1157,11 +1303,14 @@ function cleanTokens(tokens) {
             token.prefix = tt[2];
           } else {
             if (prevToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/sup>/.test(prevToken.after))) {
-              prevToken.after += tt[1];
+              if (!/[\r\n]/.test(prevToken.after)) {
+                prevToken.after += tt[1];
+                token.prefix = tt[2];
+              }
             } else {
               prevToken.suffix += tt[1];
+              token.prefix = tt[2];
             }
-            token.prefix = tt[2];
           }
           //console.log('Move spaces back (suffix <- prefix)', `"${token.suffix}"`, `"${token.prefix}"`, tt)
           if (!token.word.length) moveEmptyToken(tokens, i);
@@ -1324,7 +1473,9 @@ function packEmptyTokens(tokens) {
     ) {
       if (
         tokens[i - 1] &&
-        (!tokens[i - 1].info || tokens[i - 1].info.type !== "html")
+        (!tokens[i - 1].info || tokens[i - 1].info.type !== "html") && 
+        !openUnderlineRegexWord.test(token.word) && 
+        !openUnderlineRegexWord.test(token.before)
       ) {
         let prevToken = tokens[i - 1];
         let token = tokens[i];
@@ -1503,6 +1654,149 @@ function addTokenInfo(token) {
   info.soundex = soundex(info.stripped);
 
   token.info = info;
+}
+
+
+/**
+ * extract html tags from words
+ * @param {Array} tokens
+ * @returns {Array|extractHtmlTokens.tokens}
+ */
+function extractHtmlTokens(tokens, log = false) {
+  if (!tokens || !Array.isArray(tokens) || tokens.length < 1) return [];
+
+  let intialCount = tokens.length;
+  let match = '';
+  for (let i = 0; i < tokens.length; ++i) {
+    keepHtmlBeginRegex.lastIndex = 0;
+    let t = tokens[i];
+    match = keepHtmlBeginRegex.exec(t.word);
+    //console.log(`t.word: ${t.word}`);
+    //console.log(match);
+    if (match && match[0]) {
+      //let matched = match[0];
+      let after = t.word.replace(keepHtmlBeginRegex, '');
+      //t.before = (t.before || "") + (t.prefix || "") + matched;
+      //t.prefix = "";
+      //t.word = after;
+      if (after.trim().length === 0) {
+        let next = tokens[i + 1];
+        if (next) {
+          next.before = (t.before || "") + (t.prefix || "") + t.word + (t.suffix || "") + (t.after || "") + (next.before || "");
+          t.word = "";
+          t.before = "";
+          t.prefix = "";
+          t.suffix = "";
+          t.after = "";
+          //tokens.splice(i, 1);
+          //--i;
+        }
+      }
+    }
+    keepHtmlEndRegex.lastIndex = 0;
+    match = keepHtmlEndRegex.exec(t.word);
+    if (match && match[0]) {
+      let after = t.word.replace(keepHtmlEndRegex, '');
+      //t.after = match[0] + (t.suffix || "") + (t.after || "");
+      //t.word = t.word.replace(match[0], '');
+      if (after.trim().length === 0) {
+        let previous = tokens[i - 1];
+        if (previous) {
+          previous.after = (previous.after || "") + (t.before || "") + (t.prefix || "") + (t.word) + (t.suffix || "") + (t.after || "");
+          //tokens.splice(i, 1);
+          //--i;
+          t.word = "";
+          t.before = "";
+          t.prefix = "";
+          t.suffix = "";
+          t.after = "";
+        }
+      }
+    }
+  }
+  //let openRegex = new RegExp(`^`);
+  tokens.forEach((t, i) => {
+    t = extractStartHtml(t);
+    if (!t.word.trim().length) {
+      let next = tokens[i + 1];
+      if (next) {
+        next.before = (t.before || "") + (t.prefix || "") + (t.word || "") + (t.suffix || "") + (t.after || "") + (next.before || "");
+        t.before = "";
+        t.prefix = "";
+        t.word = "";
+        t.suffix = "";
+        t.after = "";
+      }
+    }
+    t = extractEndHtml(t);
+    if (!t.word.trim().length) {
+      let previous = tokens[i - 1];
+      if (previous) {
+        previous.after = (previous.after || "") + (t.before || "") + (t.prefix || "") + (t.word || "") + (t.suffix || "") + (t.after || "");
+        t.before = "";
+        t.prefix = "";
+        t.word = "";
+        t.suffix = "";
+        t.after = "";
+      }
+    }
+    //t.word = word;
+  });
+  tokens = packEmptyTokens(tokens, true);
+  // now check token#1
+  //if (tokens.length) moveEmptyToken(tokens, 0);
+  // remove empty tokens
+  // return tokens.filter((tt) => (tt.info || tt.word.length || tt.prefix.length || tt.suffix.length) )
+  return tokens;
+}
+
+/**
+ * extract opening html tags from word begin
+ * @param {Object} token
+ * @returns {Object} token
+ */
+function extractStartHtml(token) {
+  keepHtmlBeginRegex.lastIndex = 0;
+  //console.log(keepHtmlBeginRegex.toString());
+  let beginMatch = keepHtmlBeginRegex.exec(token.word);
+  if (beginMatch && beginMatch[0]) {
+  //console.log(`2 t.word: "${token.word}"`);
+    //console.log(beginMatch);
+    //console.log(token.word.indexOf(`</${beginMatch[2]}`), `</${beginMatch[2]}`)
+    if (beginMatch[2] && token.word.indexOf(`<\/${beginMatch[2]}`) > beginMatch.index) {
+      return token;
+    }
+    token.before = (token.before || "") + (token.prefix || "") + beginMatch[0];
+    token.prefix = "";
+    token.word = token.word.replace(keepHtmlBeginRegex, '');
+    return extractStartHtml(token);
+  } else {
+    return token;
+  }
+}
+
+/**
+ * extract closing html tag from word end
+ * @param {Object} token
+ * @returns {Object} token
+ */
+function extractEndHtml(token) {
+  keepHtmlEndRegex.lastIndex = 0;
+  let endMatch = keepHtmlEndRegex.exec(token.word);
+  //console.log(`2.1 token.word: "${token.word}"`);
+  //console.log(endMatch)
+  if (endMatch && endMatch[0]) {
+    let openIndex = token.word.indexOf(`<${endMatch[2]}`);
+    if (endMatch[2] && openIndex !== -1 && openIndex < endMatch.index) {
+      return token;
+    }
+    token.after = endMatch[0] + (token.suffix || "")  + (token.after || "");
+    token.suffix = "";
+    token.word = token.word.replace(keepHtmlEndRegex, '');
+    return extractEndHtml(token);
+  } else {
+    return token;
+  }
 }
 
 // returns a unique array of merged values, can merge to or with a null
