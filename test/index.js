@@ -467,6 +467,51 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Tags b and u not parsed, rebuild', () => expect(rebuilt).to.be.equal(text));
       it('Tags b and u not parsed, reWrap', () => expect(reWrap).to.be.equal(text));
     });
+    describe('Tag i inside w', () => {
+      let text = `<w>one </w><w>two<i class="pin"></i> </w><w>three </w><w>four</w>`;
+      let check = `<w>one </w><w>two<i class="pin"></i> </w><w>three </w><w>four</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Tag i inside w does not create new word, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Tag i inside w does not create new word, rewrapped', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('multiple tags in w, case 1', () => {
+      let text = `<w id="CzF2o" data-map="15580,380">Alice </w><w id="CDRbq" data-map="15960,430">with<u><i><b>out </b></i></u></w><w id="CI3ks" data-map="16390,525"><u><i><b>pict</b></i></u>ures </w><w id="CMftu" data-map="16915,125">or </w>`;
+      let check = `<w id="CzF2o" data-map="15580,380">Alice </w><w id="CDRbq" data-map="15960,430">with<u><i><b>out </b></i></u></w><w id="CI3ks" data-map="16390,525"><u><i><b>pict</b></i></u>ures </w><w id="CMftu" data-map="16915,125">or </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Mutliply tags do not create new words, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('multiple tags do not create new words, rewrapped', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('One tag, multiple words, case one', () => {
+      let text = `<w>nothing </w><i><w>so </w><w>very </w></i><w><i>remarkable </i></w><w>in </w>`;
+      let check = `<w>nothing </w><i><w>so </w><w>very </w></i><i><w>remarkable </w></i><w>in </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('One tag around multiple words parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('One tag around multiple words parsed correctly, rewrapped', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('One tag, multiple words, case two', () => {
+      let text = `<w>no<i>thing </i></w><i><w>so </w><w>very </w></i><w><i>remark</i>able </w><w>in </w>`;
+      let check = `<w>no<i>thing </i></w><i><w>so </w><w>very </w></i><w><i>remark</i>able </w><w>in </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('One tag around multiple words parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('One tag around multiple words parsed correctly, rewrapped', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('One tag, multiple words, case three', () => {
+      let text = `<w id="zW1m8">the </w><w id="A0dva">b<b>ank, </b></w><w id="A4pEc"><b>an</b>d </w><w id="A8BNe">of </w>`;
+      let check = `<w id="zW1m8">the </w><w id="A0dva">b<b>ank, </b></w><w id="A4pEc"><b>an</b>d </w><w id="A8BNe">of </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('One tag around multiple words parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('One tag around multiple words parsed correctly, rewrapped', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Parenthesis', function () {
     let str = 'Test string (inside test) outside outside';
@@ -973,7 +1018,7 @@ conversations?&rsquo;`;
     let text = `<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1</w><i class="pin"></i></sup> <w id="1IEJAQ" data-map="1965,495" data-sugg="">was </w><w id="1IIVJS" data-map="2460,350" data-sugg="">very </w><w id="1IN7SU" data-map="2810,350" data-sugg="">deep, </w>`;
     let tokens = parser.tokenize(text, 'w');
     let rebuilt = parser.rebuild(tokens, 'w');
-    let check = '<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1<i class="pin"></i></w></sup> <w id="1IEJAQ" data-map="1965,495">was </w><w id="1IIVJS" data-map="2460,350">very </w><w id="1IN7SU" data-map="2810,350">deep, </w>';
+    let check = '<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1</w><i class="pin"></i></sup> <w id="1IEJAQ" data-map="1965,495">was </w><w id="1IIVJS" data-map="2460,350">very </w><w id="1IN7SU" data-map="2810,350">deep, </w>';
     it('HTML tags in superscript does not add empty suggestion to the end of sentence', () => expect(check).to.be.equal(rebuilt));
   });
   /*describe('Test', () => {
