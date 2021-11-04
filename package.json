@@ -17,12 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/chadananda/ocnparse.git"
+    "url": "https://github.com/irls/ocnparse.git"
   },
   "bugs": {
-    "url": "https://github.com/chadananda/ocnparse/issues"
+    "url": "https://github.com/irls/irls/issues"
   },
-  "homepage": "https://github.com/chadananda/ocnparse",
+  "homepage": "https://github.com/irls/ocnparse",
   "devDependencies": {
     "chai": "^4.1.0",
     "mocha": "^8.2.0",
