@@ -20,7 +20,7 @@
     "url": "https://github.com/irls/ocnparse.git"
   },
   "bugs": {
-    "url": "https://github.com/irls/irls/issues"
+    "url": "https://github.com/irls/ocnparse/issues"
   },
   "homepage": "https://github.com/irls/ocnparse",
   "devDependencies": {
