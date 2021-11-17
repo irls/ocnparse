@@ -290,12 +290,13 @@ var parser = {
           let next = tokens[i + 1];
           if (next) {
             //console.log(token, next)
+            let addBefore = `${token.before || ''}${token.prefix || ''}${token.word || ''}${token.suffix || ''}${token.after || ''}`;
             if (next.before) {
               next.before =
-                token.prefix + token.word + token.suffix + next.before;
+                addBefore + next.before;
             } else {
               next.prefix =
-                token.prefix + token.word + token.suffix + next.prefix;
+                addBefore + next.prefix;
             }
             if (token.info && token.info.data && token.info.data.map) {
               if (!next.info) {
@@ -305,6 +306,10 @@ var parser = {
               } else if (!next.info.data.map) {
                 next.info.data.map = token.info.data.map;
               }
+            }
+            if (token.info && token.info.id && (!next.info || !next.info.id)) {
+              next.info = next.info || {};
+              next.info.id = token.info.id;
             }
             tokens.splice(i, 1);
           } else {
