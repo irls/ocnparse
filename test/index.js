@@ -476,6 +476,16 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Tag i inside w does not create new word, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('Tag i inside w does not create new word, rewrapped', () => expect(reWrap).to.be.equal(check));
     });
+    describe('Tag i inside w and b', () => {
+      let text = `<w id="z3tsI">Alice </w><w id="z7FBK"><b>was<i class="pin"></i></b> </w><w id="zbRKM"><b>beginning</b> </w><w id="zg3TO">to </w><w id="zkg2Q">get </w>`;
+      let checkWrapped = `<w id="z3tsI">Alice </w><w id="z7FBK"><b>was<i class="pin"></i></b> </w><b><w id="zbRKM">beginning</w></b> <w id="zg3TO">to </w><w id="zkg2Q">get </w>`;
+      let checkRebuilt = `<w id="z3tsI">Alice </w><w id="z7FBK"><b>was<i class="pin"></i></b> </w><b><w id="zbRKM">beginning</w> </b><w id="zg3TO">to </w><w id="zkg2Q">get </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Tag i inside w and b does not create new word, rebuilt', () => expect(checkRebuilt).to.be.equal(rebuilt));
+      it('Tag i inside w and b does not create new word, rewrapped', () => expect(checkWrapped).to.be.equal(reWrap));
+    });
     describe('multiple tags in w, case 1', () => {
       let text = `<w id="CzF2o" data-map="15580,380">Alice </w><w id="CDRbq" data-map="15960,430">with<u><i><b>out </b></i></u></w><w id="CI3ks" data-map="16390,525"><u><i><b>pict</b></i></u>ures </w><w id="CMftu" data-map="16915,125">or </w>`;
       let check = `<w id="CzF2o" data-map="15580,380">Alice </w><w id="CDRbq" data-map="15960,430">with<u><i><b>out </b></i></u></w><w id="CI3ks" data-map="16390,525"><u><i><b>pict</b></i></u>ures </w><w id="CMftu" data-map="16915,125">or </w>`;

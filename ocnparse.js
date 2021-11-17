@@ -926,7 +926,7 @@ function splitTokens(tokens, tag = "") {
     .forEach(cc => {
       delimiter_punctuation += `\\${cc}`;
     });
-  delimiters.push(`[${delimiter_punctuation}]+`);
+  delimiters.push(`(?<!<\\w|<(u|i|b) class)[${delimiter_punctuation}]+`);
   delimiters.map(delimiterRegex => {
     let items,
       newList = [];
