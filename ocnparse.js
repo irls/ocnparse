@@ -220,6 +220,10 @@ var parser = {
               token.word += next.before + next.prefix + next.word;
               token.suffix += next.suffix;
               token.after += next.after;
+              if (/<sup[^>]*>/.test(token.word) && /^<\/sup>/.test(token.after)) {// do not break superscript, move closing tag to the word
+                token.word+= `</sup>`;
+                token.after = token.after.replace(/^<\/sup>/, '');
+              }
               delete tokens[index];
               break;
             } else {
@@ -1496,8 +1500,8 @@ function packEmptyTokens(tokens) {
         tokens.splice(i, 1); //delete(tokens[i])
       }
     } else {
-      htmlOpenReg = new RegExp(html_open_regex, "img");
-      htmlCloseReg = new RegExp(html_close_regex, "img");
+      htmlOpenReg = new RegExp(`(?<!\\w|\\w\\s)` + html_open_regex, "img");// html tags, not preceeded by word
+      htmlCloseReg = new RegExp(`(?<!\\w|\\w\\s)` + html_close_regex, "img");
       if (htmlOpenReg.test(token.word)) {
         let nextToken = tokens[i + 1];
         let prevToken = tokens[i - 1];

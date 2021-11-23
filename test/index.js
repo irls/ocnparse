@@ -398,6 +398,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Second token contains suggestion', () => expect(suggestionToken.info.data).to.have.property('sugg'));
       it('Suggestion parsed correctly', () => expect(check).to.be.equal(wrapped));
     });
+    describe('Suggestion and superscript', () => {
+      let text = `<w id="z3tsI">Alice </w><sg data-suggestion=""><w id="z7FBK">was</w><sup data-idx="1"><w id="z9LGg" data-sugg="">1</w></sup></sg> <w id="zbRKM">beginning </w>`;
+      let check = `<w id="z3tsI">Alice </w><sg data-suggestion=""><w id="z7FBK" data-sugg="">was<sup data-idx="1">1</sup></w></sg> <w id="zbRKM">beginning </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Suggestion is not removed when set on superscript, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Suggestion is not removed when set on superscript, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
