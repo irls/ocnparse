@@ -926,7 +926,7 @@ function splitTokens(tokens, tag = "") {
     .forEach(cc => {
       delimiter_punctuation += `\\${cc}`;
     });
-  delimiters.push(`[${delimiter_punctuation}]+`);
+  delimiters.push(`(?<!<\\w|<(u|i|b) class)[${delimiter_punctuation}]+`);
   delimiters.map(delimiterRegex => {
     let items,
       newList = [];
@@ -1206,7 +1206,13 @@ function trimToken(token) {
   //let padReg = XRegExp(`\\A(\\s*?)(\\S[\\s\\S]*?)(\\s*?)\\z`, 'imgus') // fails, does not accept \A
   //let padReg = new RegExp(`^(\\s*?)(\\S[\\S\\s]+?\\S)(\\s*)$`, 'gmu')
   let padReg = XRegExp(`^(\\s*?)(\\S[\\S\\s]+?\\S)(\\s*)$`, "imgus"); // does not accept \A
-  if ((match = padReg.exec(token.word))) {
+  let matches = [];
+  let match;
+  while ((match = padReg.exec(token.word))) {
+    matches.push(match);
+  }
+  if (Array.isArray(matches) && matches.length === 1) {
+    match = matches[0];
     token.prefix += match[1];
     token.word = match[2];
     token.suffix = match[3] + token.suffix;
