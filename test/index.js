@@ -1048,6 +1048,17 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     let rebuilt = parser.rebuild(tokens, 'w');
     it('Split position does not disappear after rebuild', () => expect(text).to.be.equal(rebuilt));
   });
+  describe('HTML regular expressions are case insensitive', () => {
+    let text = `<B>Alice</B> <I>was</I> <U>beginning</U> to get very tired`;
+    
+    let check = `<B><w>Alice</w></B> <I><w>was</w></I> <U><w>beginning</w></U> <w>to </w><w>get </w><w>very </w><w>tired</w>`;
+    
+    let tokens = parser.tokenize(text, 'w');
+    let rebuilt = parser.rebuild(tokens, 'w');
+    let reWrap = parser.reWrap(rebuilt, 'w');
+    it('HTML regular expression case insensitive, rebuild', () => expect(rebuilt).to.be.equal(check));
+    it('HTML regular expressions case insensitive, rewrap', () => expect(reWrap).to.be.equal(check));
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;

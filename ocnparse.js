@@ -48,10 +48,10 @@ let quotes_close_regex = new RegExp(`[${quotes_close_string}]`);
 let all_punctuation_and_brackets = `\\${punctuation_characters.join('\\')}\\${quotes_open.join('\\')}\\${quotes_close.join('\\')}\\${brackets_open.join('\\')}\\${brackets_close.join('\\')}\\${quotes_bidirectional.join('\\')}`;
 
 let openUnderlineRegexWord = new RegExp(`[${all_punctuation_and_brackets} ]*(<(u|b|i)[^>]*>[${all_punctuation_and_brackets} ]*)`, 'img');
-let closeUnderlineRegexWord = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b|i)>)[${all_punctuation_and_brackets} ]*`);
+let closeUnderlineRegexWord = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b|i)>)[${all_punctuation_and_brackets} ]*`, 'img');
 
 const keepHtmlBeginRegex = new RegExp(`^[${all_punctuation_and_brackets} ]*(<(u|b|i)[^>]*>[${all_punctuation_and_brackets} ]*)`, 'img');
-const keepHtmlEndRegex = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b|i)>)[${all_punctuation_and_brackets} ]*$`);
+const keepHtmlEndRegex = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b|i)>)[${all_punctuation_and_brackets} ]*$`, 'img');
 
 const keepHtmlTags = ['u', 'b', 'i'];
 
@@ -487,7 +487,7 @@ var parser = {
         }
       }
     }
-  let checkForHTML = /^(\s*<\w+[^>]*?>)([^<]*?)(<\/\w>\s*)$/;
+  let checkForHTML = /^(\s*<\w+[^>]*?>)([^<]*?)(<\/\w>\s*)$/i;
   tokens.forEach(t => {
     if (t.word && checkForHTML.test(t.word)) {
       let match = t.word.match(checkForHTML);
@@ -1106,8 +1106,8 @@ function splitWrappedString(str, tag = "w") {
     //console.log(JSON.stringify(t));
   //});
   //console.log(`++++++++++++++++++++++++++++++++++++++++++++`);
-  let checkForHTML = /^(\s*(<.*>\s*)?<\w+[^>]*?>)([^<]*?)(<\/\w>(\s*<.*>)?\s*)$/;
-  let closeHtmlAtStart = new RegExp(`^(<\\/\\w+>)+[${punctuation_string}]*`);
+  let checkForHTML = /^(\s*(<.*>\s*)?<\w+[^>]*?>)([^<]*?)(<\/\w>(\s*<.*>)?\s*)$/i;
+  let closeHtmlAtStart = new RegExp(`^(<\\/\\w+>)+[${punctuation_string}]*`, 'i');
   tokens.forEach((t, i) => {
     if (t.word && checkForHTML.test(t.word)) {
       let match = t.word.match(checkForHTML);
@@ -1231,7 +1231,7 @@ function splitRegex(str, delimiterRegex) {
     keepHtmlRegex = new RegExp(`^\\s*((<\\/(u(?!l)|(?<!l)i|b(?!r))[^>]*>)+?|(<(u(?!l)|(?<!l)i|b(?!r))[^>]*>)+?)\\s*$`, 'img');// checking for opening or closing html tags, repeated once or more
 
   // split into words
-  let divider_regex = new RegExp(delimiterRegex, "g");
+  let divider_regex = new RegExp(delimiterRegex, "img");
   //console.log(`split: "${str}"`);
   while ((match = divider_regex.exec(str))) {
     let matchString = str.substring(prevIndex, match.index);
@@ -1324,8 +1324,8 @@ function cleanTokens(tokens) {
       }
     });
 
-  let open_tag_regex = new RegExp("^" + html_open_regex + "$", "g");
-  let close_tag_regex = new RegExp("^" + html_close_regex + "$", "g");
+  let open_tag_regex = new RegExp("^" + html_open_regex + "$", "img");
+  let close_tag_regex = new RegExp("^" + html_close_regex + "$", "img");
 
   // loop through array and cleanup edges, moving punctuation and tags
   for (let index = 0; index < tokens.length; ++index) {
