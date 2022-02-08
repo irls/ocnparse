@@ -1059,6 +1059,17 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     it('HTML regular expression case insensitive, rebuild', () => expect(rebuilt).to.be.equal(check));
     it('HTML regular expressions case insensitive, rewrap', () => expect(reWrap).to.be.equal(check));
   });
+  describe('Text added before word', () => {
+    let text = `<w id="z3tsI">Alice added</w><w id="z7FBK">was </w><w id="sdfe">b</w><w id="zbRKM">beginning to</w>
+<w id="zkg2Q">get</w>`;
+    let check = `<w id="z3tsI">Alice </w><w id="z7FBK">addedwas </w><w id="sdfe">b</w><w id="zbRKM">beginning </w><w>to</w>
+<w id="zkg2Q">get</w>`;
+    let tokens = parser.tokenize(text, 'w');
+    let rebuilt = parser.rebuild(tokens, 'w');
+    let reWrap = parser.reWrap(rebuilt, 'w');
+    it('Text added before word without space or punctuation does not create new token, rebuilt', () => expect(rebuilt).to.be.equal(check));
+    it('Text added before word without space or punctuation does not create new token, rewrap', () => expect(reWrap).to.be.equal(check));
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
