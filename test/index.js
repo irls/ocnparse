@@ -1059,6 +1059,15 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     it('HTML regular expression case insensitive, rebuild', () => expect(rebuilt).to.be.equal(check));
     it('HTML regular expressions case insensitive, rewrap', () => expect(reWrap).to.be.equal(check));
   });
+  describe('Keep zwnj character', () => {
+    let text = `In the mid‌dle, after:‌ and ‌before`;
+    let check = `<w>In </w><w>the </w><w>mid‌dle, </w><w>after:‌ </w><w>and </w><w>‌before</w>`;
+    let tokens = parser.tokenize(text, 'w');
+    let rebuilt = parser.rebuild(tokens, 'w');
+    let reWrap = parser.reWrap(rebuilt, 'w');
+    it('Character zwnj does not create new token, rebuilt', () => expect(rebuilt).to.be.equal(check));
+    it('Character zwnj does not create new token, rewrap', () => expect(reWrap).to.be.equal(check));
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
