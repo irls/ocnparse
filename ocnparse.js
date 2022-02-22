@@ -75,6 +75,7 @@ var parser = {
       //console.log(JSON.stringify(t));
     //});
     //console.log(`======================//INIT==========================`);
+    tokens = mergeAddedWords(tokens);
     let open_tag = [];
     tokens.map((token, i) => {
       addTokenInfo(token);
@@ -1849,6 +1850,36 @@ function _escapeHTML(str) {
   return str.replace(htmlEscaper, function(match) {
     return htmlEscapes[match];
   });
+}
+
+/**
+ * Merge words, added before or after existing words 
+ * without whitespace or punctuation
+ * @param Array tokens
+ * @returns Array
+ */
+function mergeAddedWords(tokens) {
+  let checkAddedWord = new RegExp(`^[^ ${all_punctuation_and_brackets}\\r\\n\\t<>]+$`, 'img');
+  let checkLineBreak = /[\r\n]/;
+  tokens.forEach((t, tIdx) => {
+    if (tokens[tIdx + 1]) {
+      let tokenWord = t.word + t.suffix + (t.after || "");
+      checkAddedWord.lastIndex = 0;
+      if (checkAddedWord.test(tokenWord) && (!t.info || (!t.info.id && (!t.info.data || !t.info.data.pid))) && !checkLineBreak.test(tokenWord)) {// check if word does not end with whitespace or punctuation and does not contain id
+        //console.log('HERE1')
+        let next = tokens[tIdx + 1];
+        let afterWord = (next.before || "") + next.prefix + next.word;
+        checkAddedWord.lastIndex = 0;
+        if (checkAddedWord.test(afterWord) && !checkLineBreak.test(afterWord)) {// check that next word does not start with whitespace or punctuation
+          next.word = (t.before || "") + (t.prefix || "") + t.word + (t.suffix || "") + (t.after || "") + (next.before || "") + (next.prefix || "") + next.word;
+          next.before = "";
+          next.prefix = "";
+          tokens.splice(tIdx, 1);
+        }
+      }
+    }
+  });
+  return tokens;
 }
 
 module.exports = parser;
