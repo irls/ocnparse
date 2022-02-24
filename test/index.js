@@ -398,6 +398,24 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Second token contains suggestion', () => expect(suggestionToken.info.data).to.have.property('sugg'));
       it('Suggestion parsed correctly', () => expect(check).to.be.equal(wrapped));
     });
+    describe('Superscript in suggestion', () => {
+      let text = `<w id="1qweyc">The </w><w id="1qAqHe" data-ipa="bahA:?i:">Bahá’í </w><sg data-suggestion=""><w id="1qECQg">Movement</w><sup data-pg="xxiii"><w id="1qIOZi" data-sugg="">pg </w><w id="1qN18k" data-sugg="">xxiii</w></sup>  <w id="1qRdhm">is</w></sg><w id="1qRdhm"> </w><w id="1qVpqo">now </w>`;
+      let check = `<w id="1qweyc">The </w><w id="1qAqHe" data-ipa="bahA:?i:">Bahá’í </w><sg data-suggestion=""><w id="1qECQg" data-sugg="">Movement<sup data-pg="xxiii">pg xxiii</sup>  is</w></sg> <w id="1qVpqo">now </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuild = parser.rebuild(tokens, 'w')
+      let wrapped = parser.reWrap(rebuild, 'w');
+      it('Suggestion around superscript is parsed correctly', () => expect(rebuild).to.be.equal(check));
+      it('Suggestion around superscript is parsed correctly, rewrap', () => expect(wrapped).to.be.equal(check));
+    });
+    describe('Footnote in superscript', () => {
+      let text = `<w id="z3tsI" data-map="0,950">Alice </w><w id="z7FBK" data-map="950,360">was </w><sg data-suggestion=""><w id="zbRKM" data-sugg="">beginning to<sup data-idx="1">1</sup> get</w></sg> <w id="zosbS" data-map="1310,645">very </w><w id="zsEkU" data-map="1955,575">tired </w>`;
+      let check = `<w id="z3tsI" data-map="0,950">Alice </w><w id="z7FBK" data-map="950,360">was </w><sg data-suggestion=""><w id="zbRKM" data-sugg="">beginning to<sup data-idx="1">1</sup> get</w></sg> <w id="zosbS" data-map="1310,645">very </w><w id="zsEkU" data-map="1955,575">tired </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuild = parser.rebuild(tokens, 'w');
+      let wrapped = parser.reWrap(rebuild, 'w');
+      it('Footnote inside suggestion is parsed correctly', () => expect(rebuild).to.be.equal(check));
+      it('Footnote inside suggestion is parsed correctly, rewrap', () => expect(wrapped).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';

@@ -177,6 +177,7 @@ var parser = {
         }
       }
     });
+    let checkHtml = /<\/?\w+[^>]*>/;
     tokens.forEach((token, i) => {
       if (
         token.before &&
@@ -1498,7 +1499,9 @@ function packEmptyTokens(tokens) {
     } else {
       htmlOpenReg = new RegExp(html_open_regex, "img");
       htmlCloseReg = new RegExp(html_close_regex, "img");
-      if (htmlOpenReg.test(token.word)) {
+      let checkSuggestionOpen = /<sg[^>]*>/;
+      let checkSuggestionClose = /<\/sg>/;
+      if (htmlOpenReg.test(token.word) && (!checkSuggestionOpen.test(token.before))) {
         let nextToken = tokens[i + 1];
         let prevToken = tokens[i - 1];
         //let token = tokens[i]
@@ -1533,7 +1536,7 @@ function packEmptyTokens(tokens) {
           }
         }
       }
-      if (htmlCloseReg.test(token.word)) {
+      if (htmlCloseReg.test(token.word) && (!checkSuggestionClose.test(token.after))) {
         let prevToken = tokens[i - 1];
         //let token = tokens[i]
         if (prevToken) {
