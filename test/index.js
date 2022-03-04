@@ -416,6 +416,33 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Footnote inside suggestion is parsed correctly', () => expect(rebuild).to.be.equal(check));
       it('Footnote inside suggestion is parsed correctly, rewrap', () => expect(wrapped).to.be.equal(check));
     });
+    describe('Two suggestions around superscript', () => {
+      let text = `<w id="26h6r6">the </w><w id="26liA8">saintly </w><sg data-suggestion=""><w id="26puJa">heroic</w><sup data-pg="xxiv"><sg data-suggestion=""><w id="26tGSc" data-sugg="">pg xxiv</w></sg></sup> <w id="26C5ag">figure</w></sg><w id="26C5ag"> </w><w id="26Ghji">of </w>`;
+      let check = `<w id="26h6r6">the </w><w id="26liA8">saintly </w><sg data-suggestion=""><w id="26puJa" data-sugg="">heroic<sup data-pg="xxiv"><sg data-suggestion="">pg xxiv</sg></sup> figure</w></sg> <w id="26Ghji">of </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let wrapped = parser.reWrap(rebuilt, 'w');
+      it('Two suggestions around superscript are parsed correctly, rebuild', () => expect(rebuilt).to.be.equal(check));
+      it('Two suggestions around superscript are parsed correctly, reWrap', () => expect(wrapped).to.be.equal(check));
+    });
+    describe('Suggestion around pg', () => {
+      let text = `<w id="1qweyc">The </w><w id="1qECQg">Movement</w><sup data-pg="xxiii"><sg data-suggestion=""><w id="1qIOZi" data-sugg="">pg </w><w id="1qN18k" data-sugg="">xxiii</w></sg></sup>  <w id="1qRdhm">is </w><w id="1qVpqo">now </w>`;
+      let check = `<w id="1qweyc">The </w><w id="1qECQg">Movement</w><sup data-pg="xxiii"><sg data-suggestion=""><w id="1qIOZi" data-sugg="">pg xxiii</w></sg></sup>  <w id="1qRdhm">is </w><w id="1qVpqo">now </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let wrapped = parser.reWrap(rebuilt, 'w');
+      it('Suggestion around pg is parsed correctly, rebuild', () => expect(rebuilt).to.be.equal(check));
+      it('Suggestion around pg is parsed correctly, reWrap', () => expect(wrapped).to.be.equal(check));
+    });
+    describe('Two suggestions around one word', () => {
+      let text = `<w id="JKqtO">So </w><w id="JOCCQ">she </w><sg data-suggestion=""><w id="JSOLS">was </w><sg data-suggestion=""><w id="JX0UU" data-sugg="">considering</w></sg> <w id="K1d3W">in</w></sg><w id="K1d3W"> </w><w id="K5pcY">her </w><w id="K9Bm0">own </w>`;
+      let check = `<w id="JKqtO">So </w><w id="JOCCQ">she </w><sg data-suggestion=""><w id="JSOLS" data-sugg="">was <sg data-suggestion="">considering</sg> in</w></sg> <w id="K5pcY">her </w><w id="K9Bm0">own </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let wrapped = parser.reWrap(rebuilt, 'w');
+      it('Two suggestions around one word are parsed correctly, rebuild', () => expect(rebuilt).to.be.equal(check));
+      it('Two suggestions around one word are parsed correctly, reWrap', () => expect(wrapped).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
