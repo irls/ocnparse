@@ -185,6 +185,7 @@ var parser = {
         (!token.after || !/\/sg[^\w]*/i.test(token.after)) &&
         !/[^\w]*\/sg[^\w]*/i.test(token.before)
       ) {
+        let openedSuggestions = 0;// for checking opened suggestions inside suggestions
         token.suffix = token.suffix || "";
         token.after = token.after || "";
         token.word += token.suffix + token.after;
@@ -196,6 +197,9 @@ var parser = {
           ++index;
           next = tokens[index];
           if (next) {
+            if (next.before && /<sg/i.test(next.before)) {
+              ++openedSuggestions;
+            }
             if (!next.after || !/\/sg[^\w]*/i.test(next.after)) {
               /*next.info = next.info || {}
               next.info.data = next.info.data || {}
@@ -218,12 +222,25 @@ var parser = {
               next.prefix = next.prefix || "";
               next.suffix = next.suffix || "";
               next.after = next.after || "";
+              if (token.after) {
+                token.word+= token.after;
+                token.after = "";
+              }
               token.word += next.before + next.prefix + next.word;
               token.suffix += next.suffix;
-              token.after += next.after;
+              if (token.after || /<\/sg>\s*$/i.test(next.after) || (/<\/sg>\s*<\/\w+>\s*$/.test(next.after) && openedSuggestions === 0)) {
+                token.after += next.after;
+              } else {
+                token.word+= next.after;
+              }
               delete tokens[index];
-              break;
+              if (openedSuggestions === 0) {
+                break;
+              }
             } else {
+            }
+            if (next.after && /<\/sg/i.test(next.after)) {
+              --openedSuggestions;
             }
           }
         } while (next);
