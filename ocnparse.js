@@ -217,6 +217,11 @@ var parser = {
                 next.suffix +
                 next.after;
               delete tokens[index];
+              let endsWithTag = /(<(?!sg)\w+[^>]*>\s*)$/.exec(token.before);
+              if (endsWithTag && endsWithTag[1]) {
+                token.word = endsWithTag[1] + token.word;
+                token.before = token.before.substring(0, endsWithTag.index);
+              }
             } else if (/\/sg[^\w]*/i.test(next.after)) {
               next.before = next.before || "";
               next.prefix = next.prefix || "";
@@ -234,6 +239,15 @@ var parser = {
                 token.word+= next.after;
               }
               delete tokens[index];
+              let endsWithTag = /^(\s*<\/(?!sg)\w+>)/.exec(token.after);
+              if (endsWithTag && endsWithTag[1]) {
+                if (token.suffix) {
+                  token.suffix+= endsWithTag[1];
+                } else {
+                  token.word+= endsWithTag[1];
+                }
+                token.after = token.after.substring(endsWithTag[1].length);
+              }
               if (openedSuggestions === 0) {
                 break;
               }
