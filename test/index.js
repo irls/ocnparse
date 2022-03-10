@@ -443,6 +443,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Two suggestions around one word are parsed correctly, rebuild', () => expect(rebuilt).to.be.equal(check));
       it('Two suggestions around one word are parsed correctly, reWrap', () => expect(wrapped).to.be.equal(check));
     });
+    describe(`Suggestion around three tags`, () => {
+      let text = `<w id="26h6r6">the </w><w id="26liA8">saintly </w><sg data-suggestion=""><i><w id="26puJa">heroic</w></i><sup data-pg="xxiv"><w id="26tGSc" data-sugg="">pg </w><w id="26xT1e" data-sugg="">xxiv</w></sup> <qq data-author="test"><w id="26C5ag">figure</w></qq></sg> <w id="26Ghji">of </w><w id="1a6JdS">the</w>`;
+      let check = `<w id="26h6r6">the </w><w id="26liA8">saintly </w><sg data-suggestion=""><w id="26puJa" data-sugg=""><i>heroic</i><sup data-pg="xxiv">pg xxiv</sup> <qq data-author="test">figure</qq></w></sg> <w id="26Ghji">of </w><w id="1a6JdS">the</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let wrapped = parser.reWrap(rebuilt, 'w');
+      it('Suggestion around three tags is parsed correctly, rebuild', () => expect(rebuilt).to.be.equal(check));
+      it('Suggestion around three tags is parsed correctly, reWrap', () => expect(wrapped).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
