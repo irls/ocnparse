@@ -452,6 +452,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Suggestion around three tags is parsed correctly, rebuild', () => expect(rebuilt).to.be.equal(check));
       it('Suggestion around three tags is parsed correctly, reWrap', () => expect(wrapped).to.be.equal(check));
     });
+    describe(`Italic and suggestion`, () => {
+      let text = `<w id="OvnL">No </w><w id="Sog3">man </w><i><w id="Wh8l">shall</w><sup><sg data-suggestion=""><w id="10a0D" data-sugg="">3:38</w></sg></sup> </i><w id="142SV"><i>attain</i> </w><w id="17VLd">the </w><w id="1bODv">shores</w><sup><sg data-suggestion=""><w id="1fHvN" data-sugg="">3:38</w></sg></sup> <w id="1jAo5">of </w><w id="1ntgn">the </w><w id="1rm8F">ocean</w>`;
+      let check = `<w id="OvnL">No </w><w id="Sog3">man </w><i><w id="Wh8l">shall</w><sup><sg data-suggestion=""><w id="10a0D" data-sugg="">3:38</w></sg></sup> </i><i><w id="142SV">attain</w></i> <w id="17VLd">the </w><w id="1bODv">shores</w><sup><sg data-suggestion=""><w id="1fHvN" data-sugg="">3:38</w></sg></sup> <w id="1jAo5">of </w><w id="1ntgn">the </w><w id="1rm8F">ocean</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it(`Italic around suggestion is parsed correctly, rebuild`, () => expect(rebuilt).to.be.equal(check));
+      it(`Italic around suggestion is parsed correctly, reWrap`, () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
@@ -476,7 +485,7 @@ describe('Ocean Parser Behaviour Tests', function() {
       //let text = `original <u>page images with</u> text may`;
       let text = `<w data-map="0,380">Copies </w><w data-map="380,75">of </w><w data-map="455,170">the </w><w data-map="625,610">original </w><u><w data-map="1235,310">page </w><w data-map="1545,480">images </w></u>,<w data-map="2025,220"><u>with</u> </w><w data-map="2245,385">text </w><w data-map="2630,450">may</w>`;
       //let text = `original <u>page images with</u> text of the <u>Sh</u>áhs were thrust <u>Sh</u>ay<u>kh</u>`;
-      let check = `<w data-map="0,380">Copies </w><w data-map="380,75">of </w><w data-map="455,170">the </w><w data-map="625,610">original </w><u><w data-map="1235,310">page </w><w data-map="1545,480">images </w></u>,<u><w data-map="2025,220">with</w> </u><w data-map="2245,385">text </w><w data-map="2630,450">may</w>`;
+      let check = `<w data-map="0,380">Copies </w><w data-map="380,75">of </w><w data-map="455,170">the </w><w data-map="625,610">original </w><u><w data-map="1235,310">page </w><w data-map="1545,480">images </w></u>,<u><w data-map="2025,220">with</w></u> <w data-map="2245,385">text </w><w data-map="2630,450">may</w>`;
       let tokens = parser.tokenize(text, 'w');
       //tokens.forEach(t => {
         //console.log(t)
@@ -533,7 +542,7 @@ describe('Ocean Parser Behaviour Tests', function() {
     describe('Tag i inside w and b', () => {
       let text = `<w id="z3tsI">Alice </w><w id="z7FBK"><b>was<i class="pin"></i></b> </w><w id="zbRKM"><b>beginning</b> </w><w id="zg3TO">to </w><w id="zkg2Q">get </w>`;
       let checkWrapped = `<w id="z3tsI">Alice </w><w id="z7FBK"><b>was<i class="pin"></i></b> </w><b><w id="zbRKM">beginning</w></b> <w id="zg3TO">to </w><w id="zkg2Q">get </w>`;
-      let checkRebuilt = `<w id="z3tsI">Alice </w><w id="z7FBK"><b>was<i class="pin"></i></b> </w><b><w id="zbRKM">beginning</w> </b><w id="zg3TO">to </w><w id="zkg2Q">get </w>`;
+      let checkRebuilt = `<w id="z3tsI">Alice </w><w id="z7FBK"><b>was<i class="pin"></i></b> </w><b><w id="zbRKM">beginning</w></b> <w id="zg3TO">to </w><w id="zkg2Q">get </w>`;
       let tokens = parser.tokenize(text, 'w');
       let rebuilt = parser.rebuild(tokens, 'w');
       let reWrap = parser.reWrap(rebuilt, 'w');
