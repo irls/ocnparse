@@ -234,7 +234,7 @@ var parser = {
               }
               token.word += next.before + next.prefix + next.word;
               token.suffix += next.suffix;
-              if (token.after || /<\/sg>\s*$/i.test(next.after) || (/<\/sg>\s*<\/\w+>\s*$/.test(next.after) && openedSuggestions === 0)) {
+              if (token.after || /<\/sg>\s*$/i.test(next.after) || (/<\/sg>.*?<\/\w+>.*?$/.test(next.after) && openedSuggestions === 0)) {
                 token.after += next.after;
               } else {
                 token.word+= next.after;
@@ -1150,7 +1150,7 @@ function splitWrappedString(str, tag = "w") {
           t.before = (t.before || "") + (t.prefix || "") + match[1];
           t.prefix = "";
           t.word = match[3];
-          t.after = (t.after || "") + (t.suffix || "") + match[4];
+          t.after = match[4] + (t.suffix || "") + (t.after || "");
           t.suffix = "";
         } else {
           if (t.suffix) {
