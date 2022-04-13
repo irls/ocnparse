@@ -249,6 +249,7 @@ var parser = {
                 }
                 token.after = token.after.substring(endsWithTag[1].length);
               }
+              token = cleanupBeforeTags(token);
               if (openedSuggestions === 0) {
                 break;
               }
@@ -1145,7 +1146,7 @@ function splitWrappedString(str, tag = "w") {
     if (t.word && checkForHTML.test(t.word)) {
       let match = t.word.match(checkForHTML);
       //console.log(`MATCHHTML: "${t.word}"`);
-      if (match && match[1]) {
+      if (match && match[1] && !/<\w+[^>]*>[^<]+<\/\w+>/.test(match[1])) {// matches an html tag, but not words
         if (match[3]) {
           t.before = (t.before || "") + (t.prefix || "") + match[1];
           t.prefix = "";
@@ -1838,6 +1839,25 @@ function extractEndHtml(token) {
   } else {
     return token;
   }
+}
+
+/**
+ * if token.before contains open tag, and token.word contains same close tag, than move it to word.
+ * call recursive until all cleaned
+ * @param Object token
+ * @returns Object same token, cleaned
+ */
+function cleanupBeforeTags(token) {
+  let match = /(<(?!sg)(\w+)[^>]*>\s*)$/.exec(token.before)
+  if (match && match[2]) {
+    let checkForCloseTag = new RegExp(`<\\/${match[2]}>`);
+    if (checkForCloseTag.test(token.word)) {
+      token.before = token.before.substring(0, match.index);
+      token.word = match[1] + token.word;
+      return cleanupBeforeTags(token);
+    }
+  }
+  return token;
 }
 
 // returns a unique array of merged values, can merge to or with a null

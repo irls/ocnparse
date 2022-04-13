@@ -461,6 +461,24 @@ describe('Ocean Parser Behaviour Tests', function() {
       it(`Italic around suggestion is parsed correctly, rebuild`, () => expect(rebuilt).to.be.equal(check));
       it(`Italic around suggestion is parsed correctly, reWrap`, () => expect(reWrap).to.be.equal(check));
     });
+    describe(`Suggestion around two italics`, () => {
+      let text = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><w id="zbRKM"><i>beginning</i> </w><w id="zg3TO"><i>to</i></w></sg><w id="zg3TO"> </w><w id="zkg2Q">get </w><w id="zosbS">very </w>`;
+      let check = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><w id="zbRKM" data-sugg=""><i>beginning</i> <i>to</i></w></sg> <w id="zkg2Q">get </w><w id="zosbS">very </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it(`Suggestion around two words with italic are parsed correctly, rebuild`, () => expect(rebuilt).to.be.equal(check));
+      it(`Suggestion around two words with italic are parsed correctly, rewrap`, () => expect(reWrap).to.be.equal(check));
+    });
+    describe(`Suggestion around two italics, previously saved`, () => {
+      let text = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><w id="zbRKM"><i>beginning</i> <i>to</i></w></sg><w id="zg3TO"> </w><w id="zkg2Q">get </w><w id="zosbS">very </w>`;
+      let check = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><w id="zbRKM" data-sugg=""><i>beginning</i> <i>to</i></w></sg> <w id="zkg2Q">get </w><w id="zosbS">very </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it(`Suggestion around two words with italic are parsed correctly, if previously saved, rebuild`, () => expect(rebuilt).to.be.equal(check));
+      it(`Suggestion around two words with italic are parsed correctly, if previously saved, rewrap`, () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
