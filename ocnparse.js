@@ -61,6 +61,11 @@ var parser = {
   // words will be re-parsed, retaining class and data attributes from wrapper tags
   reWrap: function(str, srcTag = "w", destTag = "") {
     let tokens = this.tokenize(str, srcTag);
+    //console.log(`==========IN reWrap==========`);
+    //tokens.forEach(t => {
+      //console.log(JSON.stringify(t));
+    //});
+    //console.log(`========//IN reWrap==========`);
     if (!destTag) destTag = srcTag;
     return this.rebuild(tokens, destTag);
   },
@@ -446,7 +451,7 @@ var parser = {
         token.suffix = suff[0];
         if (suff[suff.length - 1]) {
           if (next) {
-            next.prefix += suff[suff.length - 1];
+            next.prefix = suff[suff.length - 1] + next.prefix;
           }
         }
       }
@@ -1118,8 +1123,8 @@ function splitWrappedString(str, tag = "w") {
           words.map((w, i) => {
             let t = {
               word: w,
-              suffix: i == words.length - 1 ? token.suffix : "",
-              prefix: token.prefix === " " && i == 0 ? " " : ""
+              suffix: i === words.length - 1 ? token.suffix : "",
+              prefix: i === 0 ? token.prefix : ""
             };
             if (!w.match(htmlOpenReg)) {
               if (info !== false) {
@@ -1336,11 +1341,20 @@ function cleanTokens(tokens) {
         if (!prevToken) console.error("Corrupt token list", i, tokens);
         regex = /^([\s]+|^[^<]+[\s]+)(.*)$/gm;
         if ((tt = regex.exec(token.prefix))) {
-          if (token.before && !punctuation_end_regex.test(token.prefix)) {
+          if (token.before && !punctuation_end_regex.test(token.prefix) && !/[\r\n]/.test(token.before)) {
             prevToken.after = prevToken.after || "";
             prevToken.after = prevToken.after + token.before + tt[1];
             token.before = "";
             token.prefix = tt[2];
+            if (/[\r\n]/.test(prevToken.after) && !/<[^>]+>/.test(prevToken.after)) {
+              let suff = prevToken.after.split(/(?:\r\n|\r|\n)/);
+              if (suff) {
+                prevToken.after = suff[0] + "\n".repeat(suff.length - 1);
+                if (suff.length > 1) {
+                  token.prefix = suff[suff.length - 1] + token.prefix;
+                }
+              }
+            }
           } else {
             if (prevToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/sup>/.test(prevToken.after))) {
               if (!/[\r\n]/.test(prevToken.after)) {
@@ -1348,8 +1362,10 @@ function cleanTokens(tokens) {
                 token.prefix = tt[2];
               }
             } else {
-              prevToken.suffix += tt[1];
-              token.prefix = tt[2];
+              if (!token.before) {
+                prevToken.suffix += tt[1];
+                token.prefix = tt[2];
+              }
             }
           }
           //console.log('Move spaces back (suffix <- prefix)', `"${token.suffix}"`, `"${token.prefix}"`, tt)
