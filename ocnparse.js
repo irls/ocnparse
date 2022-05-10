@@ -387,7 +387,7 @@ var parser = {
                 token.after;
             } else {
               prev.suffix =
-                prev.suffix + token.prefix + token.word + token.suffix;
+                prev.suffix + (token.before || "") + token.prefix + token.word + token.suffix;
               prev.after = token.after;
             }
             if (token.info && token.info.data && token.info.data.map) {
