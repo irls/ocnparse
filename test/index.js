@@ -668,10 +668,10 @@ describe('Ocean Parser Behaviour Tests', function() {
 </li><li> Mullá Ni‘matu’lláh-i-Mázindarání
 </li><li> Mullá Yúsuf-i-Ardibílí
 </li></ul>`
-      let check_str = `<w>Among </w><w>them,</w><ul>
-<li> 
+      let check_str = `<w>Among </w><w>them,</w>
 
-<w data-ipa="moUllA:">Mullá </w><w data-ipa="moUhammad">Muḥammad </w><w data-ipa="ali:je?zandZA:ni:">‘Alíy-i-Zanjání</w></li><li> 
+<ul>
+<li><w data-ipa="moUllA:">   Mullá </w><w data-ipa="moUhammad">Muḥammad </w><w data-ipa="ali:je?zandZA:ni:">‘Alíy-i-Zanjání</w></li><li> 
 <w data-ipa="moUllA:">Mullá </w><w data-ipa="ali:je?bastA:mi:">‘Alíy-i-Basṭámí</w></li><li> 
 <w data-ipa="moUllA:">Mullá </w><w data-ipa="sa?i:de?bA:rfoUru:Si:">Sa‘íd-i-Bárfurú<u>sh</u>í</w></li><li> 
 <w data-ipa="moUllA:">Mullá </w><w data-ipa="ne?matoU?llA:he?mA:zendarA:ni:">Ni‘matu’lláh-i-Mázindarání</w></li><li> 
@@ -679,9 +679,9 @@ describe('Ocean Parser Behaviour Tests', function() {
 `
       let tokens = parser.tokenize(str, "w")
       let reWrap = parser.reWrap(tokens, 'w');
-      it('Correctly parsing closing tags', () => expect(reWrap).to.be.equal(check_str));
+      it('Correctly parsing closing tags, first reWrap', () => expect(reWrap).to.be.equal(check_str));
       let secondReWrap = parser.reWrap(reWrap, 'w');
-      it('Correctly parsing closing tags', () => expect(secondReWrap).to.be.equal(check_str));
+      it('Correctly parsing closing tags, second reWrap', () => expect(secondReWrap).to.be.equal(check_str));
       //let text = `<ol><li><w data-map="0,315">Test </w><w data-map="315,685">HEADER</w></li><li><w data-map="315,685">Test HEADER<br></w></li><li><w data-map="315,685">Test HEADER<br></w></li></ol>`;
       let text = `<ol><li>Test HEADER1</li><li>Test HEADER2<br></li><li>Test HEADER3<br></li></ol>`;
       let check = `<ol><li>Test HEADER1</li><li>Test HEADER2<br></li><li>Test HEADER3<br></li></ol>`
@@ -1080,30 +1080,66 @@ three`;
       //it(`Dash or hyphen does not move to superscript, rewrapped, case "${d.name}"`, () => expect(d.check).to.be.equal(wrapped));
     });
   });
-  describe('Slash should be out of <w></w> wrapper, used four couplets', () => {
-    //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
-    let text = `Alice was beginning to get very tired   /   of sitting by her sister on the
-bank, and of having nothing to do:   /    once or twice she had peeped into the
-book her sister was reading, but it had   /   no pictures or conversations in
-it, &lsquo;and what is the use of a book,&rsquo; thought Alice &lsquo;without pictures or
-conversations?&rsquo;`;
-    let check = `<w>Alice </w><w>was </w><w>beginning </w><w>to </w><w>get </w><w>very </w><w>tired</w>   /   <w>of </w><w>sitting </w><w>by </w><w>her </w><w>sister </w><w>on </w><w>the</w>
-<w>bank, </w><w>and </w><w>of </w><w>having </w><w>nothing </w><w>to </w><w>do:</w>   /    <w>once </w><w>or </w><w>twice </w><w>she </w><w>had </w><w>peeped </w><w>into </w><w>the</w>
-<w>book </w><w>her </w><w>sister </w><w>was </w><w>reading, </w><w>but </w><w>it </w><w>had</w>   /   <w>no </w><w>pictures </w><w>or </w><w>conversations </w><w>in</w>
-<w>it, </w><w>&lsquo;and </w><w>what </w><w>is </w><w>the </w><w>use </w><w>of </w><w>a </w><w>book,&rsquo; </w><w>thought </w><w>Alice </w><w>&lsquo;without </w><w>pictures </w><w>or</w>
-<w>conversations?&rsquo;</w>`;
-    let tokens = parser.tokenize(text, '');
-    //console.log(tokens);
-    let wrapped = parser.reWrap(tokens, 'w');
-    let rebuild = parser.rebuild(tokens, 'w');
-    //console.log(wrapped);
-    //console.log(rebuild);
-    let reWrapped = parser.tokenize(rebuild, 'w');
-    let tokensReWrapped = parser.tokenize(parser.rebuild(reWrapped, 'w'), 'w');
-    let secondRebuild = parser.rebuild(tokensReWrapped, 'w');
-    //console.log(secondRebuild);
-    it('Slash as a couplet separator is outside <w></w>', () => expect(check).to.be.equal(wrapped));
-    it('Slash as a couplet separator is outside <w></w> after second rewrap', () => expect(secondRebuild).to.be.equal(check));
+  describe('Couplets', () => {
+    describe('Slash should be out of <w></w> wrapper, used four couplets', () => {
+      //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
+      let text = `Alice was beginning to get very tired   /   of sitting by her sister on the
+  bank, and of having nothing to do:   /    once or twice she had peeped into the
+  book her sister was reading, but it had   /   no pictures or conversations in
+  it, &lsquo;and what is the use of a book,&rsquo; thought Alice &lsquo;without pictures or
+  conversations?&rsquo;`;
+      let check = `<w>Alice </w><w>was </w><w>beginning </w><w>to </w><w>get </w><w>very </w><w>tired</w>   /   <w>of </w><w>sitting </w><w>by </w><w>her </w><w>sister </w><w>on </w><w>the</w>
+<w>  bank, </w><w>and </w><w>of </w><w>having </w><w>nothing </w><w>to </w><w>do:</w>   /    <w>once </w><w>or </w><w>twice </w><w>she </w><w>had </w><w>peeped </w><w>into </w><w>the</w>
+<w>  book </w><w>her </w><w>sister </w><w>was </w><w>reading, </w><w>but </w><w>it </w><w>had</w>   /   <w>no </w><w>pictures </w><w>or </w><w>conversations </w><w>in</w>
+<w>  it, </w><w>&lsquo;and </w><w>what </w><w>is </w><w>the </w><w>use </w><w>of </w><w>a </w><w>book,&rsquo; </w><w>thought </w><w>Alice </w><w>&lsquo;without </w><w>pictures </w><w>or</w>
+<w>  conversations?&rsquo;</w>`;
+      let tokens = parser.tokenize(text, '');
+      //console.log(tokens);
+      let wrapped = parser.reWrap(tokens, 'w');
+      let rebuild = parser.rebuild(tokens, 'w');
+      //console.log(wrapped);
+      //console.log(rebuild);
+      let reWrapped = parser.tokenize(rebuild, 'w');
+      let tokensReWrapped = parser.tokenize(parser.rebuild(reWrapped, 'w'), 'w');
+      let secondRebuild = parser.rebuild(tokensReWrapped, 'w');
+      //console.log(secondRebuild);
+      it('Slash as a couplet separator is outside <w></w>', () => expect(check).to.be.equal(wrapped));
+      it('Slash as a couplet separator is outside <w></w> after second rewrap', () => expect(secondRebuild).to.be.equal(check));
+    });
+    describe('Spaces needed for couplets, with line break', () => {
+      let text = `Too soon indeed! yet here the daffodil,
+   That love-child of the Spring, has lingered on
+ | To vex the rose with jealousy, and still | 
+ / To vex the rose with jealousy, and still / 
+    The harebell spreads her azure pavilion …`;
+      let check = `<w>Too </w><w>soon </w><w>indeed! </w><w>yet </w><w>here </w><w>the </w><w>daffodil,</w>
+<w>   That </w><w>love-child </w><w>of </w><w>the </w><w>Spring, </w><w>has </w><w>lingered </w><w>on</w>
+<w> | To </w><w>vex </w><w>the </w><w>rose </w><w>with </w><w>jealousy, </w><w>and </w><w>still | </w>
+<w> / To </w><w>vex </w><w>the </w><w>rose </w><w>with </w><w>jealousy, </w><w>and </w><w>still / </w>
+<w>    The </w><w>harebell </w><w>spreads </w><w>her </w><w>azure </w><w>pavilion …</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Spaces needed for couplets are kept in text with line breaks after rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Spaces needed for couplets are kept in text with line breaks after reWrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('Spaces needed for couplets, with <br>', () => {
+      let text = `Too soon indeed! yet here the daffodil,<br>
+   That love-child of the Spring, has lingered on<br>
+ | To vex the rose with jealousy, and still | 
+ / To vex the rose with jealousy, and still / 
+    The harebell spreads her azure pavilion …`;
+      let check = `<w>Too </w><w>soon </w><w>indeed! </w><w>yet </w><w>here </w><w>the </w><w>daffodil,</w><br>
+<w>   That </w><w>love-child </w><w>of </w><w>the </w><w>Spring, </w><w>has </w><w>lingered </w><w>on</w><br>
+<w> | To </w><w>vex </w><w>the </w><w>rose </w><w>with </w><w>jealousy, </w><w>and </w><w>still | </w>
+<w> / To </w><w>vex </w><w>the </w><w>rose </w><w>with </w><w>jealousy, </w><w>and </w><w>still / </w>
+<w>    The </w><w>harebell </w><w>spreads </w><w>her </w><w>azure </w><w>pavilion …</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Spaces needed for couplets are kept in text with <br> after rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Spaces needed for couplets are kept in text with <br> after reWrap', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('HTML in superscript', () => {
     let text = `<w id="1Is99K" data-map="0,1385">Either </w><w id="1IwliM" data-map="1385,510">the </w><w id="1IAxrO" data-map="1895,70">well</w><sup data-idx="1"><w data-sugg="">1</w><i class="pin"></i></sup> <w id="1IEJAQ" data-map="1965,495" data-sugg="">was </w><w id="1IIVJS" data-map="2460,350" data-sugg="">very </w><w id="1IN7SU" data-map="2810,350" data-sugg="">deep, </w>`;
