@@ -1160,6 +1160,35 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     it('Character zwnj does not create new token, rebuilt', () => expect(rebuilt).to.be.equal(check));
     it('Character zwnj does not create new token, rewrap', () => expect(reWrap).to.be.equal(check));
   });
+  describe('Parenthesis and quote', () => {
+    describe('At the beginning', () => {
+      let text = `(’)Alice was not a bit hurt`;
+      let check = `<w>(’)Alice </w><w>was </w><w>not </w><w>a </w><w>bit </w><w>hurt</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Parenthesis and quote are parsed correctly at the beginning of text, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Parenthesis and quote are parsed correctly at the beginning of text, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('In the middle', () => {
+      let text = `Alice was(’) not a bit hurt`;
+      let check = `<w>Alice </w><w>was(’) </w><w>not </w><w>a </w><w>bit </w><w>hurt</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Parenthesis and quote are parsed correctly in the middle of text, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Parenthesis and quote are parsed correctly in the middle of text, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('At the end', () => {
+      let text = `Alice was not a bit hurt(’)`;
+      let check = `<w>Alice </w><w>was </w><w>not </w><w>a </w><w>bit </w><w>hurt(’)</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Parenthesis and quote are parsed correctly at the end of text, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Parenthesis and quote are parsed correctly at the end of text, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
