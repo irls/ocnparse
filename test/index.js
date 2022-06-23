@@ -876,7 +876,7 @@ Down </w><w id="hwJJn" data-map="290,95">the </w><w id="hOdFG" data-map="385,239
   
   describe('Arabic punctuation', () => {
     let str_with_brackets = 'وت المخلصين ﴿ وَ اَيَّامَا تَدْعُوا فَلَهُ الاَسْمَاءُ الحُسْنَی ﴾ فی قلوب العارفين و';
-    let str_with_brackets_check = '<w>وت </w><w>المخلصين ﴿ </w><w>وَ </w><w>اَيَّامَا </w><w>تَدْعُوا </w><w>فَلَهُ </w><w>الاَسْمَاءُ </w><w>الحُسْنَی </w>﴾ <w>فی </w><w>قلوب </w><w>العارفين </w><w>و</w>';
+    let str_with_brackets_check = '<w>وت </w><w>المخلصين ﴿ </w><w>وَ </w><w>اَيَّامَا </w><w>تَدْعُوا </w><w>فَلَهُ </w><w>الاَسْمَاءُ </w><w>الحُسْنَی </w><w>﴾ فی </w><w>قلوب </w><w>العارفين </w><w>و</w>';
     let str_question = 'چه ميکنی ؟ گفت ليلی';
     let str_question_check = '<w>چه </w><w>ميکنی ؟ </w><w>گفت </w><w>ليلی</w>';
     let str_quotes = `” کفر کافر را و دين ديندار را	ذرّه دردت دل عطّار را“`
@@ -908,7 +908,7 @@ Down </w><w id="hwJJn" data-map="290,95">the </w><w id="hOdFG" data-map="385,239
   });
   describe('Non word tokens', () => {
     let text = `public affa: [/] public affa`;
-    let check = `<w>public </w><w>affa: [/] </w><w>public </w><w>affa</w>`
+    let check = `<w>public </w><w>affa: </w><w>[/] public </w><w>affa</w>`
     let tokens = parser.tokenize(text, '');
     let wrapped = parser.reWrap(tokens, 'w')
     it('Slash does not create non word token', () => expect(check).to.be.equal(wrapped))
@@ -1223,6 +1223,17 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       let reWrap = parser.reWrap(rebuilt, 'w');
       it('Parenthesis and quote are parsed correctly at the end of text, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('Parenthesis and quote are parsed correctly at the end of text, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+  });
+  describe('Brackets', () => {
+    describe('Open brackets', () => {
+      let text = `Gee up, gee, woo. [A colt neighs`;
+      let check = `<w>Gee </w><w>up, </w><w>gee, </w><w>woo. </w><w>[A </w><w>colt </w><w>neighs</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Open bracket is with next word, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Open bracket is with next word, reWrap', () => expect(reWrap).to.be.equal(check));
     });
   });
   /*describe('Test', () => {

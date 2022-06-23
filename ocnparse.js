@@ -53,6 +53,9 @@ let closeUnderlineRegexWord = new RegExp(`([${all_punctuation_and_brackets} ]*<\
 const keepHtmlBeginRegex = new RegExp(`^[${all_punctuation_and_brackets} ]*(<(u|b|i)[^>]*>[${all_punctuation_and_brackets} ]*)`, 'img');
 const keepHtmlEndRegex = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b|i)>)[${all_punctuation_and_brackets} ]*$`, 'img');
 
+const bracketsOpenRegex = new RegExp(`([\\${brackets_open.join('\\')}]+)`, 'img');
+const bracketsCloseRegex = new RegExp(`([\\${brackets_close.join('\\')}]+)`, 'img');
+
 const keepHtmlTags = ['u', 'b', 'i'];
 
 var parser = {
@@ -268,21 +271,34 @@ var parser = {
       }
     });
     tokens.forEach((token, i) => {
-      if (brackets_open.indexOf(token.suffix.trim()) !== -1) {
+      if (bracketsOpenRegex.test(token.suffix)) {
         let nextToken = tokens[i + 1];
         if (nextToken) {
-          //if (nextToken.before) {
-          nextToken.before = nextToken.before || "";
-          let split = token.suffix.split(token.suffix.trim());
-          nextToken.before =
-            token.suffix.trim() + (split[1] || "") + nextToken.before;
-          //} else {
-          //nextToken.prefix = token.suffix.trim() + nextToken.prefix;
-          //}
-          token.suffix = split[0] || "";
-          //tokens[i + 1] = nextToken;
+          let split = token.suffix.split(bracketsOpenRegex);
+          if (Array.isArray(split) && split[1]) {
+            token.suffix = split.shift();
+            if (nextToken.before) {
+              nextToken.before = 
+                split.join('') + (token.after || "") + (nextToken.before || "");
+            } else {
+              nextToken.prefix = split.join('') + (token.after || "") + (nextToken.prefix || "");
+            }
+            token.after = '';
+            //
+            //nextToken.prefix = token.suffix.trim() + nextToken.prefix;
+            //}
+            //tokens[i + 1] = nextToken;
+          }
         }
       }
+      /*if (bracketsOpenRegex.test(token.prefix)) {
+        let split = token.prefix.split(bracketsOpenRegex);
+        if (Array.isArray(split) && split[1]) {
+          let before = split.shift() + split.shift();
+          token.before = (token.before || "") + before;
+          token.prefix = split.join('');
+        }
+      }*/
       if (brackets_close.indexOf(token.prefix.trim()) !== -1) {
         let prevToken = tokens[i - 1];
         if (prevToken) {
@@ -461,8 +477,9 @@ var parser = {
         underlineMatch = openUnderlineRegexWord.exec(token.word);
         underlineMatchClose = closeUnderlineRegexWord.exec(token.word);
         if (underlineMatch && underlineMatch.index === 0 && !underlineMatchClose) {
-          token.before = ((token.before || '') + underlineMatch[0]).replace('</u><u>', '');
+          token.before = ((token.before || '') + (token.prefix || "") + underlineMatch[0]).replace('</u><u>', '');
           token.word = token.word.replace(underlineMatch[0], '');
+          token.prefix = "";
           if (!token.word.trim()) {
             let next = tokens[index + 1];
             if (next) {
@@ -1340,7 +1357,7 @@ function cleanTokens(tokens) {
           regex;
         if (!prevToken) console.error("Corrupt token list", i, tokens);
         regex = /^([\s]+|^[^<]+[\s]+)(.*)$/gm;
-        if ((tt = regex.exec(token.prefix))) {
+        if ((tt = regex.exec(token.prefix)) && !bracketsOpenRegex.test(token.prefix)) {
           if (token.before && !punctuation_end_regex.test(token.prefix) && !/[\r\n]/.test(token.before)) {
             prevToken.after = prevToken.after || "";
             prevToken.after = prevToken.after + token.before + tt[1];
