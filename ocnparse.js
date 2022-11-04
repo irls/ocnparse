@@ -972,7 +972,7 @@ function splitTokens(tokens, tag = "") {
     "[\\—]|[-]{2,3}"
   ];
   // white space and remaining punctuation
-  let delimiter_punctuation = "\\s\\—\\+\\=\\*\\&\\^\\%\\$\\#\\@\\~\\|";
+  let delimiter_punctuation = "\\s\\—\\+\\=\\*\\&\\^\\%\\$\\#\\~\\|";
   punctuation_characters
     .concat(brackets_open)
     .concat(brackets_close)
