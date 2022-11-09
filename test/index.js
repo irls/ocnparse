@@ -479,6 +479,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it(`Suggestion around two words with italic are parsed correctly, if previously saved, rebuild`, () => expect(rebuilt).to.be.equal(check));
       it(`Suggestion around two words with italic are parsed correctly, if previously saved, rewrap`, () => expect(reWrap).to.be.equal(check));
     });
+    describe(`Suggestion and <br>`, () => {
+      let text = `<w id="a73kg">one </w><w id="aRFPJ">two</w><br><sg data-suggestion=""><w id="b7dkT">three </w><w id="bmKQ3">four</w></sg><br><br>`;
+      let check = `<w id="a73kg">one </w><w id="aRFPJ">two</w><br><sg data-suggestion=""><w id="b7dkT" data-sugg="">three four</w></sg><br><br>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it(`<br> after suggestion does not break HTML, rebuild`, () => expect(rebuilt).to.be.equal(check));
+      it(`<br> after suggestion does not break HTML, rewrap`, () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';

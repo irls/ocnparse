@@ -242,7 +242,7 @@ var parser = {
               }
               token.word += next.before + next.prefix + next.word;
               token.suffix += next.suffix;
-              if (token.after || /<\/sg>\s*$/i.test(next.after) || (/<\/sg>.*?<\/\w+>.*?$/.test(next.after) && openedSuggestions === 0)) {
+              if (token.after || /<\/sg>\s*$/i.test(next.after) || (/<\/sg>.*?(<\/\w+>|<br\s*\/?>).*?$/.test(next.after) && openedSuggestions === 0)) {
                 token.after += next.after;
               } else {
                 token.word+= next.after;
