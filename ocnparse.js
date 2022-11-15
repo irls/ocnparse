@@ -688,7 +688,22 @@ var parser = {
 
       result.push(wrappedToken);
     });
-    return result.join("");
+    let response = result.join("");
+    let openCloseTag = /<\/(i|u|b)><(i|u|b)>/img;
+    while (openCloseTag.test(response)) {// replace double tags, e.g. </u><u>
+      let replaced = 0;
+      response = response.replace(openCloseTag, (item, close, open) => {
+        if (close === open) {
+          ++replaced;
+          return '';
+        }
+        return item;
+      });
+      if (replaced === 0) {
+        break;
+      }
+    }
+    return response;
   },
 
   // check if this content would be tokenized to a word or not
@@ -1163,7 +1178,7 @@ function splitWrappedString(str, tag = "w") {
   //});
   //console.log(`++++++++++++++++++++++++++++++++++++++++++++`);
   let checkForHTML = /^(\s*(<.*>\s*)?<\w+[^>]*?>)([^<]*?)(<\/\w>(\s*<.*>)?\s*)$/i;
-  let closeHtmlAtStart = new RegExp(`^(<\\/\\w+>)+[${punctuation_string}]*`, 'i');
+  let closeHtmlAtStart = new RegExp(`^(\\s*<\\/\\w+>)+[${punctuation_string}]*`, 'i');
   tokens.forEach((t, i) => {
     if (t.word && checkForHTML.test(t.word)) {
       let match = t.word.match(checkForHTML);

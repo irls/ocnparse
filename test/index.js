@@ -454,7 +454,7 @@ describe('Ocean Parser Behaviour Tests', function() {
     });
     describe(`Italic and suggestion`, () => {
       let text = `<w id="OvnL">No </w><w id="Sog3">man </w><i><w id="Wh8l">shall</w><sup><sg data-suggestion=""><w id="10a0D" data-sugg="">3:38</w></sg></sup> </i><w id="142SV"><i>attain</i> </w><w id="17VLd">the </w><w id="1bODv">shores</w><sup><sg data-suggestion=""><w id="1fHvN" data-sugg="">3:38</w></sg></sup> <w id="1jAo5">of </w><w id="1ntgn">the </w><w id="1rm8F">ocean</w>`;
-      let check = `<w id="OvnL">No </w><w id="Sog3">man </w><i><w id="Wh8l">shall</w><sup><sg data-suggestion=""><w id="10a0D" data-sugg="">3:38</w></sg></sup> </i><i><w id="142SV">attain</w></i> <w id="17VLd">the </w><w id="1bODv">shores</w><sup><sg data-suggestion=""><w id="1fHvN" data-sugg="">3:38</w></sg></sup> <w id="1jAo5">of </w><w id="1ntgn">the </w><w id="1rm8F">ocean</w>`;
+      let check = `<w id="OvnL">No </w><w id="Sog3">man </w><i><w id="Wh8l">shall</w><sup><sg data-suggestion=""><w id="10a0D" data-sugg="">3:38</w></sg></sup> <w id="142SV">attain</w></i> <w id="17VLd">the </w><w id="1bODv">shores</w><sup><sg data-suggestion=""><w id="1fHvN" data-sugg="">3:38</w></sg></sup> <w id="1jAo5">of </w><w id="1ntgn">the </w><w id="1rm8F">ocean</w>`;
       let tokens = parser.tokenize(text, 'w');
       let rebuilt = parser.rebuild(tokens, 'w');
       let reWrap = parser.reWrap(rebuilt, 'w');
@@ -587,7 +587,7 @@ describe('Ocean Parser Behaviour Tests', function() {
     });
     describe('One tag, multiple words, case one', () => {
       let text = `<w>nothing </w><i><w>so </w><w>very </w></i><w><i>remarkable </i></w><w>in </w>`;
-      let check = `<w>nothing </w><i><w>so </w><w>very </w></i><i><w>remarkable </w></i><w>in </w>`;
+      let check = `<w>nothing </w><i><w>so </w><w>very </w><w>remarkable </w></i><w>in </w>`;
       let tokens = parser.tokenize(text, 'w');
       let rebuilt = parser.rebuild(tokens, 'w');
       let reWrap = parser.reWrap(rebuilt, 'w');
@@ -1244,6 +1244,15 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       it('Open bracket is with next word, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('Open bracket is with next word, reWrap', () => expect(reWrap).to.be.equal(check));
     });
+  });
+  describe('Close tag followed by open tag is parsed correctly', () => {
+    let text = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><b><u><i><w id="zbRKM" style="">beginning</w><sup data-idx="1" style=""><w id="zdXPi" data-sugg="">1</w></sup> </i></u></b><w id="zg3TO"><b><u><i>to</i></u></b> </w><w id="zkg2Q">get </w><w id="zosbS">very </w>`;
+    let check = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><b><u><i><w id="zbRKM">beginning</w><sup data-idx="1" style=""><w id="zdXPi" data-sugg="">1</w></sup> <w id="zg3TO">to</w></i></u></b> <w id="zkg2Q">get </w><w id="zosbS">very </w>`;
+    let tokens = parser.tokenize(text, 'w');
+    let rebuilt = parser.rebuild(tokens, 'w');
+    let reWrap = parser.reWrap(rebuilt, 'w');
+    it ('Close tag followed by open tag is parsed correctly, rebuild', () => expect(rebuilt).to.be.equal(check));
+    it('Close tag followed by open tag is parsed correctly, reWrap', () => expect(reWrap).to.be.equal(check));
   });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
