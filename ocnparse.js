@@ -47,8 +47,8 @@ let quotes_close_regex = new RegExp(`[${quotes_close_string}]`);
 
 let all_punctuation_and_brackets = `\\${punctuation_characters.join('\\')}\\${quotes_open.join('\\')}\\${quotes_close.join('\\')}\\${brackets_open.join('\\')}\\${brackets_close.join('\\')}\\${quotes_bidirectional.join('\\')}`;
 
-let openUnderlineRegexWord = new RegExp(`[${all_punctuation_and_brackets} ]*(<(u|b|i)[^>]*>[${all_punctuation_and_brackets} ]*)`, 'img');
-let closeUnderlineRegexWord = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b|i)>)[${all_punctuation_and_brackets} ]*`, 'img');
+let openUnderlineRegexWord = new RegExp(`[${all_punctuation_and_brackets} ]*((<(u|b|i)[^>]*>(<(u|b|i)[^>]*>)?(<(u|b|i)[^>]*>)?)[${all_punctuation_and_brackets} ]*)`, 'img');
+let closeUnderlineRegexWord = new RegExp(`([${all_punctuation_and_brackets} ]*(<\/(u|b|i)>(<\/(u|b|i)>)?(<\/(u|b|i)>)?))[${all_punctuation_and_brackets} ]*`, 'img');
 
 const keepHtmlBeginRegex = new RegExp(`^[${all_punctuation_and_brackets} ]*(<(u|b|i)[^>]*>[${all_punctuation_and_brackets} ]*)`, 'img');
 const keepHtmlEndRegex = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b|i)>)[${all_punctuation_and_brackets} ]*$`, 'img');
@@ -476,7 +476,18 @@ var parser = {
         closeUnderlineRegexWord.lastIndex = 0;
         underlineMatch = openUnderlineRegexWord.exec(token.word);
         underlineMatchClose = closeUnderlineRegexWord.exec(token.word);
-        if (underlineMatch && underlineMatch.index === 0 && !underlineMatchClose) {
+        if (underlineMatch && underlineMatch.index === 0 && !underlineMatchClose) {// move u, b, i tags from word to before or after
+          /*let before = underlineMatch[0];
+          while ((underlineMatch = openUnderlineRegexWord.exec(token.word))) {
+            console.log('MORE MATCH');
+            console.log(underlineMatch);
+            if (underlineMatch.index !== 0) {
+              break;
+            }
+            before+= underlineMatch[0];
+          }
+          token.before = ((token.before || '') + (token.prefix || "") + before).replace('</u><u>', '');
+          token.word = token.word.replace(before, '');*/
           token.before = ((token.before || '') + (token.prefix || "") + underlineMatch[0]).replace('</u><u>', '');
           token.word = token.word.replace(underlineMatch[0], '');
           token.prefix = "";

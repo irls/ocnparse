@@ -612,6 +612,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('One tag around multiple words parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('One tag around multiple words parsed correctly, rewrapped', () => expect(reWrap).to.be.equal(check));
     });
+    describe('Multiply b and i tags', () => {
+      let text = `Alice’s <b><i>Adventures<sup data-idx="1">1</sup></i></b> in <b><i>Wonderland<sup data-idx="2">2</sup> test1</i></b> test2   `;
+      let check = `<w>Alice’s </w><b><i><w>Adventures</w><sup data-idx="1"><w data-sugg="">1</w></sup></i></b> <w>in </w><b><i><w>Wonderland</w><sup data-idx="2"><w data-sugg="">2</w></sup> <w>test1</w></i></b> <w>test2   </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Multiple b and i tags are parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Multiple b and i tags are parsed correctly, rewrapped', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Parenthesis', function () {
     let str = 'Test string (inside test) outside outside';
