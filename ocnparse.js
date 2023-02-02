@@ -531,28 +531,6 @@ var parser = {
           }
         }
       }
-      if (keepHtmlTags.includes(token.word)) {
-        let token_word = `${token.before || ''}${token.prefix || ''}${token.word}${token.suffix || ''}${token.after || ''}`;
-        openUnderlineRegexWord.lastIndex = 0;
-        closeUnderlineRegexWord.lastIndex = 0;
-        let match = openUnderlineRegexWord.exec(token_word);
-        let matchClose = closeUnderlineRegexWord.exec(token_word);
-        if (match) {
-          let next = tokens[index + 1];
-          if (next) {
-            next.before = (token_word + (next.before || '')).replace('</u><u>', '');
-            tokens.splice(index, 1);
-            --index;
-          }
-        } else if (matchClose) {
-          let previous = tokens[index - 1];
-          if (previous) {
-            previous.after = (previous.after || '') + token_word;
-            tokens.splice(index, 1);
-            --index;
-          }
-        }
-      }
     }
   let checkForHTML = /^(\s*<\w+[^>]*?>)([^<]*?)(<\/\w>\s*)$/i;
   tokens.forEach(t => {
