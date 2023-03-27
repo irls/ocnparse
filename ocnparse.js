@@ -169,11 +169,13 @@ var parser = {
           } while (next);
         }
       }
-      if (
-        token.before &&
-        /[^\w]*sg[^\w]*/i.test(token.before) &&
-        !/[^\w]*\/sg[^\w]*/i.test(token.before)
-      ) {
+      let hasSuggestion = false;
+      if (token.before) {
+        let openSg = token.before.lastIndexOf('<sg');
+        let closeSg = token.before.lastIndexOf('<\/sg>');
+        hasSuggestion = openSg !== -1 && openSg > closeSg;
+      }
+      if (hasSuggestion) {
         let suggestion = /data-suggestion(="([^"]*)")?/gi.exec(token.before);
         if (suggestion) {
           suggestion = suggestion[1] && suggestion[2] ? suggestion[2] : "";
@@ -188,12 +190,14 @@ var parser = {
     });
     let checkHtml = /<\/?\w+[^>]*>/;
     tokens.forEach((token, i) => {
-      if (
-        token.before &&
-        /[^\w]*sg[^\w]*/i.test(token.before) &&
-        (!token.after || !/\/sg[^\w]*/i.test(token.after)) &&
-        !/[^\w]*\/sg[^\w]*/i.test(token.before)
-      ) {
+      let hasSuggestion = false;
+      if (token.before) {
+        let openSg = token.before.lastIndexOf('<sg');
+        let closeSg = token.before.lastIndexOf('<\/sg');
+        let hasCloseSuggestion = token.after && /\/sg[^\w]*/i.test(token.after);
+        hasSuggestion = openSg !== -1 && openSg > closeSg && !hasCloseSuggestion;
+      }
+      if (hasSuggestion) {
         let openedSuggestions = 0;// for checking opened suggestions inside suggestions
         token.suffix = token.suffix || "";
         token.after = token.after || "";
