@@ -243,7 +243,13 @@ var parser = {
               token.word += next.before + next.prefix + next.word;
               token.suffix += next.suffix;
               if (token.after || /<\/sg>\s*$/i.test(next.after) || (/<\/sg>.*?(<\/\w+>|<br\s*\/?>).*?$/.test(next.after) && openedSuggestions === 0)) {
-                token.after += next.after;
+                let checkDoubleSg = /([ \r\n]*<\/sg>[ \r\n]*)(<\/sg>[ \r\n]*)/.exec(next.after);// double closing sg tag
+                if (!token.after && checkDoubleSg && checkDoubleSg[1] && checkDoubleSg[2]) {
+                  token.word+= checkDoubleSg[1];
+                  token.after = (token.after || "") + checkDoubleSg[2];
+                } else {
+                  token.after += next.after;
+                }
               } else {
                 token.word+= next.after;
               }
@@ -263,9 +269,13 @@ var parser = {
               }
             } else {
             }
-            if (next.after && /<\/sg/i.test(next.after)) {
-              --openedSuggestions;
-            }
+              if (next.after && /<\/sg/i.test(next.after)) {
+                openedSuggestions-= (next.after.match(/<\/sg/img) || []).length;
+                //--openedSuggestions;
+                if (openedSuggestions < 0) {// double closing sg tag, all suggestions closed
+                  break;
+                }
+              }
           }
         } while (next);
       }

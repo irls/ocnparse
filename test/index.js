@@ -488,6 +488,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it(`<br> after suggestion does not break HTML, rebuild`, () => expect(rebuilt).to.be.equal(check));
       it(`<br> after suggestion does not break HTML, rewrap`, () => expect(reWrap).to.be.equal(check));
     });
+    describe('Suggestion inside suggestion', () => {
+      let text = `<w id="9Op7G">one </w><sg data-suggestion=""><w id="agnqz">two </w><sg data-suggestion=""><w id="aIlJs" data-sugg="">three</w></sg></sg> <w id="bak2l">four</w>`;
+      let check = `<w id="9Op7G">one </w><sg data-suggestion=""><w id="agnqz" data-sugg="">two <sg data-suggestion="">three</sg></w></sg> <w id="bak2l">four</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Suggestion inside suggestion is parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Suggestion inside suggestion is parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
