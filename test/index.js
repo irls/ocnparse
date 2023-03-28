@@ -506,6 +506,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Two suggestions in a row are parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('Two suggestions in a row are parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
     });
+    describe('Two suggestions around non word chanracter', () => {
+      let text = `<w id="TWBL">one </w><w id="13gI3">two </w><sg data-suggestion=""><w id="1cAOl">three </w><sg data-suggestion="">?</sg></sg> <w id="1lUUD">four</w>`;
+      let check = `<w id="TWBL">one </w><w id="13gI3">two </w><sg data-suggestion=""><w id="1cAOl" data-sugg="">three <sg data-suggestion="">?</sg></w></sg> <w id="1lUUD">four</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuild = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuild, 'w');
+      it('Two suggestions around non word character are parsed correctly, rebuild', () => expect(rebuild).to.be.equal(check));
+      it('Two suggestions around non word character are parsed correctly, reWrap', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';

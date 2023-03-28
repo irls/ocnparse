@@ -188,6 +188,32 @@ var parser = {
         }
       }
     });
+    let checkForCompleteSuggestion = /(<sg data-suggestion(=\"[^\"]*\")>)(.*?)(<\/sg>)(.*?)$/img;
+    tokens.forEach((token, i) => {
+      if (token.before) {
+        checkForCompleteSuggestion.lastIndex = 0;
+        let suggestionMatch = checkForCompleteSuggestion.exec(token.before);
+        if (suggestionMatch && suggestionMatch[1] && suggestionMatch[3] && suggestionMatch[4]) {// suggestion inside suggestion, second suggestion on non word character
+          token.before = '';
+          let addToken = {
+            before: suggestionMatch[1],
+            prefix: '',
+            word: suggestionMatch[3],
+            suffix: '',
+            after: suggestionMatch[4],
+          };
+          if (suggestionMatch[5]) {
+            let tokenBefore = suggestionMatch[5];
+            if (/<\/sg>/.test(tokenBefore)) {
+              addToken.after+= tokenBefore;
+              tokenBefore = '';
+            }
+            token.before = tokenBefore;
+          }
+          tokens.splice(i, 0, addToken);
+        }
+      }
+    });
     let checkHtml = /<\/?\w+[^>]*>/;
     tokens.forEach((token, i) => {
       let hasSuggestion = false;
@@ -1491,6 +1517,8 @@ function cleanTokens(tokens) {
       (tt[1].length > 0 || tt[3].length > 0)
       && !token.word.match(/\&\#?\w+;\s*$/)
     ) {
+      //let hasSuggestion = token.before && /<sg/.test(token.before) && token.after && /<\/sg>/.test(token.after);
+      //if (!hasSuggestion) {// this check will create token for non word character inside suggestion
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
       token.suffix = tt[3] + token.suffix;
@@ -1509,6 +1537,7 @@ function cleanTokens(tokens) {
       //console.log('Remove punctuation again because my regex sucks',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
       if (!token.word.length) moveEmptyToken(tokens, index);
       //console.log('after checkEmptyToken',`"${token.suffix}" "${token.word}" "${token.prefix}"`)
+      //}
     }
 
     // If the entire word appears to be an html entity, push it back into prefix
