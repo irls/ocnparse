@@ -215,6 +215,7 @@ var parser = {
       }
     });
     let checkHtml = /<\/?\w+[^>]*>/;
+    let testForSuggestionAfter = new RegExp(`<\\/sg>[\\s${all_punctuation_and_brackets}]*$`, 'i');
     tokens.forEach((token, i) => {
       let hasSuggestion = false;
       if (token.before) {
@@ -272,7 +273,7 @@ var parser = {
               }
               token.word += next.before + next.prefix + next.word;
               token.suffix += next.suffix;
-              if (token.after || /<\/sg>\s*$/i.test(next.after) || (/<\/sg>.*?(<\/\w+>|<br\s*\/?>).*?$/.test(next.after) && openedSuggestions === 0)) {
+              if (token.after || testForSuggestionAfter.test(next.after) || (/<\/sg>.*?(<\/\w+>|<br\s*\/?>).*?$/.test(next.after) && openedSuggestions === 0)) {
                 let checkDoubleSg = /([ \r\n]*<\/sg>[ \r\n]*)(<\/sg>[ \r\n]*)/.exec(next.after);// double closing sg tag
                 if (!token.after && checkDoubleSg && checkDoubleSg[1] && checkDoubleSg[2]) {
                   token.word+= checkDoubleSg[1];
@@ -1702,7 +1703,7 @@ function moveEmptyToken(tokens, index) {
     // move empty token back
     destToken = tokens[index - 1];
     if (destToken && (!destToken.info || destToken.info.type !== "html")) {
-      if (destToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/sup>/.test(destToken.after))) {
+      if (destToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/(sup|sg)>/.test(destToken.after))) {
         destToken.after += token.prefix + token.word + token.suffix;
       } else {
         destToken.suffix += token.prefix + token.word + token.suffix;
@@ -2014,6 +2015,14 @@ function mergeAddedWords(tokens) {
     }
   });
   return tokens;
+}
+
+function logTokens(tokens, line = '+', header = 'TOKENS') {
+  console.log(line.repeat(20) + header + line.repeat(20));
+  tokens.forEach(token => {
+    console.log(JSON.stringify(token));
+  });
+  console.log(line.repeat(18) + '//' + header + line.repeat(20));
 }
 
 module.exports = parser;
