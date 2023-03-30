@@ -311,7 +311,7 @@ describe('Ocean Parser Behaviour Tests', function() {
   });
   describe('Dot and HTML tags', function() {
     let str = '.<i>begin</i><sg data-suggestion=\"Chapter one\">I</sg>.<br> Down the Rabbit-Hole<i>end</i>.';
-    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><w data-sugg="Chapter one">I.</w></sg><br> <w>Down </w><w>the </w><w>Rabbit-Hole<i>end</i>.</w>';
+    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><w data-sugg="Chapter one">I</w></sg>.<br> <w>Down </w><w>the </w><w>Rabbit-Hole<i>end</i>.</w>';
     let tokenized = parser.tokenize(str, 'w');
     let rebuild = parser.rebuild(tokenized, 'w');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
@@ -320,7 +320,7 @@ describe('Ocean Parser Behaviour Tests', function() {
   });
   describe('Suggestion and HTML tags', function() {
     let str = '.<i>begin</i><sg data-suggestion="Chapter one"><i>I</i></sg>.<br> Down the Rabbit-Hole<i>end</i>.';
-    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><i><w data-sugg="Chapter one">I.</w></i></sg><br> <w>Down </w><w>the </w><w>Rabbit-Hole<i>end</i>.</w>';
+    let check = '.<i><w>begin</w></i><sg data-suggestion="Chapter one"><i><w data-sugg="Chapter one">I</w></i></sg>.<br> <w>Down </w><w>the </w><w>Rabbit-Hole<i>end</i>.</w>';
     let tokenized = parser.tokenize(str, 'w');
     let rebuild = parser.rebuild(tokenized, '');//clean w
     let reWrap = parser.reWrap(rebuild, 'w');
@@ -487,6 +487,42 @@ describe('Ocean Parser Behaviour Tests', function() {
       let reWrap = parser.reWrap(rebuilt, 'w');
       it(`<br> after suggestion does not break HTML, rebuild`, () => expect(rebuilt).to.be.equal(check));
       it(`<br> after suggestion does not break HTML, rewrap`, () => expect(reWrap).to.be.equal(check));
+    });
+    describe('Suggestion inside suggestion', () => {
+      let text = `<w id="9Op7G">one </w><sg data-suggestion=""><w id="agnqz">two </w><sg data-suggestion=""><w id="aIlJs" data-sugg="">three</w></sg></sg> <w id="bak2l">four</w>`;
+      let check = `<w id="9Op7G">one </w><sg data-suggestion=""><w id="agnqz" data-sugg="">two <sg data-suggestion="">three</sg></w></sg> <w id="bak2l">four</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Suggestion inside suggestion is parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Suggestion inside suggestion is parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('Two suggestion in a row', () => {
+      let text = `<w id="6iJcN">some </w><w id="6kWQF">text </w><sg data-suggestion="">[</sg><sg data-suggestion=""><w id="6naux">to </w><w id="6po8p">the </w><w id="6rBMh">girl]</w></sg> <w id="6tPq9">and</w>`;
+      let check = `<w id="6iJcN">some </w><w id="6kWQF">text </w><sg data-suggestion="">[</sg><sg data-suggestion=""><w id="6naux" data-sugg="">to the girl]</w></sg> <w id="6tPq9">and</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Two suggestions in a row are parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Two suggestions in a row are parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('Two suggestions around non word chanracter', () => {
+      let text = `<w id="TWBL">one </w><w id="13gI3">two </w><sg data-suggestion=""><w id="1cAOl">three </w><sg data-suggestion="">?</sg></sg> <w id="1lUUD">four</w>`;
+      let check = `<w id="TWBL">one </w><w id="13gI3">two </w><sg data-suggestion=""><w id="1cAOl" data-sugg="">three <sg data-suggestion="">?</sg></w></sg> <w id="1lUUD">four</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuild = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuild, 'w');
+      it('Two suggestions around non word character are parsed correctly, rebuild', () => expect(rebuild).to.be.equal(check));
+      it('Two suggestions around non word character are parsed correctly, reWrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('Suggestion on half of token with non word character', () => {
+      let text = `<w id="2vB4k">of </w><w id="2xlsL">Beni </w><w id="2z5Rc">Hassan </w><w id="2AQfD">(block </w><sg data-suggestion=""><w id="2CAE4">2.</w><w id="2El2v">16</w></sg><w id="2El2v">), </w><w id="2G5qW">which </w><w id="2HPPn">it </w>`;
+      let check = `<w id="2vB4k">of </w><w id="2xlsL">Beni </w><w id="2z5Rc">Hassan </w><w id="2AQfD">(block </w><sg data-suggestion=""><w id="2CAE4" data-sugg="">2.16</w></sg>), <w id="2G5qW">which </w><w id="2HPPn">it </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuild = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuild, 'w');
+      it('Suggestion on half of token with non word character is parsed correctly, rebuild', () => expect(rebuild).to.be.equal(check));
+      it('Suggestion on half of token with non word character is parsed correctly, reWrap', () => expect(reWrap).to.be.equal(check));
     });
   });
   describe('Double rebuild', function() {

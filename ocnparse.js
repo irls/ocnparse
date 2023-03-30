@@ -169,11 +169,13 @@ var parser = {
           } while (next);
         }
       }
-      if (
-        token.before &&
-        /[^\w]*sg[^\w]*/i.test(token.before) &&
-        !/[^\w]*\/sg[^\w]*/i.test(token.before)
-      ) {
+      let hasSuggestion = false;
+      if (token.before) {
+        let openSg = token.before.lastIndexOf('<sg');
+        let closeSg = token.before.lastIndexOf('<\/sg>');
+        hasSuggestion = openSg !== -1 && openSg > closeSg;
+      }
+      if (hasSuggestion) {
         let suggestion = /data-suggestion(="([^"]*)")?/gi.exec(token.before);
         if (suggestion) {
           suggestion = suggestion[1] && suggestion[2] ? suggestion[2] : "";
@@ -186,14 +188,43 @@ var parser = {
         }
       }
     });
-    let checkHtml = /<\/?\w+[^>]*>/;
+    let checkForCompleteSuggestion = /(<sg data-suggestion(=\"[^\"]*\")>)(.*?)(<\/sg>)(.*?)$/img;
     tokens.forEach((token, i) => {
-      if (
-        token.before &&
-        /[^\w]*sg[^\w]*/i.test(token.before) &&
-        (!token.after || !/\/sg[^\w]*/i.test(token.after)) &&
-        !/[^\w]*\/sg[^\w]*/i.test(token.before)
-      ) {
+      if (token.before) {
+        checkForCompleteSuggestion.lastIndex = 0;
+        let suggestionMatch = checkForCompleteSuggestion.exec(token.before);
+        if (suggestionMatch && suggestionMatch[1] && suggestionMatch[3] && suggestionMatch[4]) {// suggestion inside suggestion, second suggestion on non word character
+          token.before = '';
+          let addToken = {
+            before: suggestionMatch[1],
+            prefix: '',
+            word: suggestionMatch[3],
+            suffix: '',
+            after: suggestionMatch[4],
+          };
+          if (suggestionMatch[5]) {
+            let tokenBefore = suggestionMatch[5];
+            if (/<\/sg>/.test(tokenBefore)) {
+              addToken.after+= tokenBefore;
+              tokenBefore = '';
+            }
+            token.before = tokenBefore;
+          }
+          tokens.splice(i, 0, addToken);
+        }
+      }
+    });
+    let checkHtml = /<\/?\w+[^>]*>/;
+    let testForSuggestionAfter = new RegExp(`<\\/sg>[\\s${all_punctuation_and_brackets}]*$`, 'i');
+    tokens.forEach((token, i) => {
+      let hasSuggestion = false;
+      if (token.before) {
+        let openSg = token.before.lastIndexOf('<sg');
+        let closeSg = token.before.lastIndexOf('<\/sg');
+        let hasCloseSuggestion = token.after && /\/sg[^\w]*/i.test(token.after);
+        hasSuggestion = openSg !== -1 && openSg > closeSg && !hasCloseSuggestion;
+      }
+      if (hasSuggestion) {
         let openedSuggestions = 0;// for checking opened suggestions inside suggestions
         token.suffix = token.suffix || "";
         token.after = token.after || "";
@@ -242,8 +273,14 @@ var parser = {
               }
               token.word += next.before + next.prefix + next.word;
               token.suffix += next.suffix;
-              if (token.after || /<\/sg>\s*$/i.test(next.after) || (/<\/sg>.*?(<\/\w+>|<br\s*\/?>).*?$/.test(next.after) && openedSuggestions === 0)) {
-                token.after += next.after;
+              if (token.after || testForSuggestionAfter.test(next.after) || (/<\/sg>.*?(<\/\w+>|<br\s*\/?>).*?$/.test(next.after) && openedSuggestions === 0)) {
+                let checkDoubleSg = /([ \r\n]*<\/sg>[ \r\n]*)(<\/sg>[ \r\n]*)/.exec(next.after);// double closing sg tag
+                if (!token.after && checkDoubleSg && checkDoubleSg[1] && checkDoubleSg[2]) {
+                  token.word+= checkDoubleSg[1];
+                  token.after = (token.after || "") + checkDoubleSg[2];
+                } else {
+                  token.after += next.after;
+                }
               } else {
                 token.word+= next.after;
               }
@@ -263,9 +300,13 @@ var parser = {
               }
             } else {
             }
-            if (next.after && /<\/sg/i.test(next.after)) {
-              --openedSuggestions;
-            }
+              if (next.after && /<\/sg/i.test(next.after)) {
+                openedSuggestions-= (next.after.match(/<\/sg/img) || []).length;
+                //--openedSuggestions;
+                if (openedSuggestions < 0) {// double closing sg tag, all suggestions closed
+                  break;
+                }
+              }
           }
         } while (next);
       }
@@ -1477,6 +1518,8 @@ function cleanTokens(tokens) {
       (tt[1].length > 0 || tt[3].length > 0)
       && !token.word.match(/\&\#?\w+;\s*$/)
     ) {
+      //let hasSuggestion = token.before && /<sg/.test(token.before) && token.after && /<\/sg>/.test(token.after);
+      //if (!hasSuggestion) {// this check will create token for non word character inside suggestion
       token.prefix = token.prefix + tt[1];
       token.word = tt[2];
       token.suffix = tt[3] + token.suffix;
@@ -1495,6 +1538,7 @@ function cleanTokens(tokens) {
       //console.log('Remove punctuation again because my regex sucks',`"${token.suffix}" "${token.word}" "${token.prefix}"`,'\n',tt)
       if (!token.word.length) moveEmptyToken(tokens, index);
       //console.log('after checkEmptyToken',`"${token.suffix}" "${token.word}" "${token.prefix}"`)
+      //}
     }
 
     // If the entire word appears to be an html entity, push it back into prefix
@@ -1659,7 +1703,7 @@ function moveEmptyToken(tokens, index) {
     // move empty token back
     destToken = tokens[index - 1];
     if (destToken && (!destToken.info || destToken.info.type !== "html")) {
-      if (destToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/sup>/.test(destToken.after))) {
+      if (destToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/(sup|sg)>/.test(destToken.after))) {
         destToken.after += token.prefix + token.word + token.suffix;
       } else {
         destToken.suffix += token.prefix + token.word + token.suffix;
@@ -1971,6 +2015,14 @@ function mergeAddedWords(tokens) {
     }
   });
   return tokens;
+}
+
+function logTokens(tokens, line = '+', header = 'TOKENS') {
+  console.log(line.repeat(20) + header + line.repeat(20));
+  tokens.forEach(token => {
+    console.log(JSON.stringify(token));
+  });
+  console.log(line.repeat(18) + '//' + header + line.repeat(20));
 }
 
 module.exports = parser;
