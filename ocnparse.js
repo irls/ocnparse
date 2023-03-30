@@ -596,6 +596,50 @@ var parser = {
     }
   });
   tokens = cleanTokens(tokens);
+  let openedSuggestions = 0;
+  let suggestionTexts = [];
+  let getSg = /<(\/?)sg([^>]*?data-suggestion="([^"]*)")?[^>]*>/img;
+  tokens.forEach((token, i) => {
+    let openSgCountBefore = token.before ? (token.before.match(/<sg/img) || []).length : 0;
+    let closeSgCountBefore = token.before ? (token.before.match(/<\/sg/img) || []).length : 0;
+    let openSgCountAfter = token.after ? (token.after.match(/<sg/img) || []).length : 0;
+    let closeSgCountAfter = token.after ? (token.after.match(/<\/sg/img) || []).length : 0;
+    openedSuggestions+= openSgCountBefore - closeSgCountBefore;
+    if (token.before) {
+      let sgMatch = null;
+      while ((sgMatch = getSg.exec(token.before))) {
+        //match[1] - has close tag
+        //match[3] - suggestion text
+        //console.log(sgMatch);
+        if (!sgMatch[1]) {
+          suggestionTexts.push(sgMatch[3] ? sgMatch[3] : '');
+        } else {
+          suggestionTexts.pop();
+        }
+      }
+    }
+    if (openedSuggestions > 0) {
+      token.info = token.info || {data: {}};
+      token.info.data = token.info.data || {};
+      if (suggestionTexts.length > 0) {
+        token.info.data.sugg = suggestionTexts[suggestionTexts.length - 1];
+      } else {
+        token.info.data.sugg = '';
+      }
+    }
+    openedSuggestions+= openSgCountAfter - closeSgCountAfter;
+    if (token.after) {
+      let sgMatch = null;
+      while ((sgMatch = getSg.exec(token.after))) {
+        //console.log(sgMatch);
+        if (!sgMatch[1]) {
+          suggestionTexts.push(sgMatch[3] ? sgMatch[3] : "");
+        } else {
+          suggestionTexts.pop();
+        }
+      }
+    }
+  });
     
     if (addIds) {
       let maxId = tokens.reduce((acc, token) => {
@@ -1741,11 +1785,12 @@ function moveEmptyToken(tokens, index) {
           destToken.info.class,
           token.info.class
         );
-      if (token.info.data)
+      if (token.info.data) {
         destToken.info.data = mergeObjects(
           destToken.info.data,
           token.info.data
         );
+      }
     }
   }
   // clear empty token

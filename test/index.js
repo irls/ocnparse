@@ -524,6 +524,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Suggestion on half of token with non word character is parsed correctly, rebuild', () => expect(rebuild).to.be.equal(check));
       it('Suggestion on half of token with non word character is parsed correctly, reWrap', () => expect(reWrap).to.be.equal(check));
     });
+    describe('Two empty suggestions in a row', () => {
+      let text = `<w id="2DaM9">one </w><w id="30u1T">two</w><sg data-suggestion=""><w id="30u1T"> </w><sg data-suggestion=""><w id="3nNhD" data-sugg="">three</w></sg> <w id="3L6xn">four</w></sg><w id="3L6xn"> </w><w id="48pN7">five</w>`;
+      let check = `<w id="2DaM9">one </w><w id="30u1T">two</w><sg data-suggestion=""> <sg data-suggestion=""><w id="3nNhD" data-sugg="">three</w></sg> <w id="3L6xn" data-sugg="">four</w></sg> <w id="48pN7">five</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Two empty suggestions in a row are parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Two empty suggestions in a row are parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
