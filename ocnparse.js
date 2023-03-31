@@ -78,11 +78,7 @@ var parser = {
   // pass in a token list to re-calculate each token
   tokenize: function(str, tag = "", addIds = false) {
     let tokens = splitTokens(str, tag);
-    //console.log(`========================INIT==========================`);
-    //tokens.forEach(t => {
-      //console.log(JSON.stringify(t));
-    //});
-    //console.log(`======================//INIT==========================`);
+    //logTokens(tokens, `=`, `INIT`);
     tokens = mergeAddedWords(tokens);
     let open_tag = [];
     tokens.map((token, i) => {
@@ -274,7 +270,7 @@ var parser = {
               token.word += next.before + next.prefix + next.word;
               token.suffix += next.suffix;
               if (token.after || testForSuggestionAfter.test(next.after) || (/<\/sg>.*?(<\/\w+>|<br\s*\/?>).*?$/.test(next.after) && openedSuggestions === 0)) {
-                let checkDoubleSg = /([ \r\n]*<\/sg>[ \r\n]*)(<\/sg>[ \r\n]*)/.exec(next.after);// double closing sg tag
+                let checkDoubleSg = /([ \r\n]*<\/sg>[ \r\n]*)(<\/sg>[\s\S]*)/.exec(next.after);// double closing sg tag
                 if (!token.after && checkDoubleSg && checkDoubleSg[1] && checkDoubleSg[2]) {
                   token.word+= checkDoubleSg[1];
                   token.after = (token.after || "") + checkDoubleSg[2];
@@ -596,6 +592,50 @@ var parser = {
     }
   });
   tokens = cleanTokens(tokens);
+  let openedSuggestions = 0;
+  let suggestionTexts = [];
+  let getSg = /<(\/?)sg([^>]*?data-suggestion="([^"]*)")?[^>]*>/img;
+  tokens.forEach((token, i) => {
+    let openSgCountBefore = token.before ? (token.before.match(/<sg/img) || []).length : 0;
+    let closeSgCountBefore = token.before ? (token.before.match(/<\/sg/img) || []).length : 0;
+    let openSgCountAfter = token.after ? (token.after.match(/<sg/img) || []).length : 0;
+    let closeSgCountAfter = token.after ? (token.after.match(/<\/sg/img) || []).length : 0;
+    openedSuggestions+= openSgCountBefore - closeSgCountBefore;
+    if (token.before) {
+      let sgMatch = null;
+      while ((sgMatch = getSg.exec(token.before))) {
+        //match[1] - has close tag
+        //match[3] - suggestion text
+        //console.log(sgMatch);
+        if (!sgMatch[1]) {
+          suggestionTexts.push(sgMatch[3] ? sgMatch[3] : '');
+        } else {
+          suggestionTexts.pop();
+        }
+      }
+    }
+    if (openedSuggestions > 0) {
+      token.info = token.info || {data: {}};
+      token.info.data = token.info.data || {};
+      if (suggestionTexts.length > 0) {
+        token.info.data.sugg = suggestionTexts[suggestionTexts.length - 1];
+      } else {
+        token.info.data.sugg = '';
+      }
+    }
+    openedSuggestions+= openSgCountAfter - closeSgCountAfter;
+    if (token.after) {
+      let sgMatch = null;
+      while ((sgMatch = getSg.exec(token.after))) {
+        //console.log(sgMatch);
+        if (!sgMatch[1]) {
+          suggestionTexts.push(sgMatch[3] ? sgMatch[3] : "");
+        } else {
+          suggestionTexts.pop();
+        }
+      }
+    }
+  });
     
     if (addIds) {
       let maxId = tokens.reduce((acc, token) => {
@@ -1741,11 +1781,12 @@ function moveEmptyToken(tokens, index) {
           destToken.info.class,
           token.info.class
         );
-      if (token.info.data)
+      if (token.info.data) {
         destToken.info.data = mergeObjects(
           destToken.info.data,
           token.info.data
         );
+      }
     }
   }
   // clear empty token
