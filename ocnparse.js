@@ -78,11 +78,7 @@ var parser = {
   // pass in a token list to re-calculate each token
   tokenize: function(str, tag = "", addIds = false) {
     let tokens = splitTokens(str, tag);
-    //console.log(`========================INIT==========================`);
-    //tokens.forEach(t => {
-      //console.log(JSON.stringify(t));
-    //});
-    //console.log(`======================//INIT==========================`);
+    //logTokens(tokens, `=`, `INIT`);
     tokens = mergeAddedWords(tokens);
     let open_tag = [];
     tokens.map((token, i) => {
@@ -274,7 +270,7 @@ var parser = {
               token.word += next.before + next.prefix + next.word;
               token.suffix += next.suffix;
               if (token.after || testForSuggestionAfter.test(next.after) || (/<\/sg>.*?(<\/\w+>|<br\s*\/?>).*?$/.test(next.after) && openedSuggestions === 0)) {
-                let checkDoubleSg = /([ \r\n]*<\/sg>[ \r\n]*)(<\/sg>[ \r\n]*)/.exec(next.after);// double closing sg tag
+                let checkDoubleSg = /([ \r\n]*<\/sg>[ \r\n]*)(<\/sg>[\s\S]*)/.exec(next.after);// double closing sg tag
                 if (!token.after && checkDoubleSg && checkDoubleSg[1] && checkDoubleSg[2]) {
                   token.word+= checkDoubleSg[1];
                   token.after = (token.after || "") + checkDoubleSg[2];
