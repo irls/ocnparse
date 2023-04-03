@@ -263,6 +263,10 @@ var parser = {
               next.prefix = next.prefix || "";
               next.suffix = next.suffix || "";
               next.after = next.after || "";
+              if (token.suffix) {
+                token.word+= token.suffix;
+                token.suffix = "";
+              }
               if (token.after) {
                 token.word+= token.after;
                 token.after = "";
