@@ -533,6 +533,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Two empty suggestions in a row are parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('Two empty suggestions in a row are parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
     });
+    describe('Suggestion aroud suggestion with space', () => {
+      let text = `<w id="JKqtO">So </w><w id="JOCCQ">she </w><sg data-suggestion=""><w id="JSOLS">was </w><sg data-suggestion=""><w id="JX0UU" data-sugg="">considering </w></sg><w id="K1d3W">in</w></sg><w id="K1d3W"> </w><w id="K5pcY">her </w><w id="K9Bm0">own </w><w id="KdNv2">mind </w>`;
+      let check = `<w id="JKqtO">So </w><w id="JOCCQ">she </w><sg data-suggestion=""><w id="JSOLS" data-sugg="">was <sg data-suggestion="">considering </sg>in</w></sg> <w id="K5pcY">her </w><w id="K9Bm0">own </w><w id="KdNv2">mind </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Suggestion aroud suggestion with space are parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Suggestion aroud suggestion with space are parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
