@@ -125,6 +125,16 @@ var parser = {
           token.suffix = token.suffix.replace(slashMatch[1], '');
         }
       }
+      if (token.before && /<\/sg>/i.test(token.before) && !/<sg/i.test(token.before)) {// close suggestion to previous token
+        let match = /^([\s\S]*?)(<\/sg>\s*)([\s\S]*)$/img.exec(token.before);
+        if (match && match[2]) {
+          let before = tokens[i - 1];
+          if (before) {
+            before.after = (before.after || "") + (match[1] || "") + match[2];
+            token.before = (match[3] || "");
+          }
+        }
+      }
     });
     tokens.forEach((token, i) => {
       if (
@@ -1042,11 +1052,7 @@ function splitTokens(tokens, tag = "") {
   if (typeof tokens === "string" && tag)
     tokens = splitWrappedString(tokens, tag);
   else if (typeof tokens === "string") tokens = splitUnWrappedString(tokens);
-  //console.log(`=======================splitWrappedString=====================`);
-  //tokens.forEach(t => {
-    //console.log(JSON.stringify(t));
-  //});
-  //console.log(`=====================//splitWrappedString=====================`);
+  //logTokens(tokens, `=`, `splitWrappedString`);
 
   // Initial splitting of all text blocks into tokens
   let delimiters = [
@@ -1731,6 +1737,10 @@ function moveEmptyToken(tokens, index) {
     // move empty token forward
     destToken = tokens[index + 1];
     if (destToken && (!destToken.info || destToken.info.type !== "html")) {
+      if (token.after && /<\/\w+[^>]*>/.test(token.after) && !/<\w+[^>]*>/.test(token.after)) {// if token has close html tag move it to dest before
+        destToken.before = token.after + (destToken.before || "");
+        token.after = "";
+      }
       if (destToken.before) {
         destToken.before =
           token.prefix + token.word + token.suffix + destToken.before;

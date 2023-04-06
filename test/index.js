@@ -542,6 +542,15 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Suggestion aroud suggestion with space are parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('Suggestion aroud suggestion with space are parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
     });
+    describe('Suggestion and italic', () => {
+      let text = `<w id="7XQJv">THE </w><w id="84vF9">GENTLEMAN </w>[<sg data-suggestion=""><i><w id="8baAN">to </w><w id="8hPwr">the </w><w id="8ous5">girl</w></i>]</sg> <w id="8v9nJ">Come,</w>`;
+      let check = `<w id="7XQJv">THE </w><w id="84vF9">GENTLEMAN </w>[<sg data-suggestion=""><i><w id="8baAN" data-sugg="">to the girl</w></i>]</sg> <w id="8v9nJ">Come,</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Suggestion aroud italic is parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Suggestion aroud italic is parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
