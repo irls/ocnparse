@@ -1335,6 +1335,26 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     it ('Close tag followed by open tag is parsed correctly, rebuild', () => expect(rebuilt).to.be.equal(check));
     it('Close tag followed by open tag is parsed correctly, reWrap', () => expect(reWrap).to.be.equal(check));
   });
+  describe('Characters < and > with words', () => {
+    describe('Character > before footnote', () => {
+      let text = `<w id="9GpBI">There </w><w id="a0ooD">&lt;upon&gt;<sup data-idx="1">1</sup> </w><w id="aknby">this </w><w id="aElYt">The </w><w id="aYkLo">&lt;Cricket&gt; </w><w id="bijyj">on</w>`;
+      let check = `<w id="9GpBI">There </w><w id="a0ooD">&lt;upon&gt;</w><sup data-idx="1"><w data-sugg="">1</w></sup> <w id="aknby">this </w><w id="aElYt">The </w><w id="aYkLo">&lt;Cricket&gt; </w><w id="bijyj">on</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Character > before footnote stays with word, rebuild', () => expect(rebuilt).to.be.equal(check));
+      it('Character > before footnote stays with word, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('Characters < and > and suggestion', () => {
+      let text = `<w id="ctzMk">There </w><w id="cAeHY">&lt;upon&gt; </w><w id="cGTDC">this </w><w id="cNyzg">The </w><w id="cUduU" data-sugg=""><sg data-suggestion="">&lt;Cricket&gt;</sg> </w><w id="d0Sqy">on</w>`;
+      let check = `<w id="ctzMk">There </w><w id="cAeHY">&lt;upon&gt; </w><w id="cGTDC">this </w><w id="cNyzg">The </w><sg data-suggestion=""><w id="cUduU" data-sugg="">&lt;Cricket&gt;</w></sg> <w id="d0Sqy">on</w>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      let reWrap = parser.reWrap(rebuilt, `w`);
+      it(`Character > inside suggestion parsed correctly, rebuild`, () => expect(rebuilt).to.be.equal(check));
+      it(`Character > inside suggestion parsed correctly, rewrap`, () => expect(reWrap).to.be.equal(check));
+    });
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
