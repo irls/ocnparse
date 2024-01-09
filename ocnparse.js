@@ -100,11 +100,11 @@ var parser = {
           //
         //}
       }
-      if (token.suffix) {
+      if (token.suffix && !token.after) {
         let entity_match = /\&\#?\w+\;$/.exec(token.suffix);
         if (entity_match && entity_match[0]) {
           let next = tokens[i + 1];
-          if (next && !(next.prefix || '' + next.word || '').match(/^\s/)) {
+          if (next && !(next.prefix || '' + next.word || '').match(/^\s/) && !next.before) {
             next.prefix = entity_match[0] + (next.prefix || '');
             token.suffix = token.suffix.replace(entity_match[0], '');
           }
