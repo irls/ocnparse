@@ -9,7 +9,7 @@ var bterm = require("bahai-term-phonemes");
 let html_open_regex = "<((?!(u>|u |\\/|b>|b |i>|i )))[^><]+>",
   html_close_regex = "<\\/((?!(u>|\\W|b>|(?<!l)i>)).)+>";
 // arrays with different character types to control
-let control_character_codes = [8207, 8206, 8204];
+let control_character_codes = [8207, 8206, 8204, 173];
 let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—", "–"];
 let quotes_open = [`“`, `‘`, `«`];
 let quotes_close = [`”`, `’`, `»`];

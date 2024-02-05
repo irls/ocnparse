@@ -1277,14 +1277,25 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     it('Text added before word without space or punctuation does not create new token, rebuilt', () => expect(rebuilt).to.be.equal(check));
     it('Text added before word without space or punctuation does not create new token, rewrap', () => expect(reWrap).to.be.equal(check));
   });
-  describe('Keep zwnj character', () => {
-    let text = `In the mid‌dle, after:‌ and ‌before`;
-    let check = `<w>In </w><w>the </w><w>mid‌dle, </w><w>after:‌ </w><w>and </w><w>‌before</w>`;
-    let tokens = parser.tokenize(text, 'w');
-    let rebuilt = parser.rebuild(tokens, 'w');
-    let reWrap = parser.reWrap(rebuilt, 'w');
-    it('Character zwnj does not create new token, rebuilt', () => expect(rebuilt).to.be.equal(check));
-    it('Character zwnj does not create new token, rewrap', () => expect(reWrap).to.be.equal(check));
+  describe('Control characters', () => {
+    describe('Keep zwnj character', () => {
+      let text = `In the mid‌dle, after:‌ and ‌before`;
+      let check = `<w>In </w><w>the </w><w>mid‌dle, </w><w>after:‌ </w><w>and </w><w>‌before</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it('Character zwnj does not create new token, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Character zwnj does not create new token, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('Keep sofy hyphen', () => {
+      let text = `قَالَ ­﴿هولمز­﴾ وَهُوَ`;
+      let check = `<w>قَالَ ­﴿</w><w>هولمز­</w><w>﴾ وَهُوَ</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it ('Soft hyphen does not create token, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it ('Soft hyphen does not create tiken, reWrap', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Parenthesis and quote', () => {
     describe('At the beginning', () => {
