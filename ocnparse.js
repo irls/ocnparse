@@ -14,8 +14,8 @@ let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "�
 let quotes_open = [`“`, `‘`, `«`];
 let quotes_close = [`”`, `’`, `»`];
 let quotes_bidirectional = [`"`, `'`];
-let brackets_open = ["(", "[", "{", "﴾"];
-let brackets_close = [")", "]", "}", "﴿"];
+let brackets_open = ["(", "[", "{", "﴿"];
+let brackets_close = [")", "]", "}", "﴾"];
 
 //regular expressions for checks
 let punctuation_string = "";
@@ -327,6 +327,7 @@ var parser = {
         if (nextToken) {
           let split = token.suffix.split(bracketsOpenRegex);
           if (Array.isArray(split) && split[1]) {
+            console.log(`move "${token.suffix}" from ${i} to ${i + 1}`);
             token.suffix = split.shift();
             if (nextToken.before) {
               nextToken.before = 
