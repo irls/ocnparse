@@ -966,7 +966,7 @@ Down </w><w id="hwJJn" data-map="290,95">the </w><w id="hOdFG" data-map="385,239
   
   describe('Arabic punctuation', () => {
     let str_with_brackets = 'وت المخلصين ﴿ وَ اَيَّامَا تَدْعُوا فَلَهُ الاَسْمَاءُ الحُسْنَی ﴾ فی قلوب العارفين و';
-    let str_with_brackets_check = '<w>وت </w><w>المخلصين ﴿ </w><w>وَ </w><w>اَيَّامَا </w><w>تَدْعُوا </w><w>فَلَهُ </w><w>الاَسْمَاءُ </w><w>الحُسْنَی </w><w>﴾ فی </w><w>قلوب </w><w>العارفين </w><w>و</w>';
+    let str_with_brackets_check = '<w>وت </w><w>المخلصين </w><w>﴿ وَ </w><w>اَيَّامَا </w><w>تَدْعُوا </w><w>فَلَهُ </w><w>الاَسْمَاءُ </w><w>الحُسْنَی ﴾ </w><w>فی </w><w>قلوب </w><w>العارفين </w><w>و</w>';
     let str_question = 'چه ميکنی ؟ گفت ليلی';
     let str_question_check = '<w>چه </w><w>ميکنی ؟ </w><w>گفت </w><w>ليلی</w>';
     let str_quotes = `” کفر کافر را و دين ديندار را	ذرّه دردت دل عطّار را“`
@@ -1289,7 +1289,7 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     });
     describe('Keep sofy hyphen', () => {
       let text = `قَالَ ­﴿هولمز­﴾ وَهُوَ`;
-      let check = `<w>قَالَ ­﴿</w><w>هولمز­</w><w>﴾ وَهُوَ</w>`;
+      let check = `<w>قَالَ ­</w><w>﴿هولمز­﴾ </w><w>وَهُوَ</w>`;
       let tokens = parser.tokenize(text, 'w');
       let rebuilt = parser.rebuild(tokens, 'w');
       let reWrap = parser.reWrap(rebuilt, 'w');
