@@ -1287,7 +1287,7 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       it('Character zwnj does not create new token, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('Character zwnj does not create new token, rewrap', () => expect(reWrap).to.be.equal(check));
     });
-    describe('Keep sofy hyphen', () => {
+    describe('Keep soft hyphen', () => {
       let text = `قَالَ ­﴿هولمز­﴾ وَهُوَ`;
       let check = `<w>قَالَ ­</w><w>﴿هولمز­﴾ </w><w>وَهُوَ</w>`;
       let tokens = parser.tokenize(text, 'w');
@@ -1295,6 +1295,15 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       let reWrap = parser.reWrap(rebuilt, 'w');
       it ('Soft hyphen does not create token, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it ('Soft hyphen does not create tiken, reWrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe('Keep soft hyphen at the beginning', () => {
+      let text = ``;
+      let check = ``;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it ('Soft hyphen at the beginning does not create token, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it ('Soft hyphen at the beginning does not create tiken, reWrap', () => expect(reWrap).to.be.equal(check));
     });
   });
   describe('Parenthesis and quote', () => {

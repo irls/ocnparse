@@ -327,7 +327,6 @@ var parser = {
         if (nextToken) {
           let split = token.suffix.split(bracketsOpenRegex);
           if (Array.isArray(split) && split[1]) {
-            console.log(`move "${token.suffix}" from ${i} to ${i + 1}`);
             token.suffix = split.shift();
             if (nextToken.before) {
               nextToken.before = 
@@ -1660,6 +1659,18 @@ function packEmptyTokens(tokens) {
           prevToken.after = (prevToken.after || "") + (token.after || "");
         }
         tokens.splice(i, 1); //delete(tokens[i])
+      } else if(tokens[i + 1] && !openUnderlineRegexWord.test(token.word) && 
+        !openUnderlineRegexWord.test(token.before)) {
+        let nextToken = tokens[i + 1];
+        let token = tokens[i];
+        let wordAppend = (token.prefix || "") + token.word + (token.suffix || "") + (token.after || "");
+        if (nextToken.before) {
+          nextToken.before = (token.before || "") + wordAppend + nextToken.before;
+        } else {
+          nextToken.prefix = wordAppend + nextToken.prefix;
+          nextToken.before = token.before || "";
+        }
+        tokens.splice(i, 1);
       }
     } else {
       htmlOpenReg = new RegExp(html_open_regex, "img");
