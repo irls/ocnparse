@@ -1294,7 +1294,7 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       let rebuilt = parser.rebuild(tokens, 'w');
       let reWrap = parser.reWrap(rebuilt, 'w');
       it ('Soft hyphen does not create token, rebuilt', () => expect(rebuilt).to.be.equal(check));
-      it ('Soft hyphen does not create tiken, reWrap', () => expect(reWrap).to.be.equal(check));
+      it ('Soft hyphen does not create token, reWrap', () => expect(reWrap).to.be.equal(check));
     });
     describe('Keep soft hyphen at the beginning', () => {
       let text = `<w>­﴾قَالَ </w><w>هولمز­ </w><w>وَهُوَ﴿</w>`;
@@ -1303,7 +1303,7 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       let rebuilt = parser.rebuild(tokens, 'w');
       let reWrap = parser.reWrap(rebuilt, 'w');
       it ('Soft hyphen at the beginning does not create token, rebuilt', () => expect(rebuilt).to.be.equal(check));
-      it ('Soft hyphen at the beginning does not create tiken, reWrap', () => expect(reWrap).to.be.equal(check));
+      it ('Soft hyphen at the beginning does not create token, reWrap', () => expect(reWrap).to.be.equal(check));
     });
     describe(`No break space`, () => {
       let text = `­<w>glittering </w><w>white;</w><br><w>⁠Whom </w><w>Polyneikes </w><w>brought,</w><w>⁠</w><br><w>⁠Roused </w><w>by </w><w>the </w><w>strife </w>`;
@@ -1312,7 +1312,16 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       let rebuilt = parser.rebuild(tokens, 'w');
       let reWrap = parser.reWrap(rebuilt, 'w');
       it ('Soft hyphen at the beginning does not create token, rebuilt', () => expect(rebuilt).to.be.equal(check));
-      it ('Soft hyphen at the beginning does not create tiken, reWrap', () => expect(reWrap).to.be.equal(check));
+      it ('Soft hyphen at the beginning does not create token, reWrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe(`Multiple non print characters`, () => {
+      let text = `<w id="1">indeed, </w><w id="2">among­*­­­­­­­ </w><w id="3">every </w>`;
+      let check = `<w id="1">indeed, </w><w id="2">among­*­­­­­­­ </w><w id="3">every </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it ('Multiple non print characters do not create token, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it ('Multiple non print characters do not create token, reWrap', () => expect(reWrap).to.be.equal(check));
     });
   });
   describe('Parenthesis and quote', () => {

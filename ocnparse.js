@@ -56,6 +56,12 @@ const keepHtmlEndRegex = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b
 const bracketsOpenRegex = new RegExp(`([\\${brackets_open.join('\\')}]+)`, 'img');
 const bracketsCloseRegex = new RegExp(`([\\${brackets_close.join('\\')}]+)`, 'img');
 
+let controlCharacterCodesString = ``;
+control_character_codes.forEach(control_char => {
+  controlCharacterCodesString+= String.fromCharCode(control_char);
+});
+const controlCharacterRegex = new RegExp(`^[${controlCharacterCodesString}]+$`, 'img');
+
 const keepHtmlTags = ['u', 'b', 'i'];
 
 var parser = {
@@ -1637,10 +1643,7 @@ function packEmptyTokens(tokens) {
     if (
       !token.word.length ||
       !token.word.trim().length ||
-      (token.word.trim().length === 1 &&
-        control_character_codes.indexOf(
-          parseInt(token.word.trim().charCodeAt(0))
-        ) !== -1)
+      controlCharacterRegex.test(token.word)
     ) {
       if (
         tokens[i - 1] &&
