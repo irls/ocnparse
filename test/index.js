@@ -551,6 +551,48 @@ describe('Ocean Parser Behaviour Tests', function() {
       it('Suggestion aroud italic is parsed correctly, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('Suggestion aroud italic is parsed correctly, rewrap', () => expect(reWrap).to.be.equal(check));
     });
+    describe(`Suggestion, superscript and line break`, () => {
+      let text = `<w id="zND44">sister </w><w id="zRPd6">on </w><w id="zW1m8">the </w><sup><sg data-suggestion="">3:38</sg></sup>
+<w id="A0dva">bank, </w><w id="A4pEc">and </w>`;
+      let check = `<w id="zND44">sister </w><w id="zRPd6">on </w><w id="zW1m8">the </w><sup><sg data-suggestion=""><w data-sugg="">3:38</w></sg></sup>
+<w id="A0dva">bank, </w><w id="A4pEc">and </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it ('Line break after suggestion with superscript does not break superscript, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Line break after suggestion with superscript does not break superscript, rewrap', () => expect(reWrap).to.be.equal(check));
+    })
+    describe(`Suggestion, superscript and br`, () => {
+      let text = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><w id="zbRKM">beginning </w><sup><sg data-suggestion="">3:38</sg></sup><br><w id="zg3TO">to </w><w id="zkg2Q">get </w>`;
+      let check = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><w id="zbRKM">beginning </w><sup><sg data-suggestion=""><w data-sugg="">3:38</w></sg></sup><br><w id="zg3TO">to </w><w id="zkg2Q">get </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it ('BR after suggestion with superscript does not break superscript, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('BR after suggestion with superscript does not break superscript, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe(`Suggestion, superscript, line break and br`, () => {
+      let text = `<w id="KHawg">the </w><w id="KLmFi">hot </w><sup><sg data-suggestion="">3:38</sg></sup>
+<br><w id="KPyOk">day </w><w id="KTKXm">made </w>`;
+      let check = `<w id="KHawg">the </w><w id="KLmFi">hot </w><sup><sg data-suggestion=""><w data-sugg="">3:38</w></sg></sup>
+<br><w id="KPyOk">day </w><w id="KTKXm">made </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it ('Line break and br after suggestion with superscript does not break superscript, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('Line break and br after suggestion with superscript does not break superscript, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
+    describe(`Suggestion, superscript, br and line break`, () => {
+      let text = `<w id="KHawg">the </w><w id="KLmFi">hot </w><sup><sg data-suggestion="">3:38</sg></sup><br>
+<w id="KPyOk">day </w><w id="KTKXm">made </w>`;
+      let check = `<w id="KHawg">the </w><w id="KLmFi">hot </w><sup><sg data-suggestion=""><w data-sugg="">3:38</w></sg></sup><br>
+<w id="KPyOk">day </w><w id="KTKXm">made </w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuilt = parser.rebuild(tokens, 'w');
+      let reWrap = parser.reWrap(rebuilt, 'w');
+      it ('BR and line break after suggestion with superscript does not break superscript, rebuilt', () => expect(rebuilt).to.be.equal(check));
+      it('BR and line break after suggestion with superscript does not break superscript, rewrap', () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';

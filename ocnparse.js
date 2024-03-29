@@ -298,7 +298,7 @@ var parser = {
                   token.after += next.after;
                 }
               } else {
-                token.word+= next.after;
+                token.after+= next.after;
               }
               delete tokens[index];
               let endsWithTag = /^(\s*<\/(?!sg)\w+>)/.exec(token.after);
