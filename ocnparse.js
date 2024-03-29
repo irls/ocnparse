@@ -10,7 +10,7 @@ let html_open_regex = "<((?!(u>|u |\\/|b>|b |i>|i )))[^><]+>",
   html_close_regex = "<\\/((?!(u>|\\W|b>|(?<!l)i>)).)+>";
 // arrays with different character types to control
 let control_character_codes = [173, 8194, 8195, 8201, 8204, 8206, 8207, 8288];
-let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—", "–"];
+let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—", "–", "‒"];
 let quotes_open = [`“`, `‘`, `«`];
 let quotes_close = [`”`, `’`, `»`];
 let quotes_bidirectional = [`"`, `'`];
@@ -327,7 +327,11 @@ var parser = {
         } while (next);
       }
     });
-    tokens.forEach((token, i) => {
+    for (let i = 0; i < tokens.length; ++i) {
+      let token = tokens[i]; 
+      if (!token) {
+        break;
+      }
       if (bracketsOpenRegex.test(token.suffix)) {
         let nextToken = tokens[i + 1];
         if (nextToken) {
@@ -424,6 +428,7 @@ var parser = {
               next.info.id = token.info.id;
             }
             tokens.splice(i, 1);
+            --i;
           } else {
             // keep quote with previous token
             let prev = tokens[i - 1];
@@ -449,6 +454,7 @@ var parser = {
                 }
               }
               tokens.splice(i, 1);
+              --i;
             }
           }
         } else if (direction === -1) {
@@ -478,6 +484,7 @@ var parser = {
               }
             }
             tokens.splice(i, 1);
+            --i;
           } else {
             // keep this quote with next token
             let next = tokens[i + 1];
@@ -503,12 +510,13 @@ var parser = {
                 }
               }
               tokens.splice(i, 1);
+              --i;
             }
           }
         }
       } else {
       }
-    });
+    }
     let underlineMatch;
     let underlineMatchClose;
     tokens = tokens.filter(t => {
