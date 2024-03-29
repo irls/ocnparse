@@ -9,7 +9,7 @@ var bterm = require("bahai-term-phonemes");
 let html_open_regex = "<((?!(u>|u |\\/|b>|b |i>|i )))[^><]+>",
   html_close_regex = "<\\/((?!(u>|\\W|b>|(?<!l)i>)).)+>";
 // arrays with different character types to control
-let control_character_codes = [8207, 8206, 8204, 173];
+let control_character_codes = [173, 8194, 8195, 8201, 8204, 8206, 8207, 8288];
 let punctuation_characters = [".", ":", ";", "!", "?", ",", "؟", "؛", "،", "…", "—", "–"];
 let quotes_open = [`“`, `‘`, `«`];
 let quotes_close = [`”`, `’`, `»`];
@@ -55,6 +55,12 @@ const keepHtmlEndRegex = new RegExp(`([${all_punctuation_and_brackets} ]*<\/(u|b
 
 const bracketsOpenRegex = new RegExp(`([\\${brackets_open.join('\\')}]+)`, 'img');
 const bracketsCloseRegex = new RegExp(`([\\${brackets_close.join('\\')}]+)`, 'img');
+
+let controlCharacterCodesString = ``;
+control_character_codes.forEach(control_char => {
+  controlCharacterCodesString+= String.fromCharCode(control_char);
+});
+const controlCharacterRegex = new RegExp(`^[${controlCharacterCodesString}]+$`, 'img');
 
 const keepHtmlTags = ['u', 'b', 'i'];
 
@@ -1637,10 +1643,7 @@ function packEmptyTokens(tokens) {
     if (
       !token.word.length ||
       !token.word.trim().length ||
-      (token.word.trim().length === 1 &&
-        control_character_codes.indexOf(
-          parseInt(token.word.trim().charCodeAt(0))
-        ) !== -1)
+      controlCharacterRegex.test(token.word)
     ) {
       if (
         tokens[i - 1] &&
