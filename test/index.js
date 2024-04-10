@@ -1435,14 +1435,25 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       it(`Character > inside suggestion parsed correctly, rewrap`, () => expect(reWrap).to.be.equal(check));
     });
   });
-  describe('Quotes after tag', () => {
-    let text = `Alice, <qq data-author="test">was “beginning to.”’</qq>”`;
-    let check = `<w>Alice, </w><qq data-author="test"><w>was </w><w>“beginning </w><w>to.”’</w></qq>”`;
-    let tokens = parser.tokenize(text, `w`);
-    let rebuilt = parser.rebuild(tokens, `w`);
-    let reWrap = parser.reWrap(rebuilt, `w`);
-    it(`Quotes after tag do not create separate token, rebuilt`, () => expect(rebuilt).to.be.equal(check));
-    it(`Quotes after tag do not create separate token, rewrap`, () => expect(reWrap).to.be.equal(check));
+  describe('Quotes do not create separate token', () => {
+    describe('Quotes after tag', () => {
+      let text = `Alice, <qq data-author="test">was “beginning to.”’</qq>”`;
+      let check = `<w>Alice, </w><qq data-author="test"><w>was </w><w>“beginning </w><w>to.”’</w></qq>”`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      let reWrap = parser.reWrap(rebuilt, `w`);
+      it(`Quotes after tag do not create separate token, rebuilt`, () => expect(rebuilt).to.be.equal(check));
+      it(`Quotes after tag do not create separate token, rewrap`, () => expect(reWrap).to.be.equal(check));
+    });
+    describe('Quotes after suggestion after tag', () => {
+      let text = `<b><w>Letter </w><sg data-suggestion="thah, thah"><w><u>Th</u>, <u>th</u>á’ (ث):</w></sg></b> <w>above. </w><i><w>Hint: </w><w>remember </w><w>“b  </w><w>for </w><w>below, </w><w>t  </w><w>for </w><w>two, </w><u><w>th</w></u> <w>for </w><w>three.”</w></i>`;
+      let check = `<b><w>Letter </w><sg data-suggestion="thah, thah"><w data-sugg="thah, thah"><u>Th</u>, <u>th</u>á’ (ث):</w></sg></b> <w>above. </w><i><w>Hint: </w><w>remember </w><w>“b  </w><w>for </w><w>below, </w><w>t  </w><w>for </w><w>two, </w><u><w>th</w></u> <w>for </w><w>three.”</w></i>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      let reWrap = parser.reWrap(rebuilt, `w`);
+      it(`Quotes after suggestion after tag do not create separate token, rebuilt`, () => expect(rebuilt).to.be.equal(check));
+      it(`Quotes after suggestion after tag do not create separate token, rewrap`, () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Punctuation characters', () => {
     let text = `And ‒ thro’ the drifts`;

@@ -327,6 +327,9 @@ var parser = {
         } while (next);
       }
     });
+    tokens = tokens.filter(token => {
+      return token instanceof Object && Object.keys(token).length > 0;
+    });
     for (let i = 0; i < tokens.length; ++i) {
       let token = tokens[i]; 
       if (!token) {
