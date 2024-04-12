@@ -1454,6 +1454,24 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       it(`Quotes after suggestion after tag do not create separate token, rebuilt`, () => expect(rebuilt).to.be.equal(check));
       it(`Quotes after suggestion after tag do not create separate token, rewrap`, () => expect(reWrap).to.be.equal(check));
     });
+    describe(`Quotes in superscript are parsed correctly`, () => {
+      let text = `<w id="xDmp2">«some </w><w id="xMGvk"><sup>superscript</sup><sup>»</sup> </w><w id="xW0BC">more </w><w id="y5kHU">text</w>`;
+      let check = `<w id="xDmp2">«some </w><sup><w id="xMGvk" data-sugg="">superscript</w></sup><sup>»</sup> <w id="xW0BC">more </w><w id="y5kHU">text</w>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      let reWrap = parser.reWrap(rebuilt, `w`);
+      it(`Quotes in superscript are parsed correctly, rebuilt`, () => expect(rebuilt).to.be.equal(check));
+      it(`Quotes in superscript are parsed correctly, reWrap`, () => expect(reWrap).to.be.equal(check));
+    });
+    describe(`Two quotes in superscripts are parsed correctly`, () => {
+      let text = `<w id="dpivb">before </w><w id="drw93">text <sup>«</sup></w><w id="dtJMV"><sup>some </sup></w><w id="dvXqN"><sup>superscript»</sup> </w><w id="dyb4F">more </w><w id="dAoIx">text</w>`;
+      let check = `<w id="dpivb">before </w><w id="drw93">text </w><sup>«</sup><sup><w id="dtJMV" data-sugg="">some </w></sup><sup><w id="dvXqN" data-sugg="">superscript»</w></sup> <w id="dyb4F">more </w><w id="dAoIx">text</w>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      let reWrap = parser.reWrap(rebuilt, `w`);
+      it(`Two quotes in superscripts are parsed correctly, rebuilt`, () => expect(rebuilt).to.be.equal(check));
+      it(`Two quotes in superscripts are parsed correctly, reWrap`, () => expect(reWrap).to.be.equal(check));
+    })
   });
   describe('Punctuation characters', () => {
     let text = `And ‒ thro’ the drifts`;

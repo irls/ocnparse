@@ -468,6 +468,7 @@ var parser = {
             if (prev.after) {
               prev.after =
                 prev.after +
+                (token.before || '') +
                 token.prefix +
                 token.word +
                 token.suffix +
