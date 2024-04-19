@@ -1481,6 +1481,16 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       it(`Quotes around superscript are parsed correctly, rebuilt`, () => expect(rebuilt).to.be.equal(check));
       it(`Quotes around superscript are parsed correctly, reWrap`, () => expect(reWrap).to.be.equal(check));
     });
+    describe(`Quotes in word`, () => {
+      let text = `<w>M. </w><w>Block — </w><w>“Les </w><w>Théoriciens </w><w>du </w><w>Socialisme </w><w>en </w><w>Allemagne. </w><w>Extrait </w><w>du </w><w>Journal </w><w>des </w><w>Economistes, </w><w>Juillet </w><w>et </w><w>Août </w><w>1872” — </w><w>makes </w><w>the </w>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      it(`Token word does not contain open quote`, () => expect(tokens[2].word).eql(`Les`));
+      it(`Token prefix contains open quote`, () => expect(tokens[2].prefix).eql(`“`));
+      it(`Token word does not contain close quote`, () => expect(tokens[16].word).eql(`1872`));
+      it(`Token suffix contains close quote`, () => expect(tokens[16].suffix.indexOf(`”`)).to.not.equal(-1));
+      it(`Quotes in word rebuilt correctly`, () => expect(rebuilt).to.be.equal(text));
+    });
   });
   describe('Punctuation characters', () => {
     let text = `And ‒ thro’ the drifts`;
