@@ -1472,6 +1472,15 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       it(`Two quotes in superscripts are parsed correctly, rebuilt`, () => expect(rebuilt).to.be.equal(check));
       it(`Two quotes in superscripts are parsed correctly, reWrap`, () => expect(reWrap).to.be.equal(check));
     })
+    describe(`Quotes around superscript`, () => {
+      let text = `<w>Alice </w><w>was </w><sup><w>" </w><w>beginning "</w></sup> <w>to </w>`;
+      let check = `<w>Alice </w><w>was </w><sup>" <w data-sugg="">beginning "</w></sup> <w>to </w>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      let reWrap = parser.reWrap(rebuilt, `w`);
+      it(`Quotes around superscript are parsed correctly, rebuilt`, () => expect(rebuilt).to.be.equal(check));
+      it(`Quotes around superscript are parsed correctly, reWrap`, () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Punctuation characters', () => {
     let text = `And ‒ thro’ the drifts`;

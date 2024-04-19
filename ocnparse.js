@@ -410,9 +410,9 @@ var parser = {
           if (next) {
             //console.log(token, next)
             let addBefore = `${token.before || ''}${token.prefix || ''}${token.word || ''}${token.suffix || ''}${token.after || ''}`;
-            if (next.before) {
+            if (next.before || (token.before)) {
               next.before =
-                addBefore + next.before;
+                addBefore + (next.before || ``);
             } else {
               next.prefix =
                 addBefore + next.prefix;
