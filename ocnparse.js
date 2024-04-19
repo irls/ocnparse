@@ -521,11 +521,27 @@ var parser = {
       } else {
       }
     }
-    let underlineMatch;
-    let underlineMatchClose;
     tokens = tokens.filter(t => {
       return typeof t !== 'undefined';
     });
+    let quoteOpenInWordRegex = new RegExp(`^(\\s*[\\${quotes_open.join(`\\`)}])`, `img`);
+    let quoteCloseInWordRegex = new RegExp(`([\\${quotes_close.join(`\\`)}]\\s*)$`, `img`);
+    tokens.forEach(token => {
+      let quotesOpenMatch = token.word.split(quoteOpenInWordRegex);
+      if (quotesOpenMatch && quotesOpenMatch[1] && quotesOpenMatch[2]) {
+        token.prefix = (token.prefix || ``) + quotesOpenMatch[0] + quotesOpenMatch[1];
+        token.word = quotesOpenMatch[2];
+        addTokenInfo(token);
+      }
+      let quotesCloseMatch = token.word.split(quoteCloseInWordRegex);
+      if (quotesCloseMatch && quotesCloseMatch[1]) {
+        token.suffix = quotesCloseMatch[1] + quotesCloseMatch[2] + (token.suffix || ``);
+        token.word = quotesCloseMatch[0];
+        addTokenInfo(token);
+      }
+    });
+    let underlineMatch;
+    let underlineMatchClose;
     for (let index = 0; index < tokens.length; ++index) {
       let token = tokens[index];
       if (/(?:\r\n|\r|\n)/.test(token.suffix)) {
