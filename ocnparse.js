@@ -1800,7 +1800,7 @@ function moveEmptyToken(tokens, index) {
     // move empty token back
     destToken = tokens[index - 1];
     if (destToken && (!destToken.info || destToken.info.type !== "html")) {
-      if (destToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/(sup|sg)>/.test(destToken.after))) {
+      if (destToken.after && (!punctuation_end_regex.test(token.prefix) || /<\/(sup|sg|sub|i|b|u)>/.test(destToken.after))) {
         destToken.after += token.prefix + token.word + token.suffix;
       } else {
         destToken.suffix += token.prefix + token.word + token.suffix;
