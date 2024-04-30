@@ -1501,6 +1501,16 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     it(`Character ‒ does not create token, rebuild`, () => expect(rebuilt).to.be.equal(check));
     it(`Character ‒ does not create token, rewrap`, () => expect(reWrap).to.be.equal(check));
   });
+  describe('Subscript and punctuation', () => {
+    let text = `<w id="9IOgj">test </w><sub><w id="ahM8V">block </w></sub><w>?</w> <w id="aQK1x">text</w>`;
+    let check = `<w id="9IOgj">test </w><sub><w id="ahM8V" data-sugg="">block </w></sub>? <w id="aQK1x">text</w>`;
+    let tokens = parser.tokenize(text, `w`);
+    let rebuilt = parser.rebuild(tokens, `w`);
+    let reWrap = parser.reWrap(rebuilt, `w`);
+
+    it(`Punctuation after subscript is not moved inside subscript, rebuild`, () => expect(rebuilt).to.be.equal(check));
+    it(`Punctuation after subscript is not moved inside subscript, rewrap`, () => expect(reWrap).to.be.equal(check));
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
