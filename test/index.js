@@ -593,6 +593,39 @@ describe('Ocean Parser Behaviour Tests', function() {
       it ('BR and line break after suggestion with superscript does not break superscript, rebuilt', () => expect(rebuilt).to.be.equal(check));
       it('BR and line break after suggestion with superscript does not break superscript, rewrap', () => expect(reWrap).to.be.equal(check));
     });
+    describe(`Suggestion on all text`, () => {
+      let text = `<sg data-suggestion="And this was not all the glory; no, the master’s friends came, a whole  twenty of the most distinguished people, and had me in the laboratory, and  discussed me as if I was a kind of discovery; and some of them said it was  wonderful in a dumb beast, the finest exhibition of instinct they could  call to mind; but the master said, with vehemence, “It’s far above  instinct; it’s REASON, and many a man, privileged to be saved and go with  you and me to a better world by right of its possession, has less of it  that this poor silly quadruped that’s foreordained to perish;” and then he  laughed, and said: “Why, look at me — I’m a sarcasm! bless you, with  all my grand intelligence, the only thing I inferred was that the dog had  gone mad and was destroying the child, whereas but for the beast’s  intelligence — it’s REASON, I tell you! — the child would have  perished?”">And this was not all the glory; no, the master’s friends came, a whole 
+twenty of the most distinguished people, and had me in the laboratory, and 
+discussed me as if I was a kind of discovery; and some of them said it was 
+wonderful in a dumb beast, the finest exhibition of instinct they could 
+call to mind; but the master said, with vehemence, “It’s far above 
+instinct; it’s REASON, and many a man, privileged to be saved and go with 
+you and me to a better world by right of its possession, has less of it 
+that this poor silly quadruped that’s foreordained to perish;” and then he 
+laughed, and said: “Why, look at me — I’m a sarcasm! bless you, with 
+all my grand intelligence, the only thing I inferred was that the dog had 
+gone mad and was destroying the child, whereas but for the beast’s 
+intelligence — it’s REASON, I tell you! — the child would have 
+perished?”</sg>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      let rewrap = parser.reWrap(rebuilt, `w`);
+      let check = `<sg data-suggestion="And this was not all the glory; no, the master’s friends came, a whole  twenty of the most distinguished people, and had me in the laboratory, and  discussed me as if I was a kind of discovery; and some of them said it was  wonderful in a dumb beast, the finest exhibition of instinct they could  call to mind; but the master said, with vehemence, “It’s far above  instinct; it’s REASON, and many a man, privileged to be saved and go with  you and me to a better world by right of its possession, has less of it  that this poor silly quadruped that’s foreordained to perish;” and then he  laughed, and said: “Why, look at me — I’m a sarcasm! bless you, with  all my grand intelligence, the only thing I inferred was that the dog had  gone mad and was destroying the child, whereas but for the beast’s  intelligence — it’s REASON, I tell you! — the child would have  perished?”"><w data-sugg="And this was not all the glory; no, the master’s friends came, a whole  twenty of the most distinguished people, and had me in the laboratory, and  discussed me as if I was a kind of discovery; and some of them said it was  wonderful in a dumb beast, the finest exhibition of instinct they could  call to mind; but the master said, with vehemence, “It’s far above  instinct; it’s REASON, and many a man, privileged to be saved and go with  you and me to a better world by right of its possession, has less of it  that this poor silly quadruped that’s foreordained to perish;” and then he  laughed, and said: “Why, look at me — I’m a sarcasm! bless you, with  all my grand intelligence, the only thing I inferred was that the dog had  gone mad and was destroying the child, whereas but for the beast’s  intelligence — it’s REASON, I tell you! — the child would have  perished?”">And this was not all the glory; no, the master’s friends came, a whole 
+twenty of the most distinguished people, and had me in the laboratory, and 
+discussed me as if I was a kind of discovery; and some of them said it was 
+wonderful in a dumb beast, the finest exhibition of instinct they could 
+call to mind; but the master said, with vehemence, “It’s far above 
+instinct; it’s REASON, and many a man, privileged to be saved and go with 
+you and me to a better world by right of its possession, has less of it 
+that this poor silly quadruped that’s foreordained to perish;” and then he 
+laughed, and said: “Why, look at me — I’m a sarcasm! bless you, with 
+all my grand intelligence, the only thing I inferred was that the dog had 
+gone mad and was destroying the child, whereas but for the beast’s 
+intelligence — it’s REASON, I tell you! — the child would have 
+perished?”</w></sg>`;
+      it(`Suggestion on all text does not break text, rebuilt`, () => expect(rebuilt).to.be.equal(check));
+      it(`Suggestion on all text does not break text, rewrap`, () => expect(rewrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
