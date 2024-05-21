@@ -1605,7 +1605,7 @@ function cleanTokens(tokens) {
       //let hasSuggestion = token.before && /<sg/.test(token.before) && token.after && /<\/sg>/.test(token.after);
       //if (!hasSuggestion) {// this check will create token for non word character inside suggestion
       token.prefix = token.prefix + tt[1];
-      token.word = tt[2];
+      token.word = token.word.substring(0, tt.index) + tt[2];
       token.suffix = tt[3] + token.suffix;
       if (!token.word.trim().length && token.before) {
         token.before =
@@ -1865,7 +1865,7 @@ function addTokenInfo(token) {
   info.isAllCaps = info.stripped === info.stripped.toUpperCase();
 
   info.isPossibleTerm = bterm.isPossibleTerm(token.word);
-  if (info.isPossibleTerm) {
+  if (info.isPossibleTerm && !(info.data && info.data.hasOwnProperty('sugg'))) {
     if (!info.data) info.data = {};
     info.data.ipa = _escapeHTML(bterm.phonemes(token.word));
   }
