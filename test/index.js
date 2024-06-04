@@ -1524,6 +1524,17 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       it(`Token suffix contains close quote`, () => expect(tokens[16].suffix.indexOf(`”`)).to.not.equal(-1));
       it(`Quotes in word rebuilt correctly`, () => expect(rebuilt).to.be.equal(text));
     });
+    describe(`Bidirectional quotes at the beginning`, () => {
+      let text = `"'High-spirited souls fleeting breath.'"`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      let tokensRebuilt = parser.tokenize(rebuilt, `w`);
+
+      it(`Token word does not contain quotes`, () => expect(tokens[0].word).eql(`High-spirited`));
+      it(`Token prefix contains quotes`, () => expect(tokens[0].prefix).eql(`"'`));
+      it(`Token word does not contain quotes, rebuild`, () => expect(tokensRebuilt[0].word).eql(`High-spirited`));
+      it(`Token prefix contains quotes, rebuild`, () => expect(tokensRebuilt[0].prefix).eql(`"'`));
+    });
   });
   describe('Punctuation characters', () => {
     let text = `And ‒ thro’ the drifts`;
