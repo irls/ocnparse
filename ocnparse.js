@@ -524,7 +524,7 @@ var parser = {
     tokens = tokens.filter(t => {
       return typeof t !== 'undefined';
     });
-    let quoteOpenInWordRegex = new RegExp(`^(\\s*[\\${quotes_open.join(`\\`)}])`, `img`);
+    let quoteOpenInWordRegex = new RegExp(`^(\\s*[\\${quotes_open.join(`\\`) + `\\` + quotes_bidirectional.join(`\\`)}]+)`, `img`);
     let quoteCloseInWordRegex = new RegExp(`([\\${quotes_close.join(`\\`)}]\\s*)$`, `img`);
     tokens.forEach(token => {
       let quotesOpenMatch = token.word.split(quoteOpenInWordRegex);
