@@ -1555,6 +1555,16 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     it(`Punctuation after subscript is not moved inside subscript, rebuild`, () => expect(rebuilt).to.be.equal(check));
     it(`Punctuation after subscript is not moved inside subscript, rewrap`, () => expect(reWrap).to.be.equal(check));
   });
+  describe('Ampersand sign', () => {
+    let text = `<w id="ftn_ehkJO">one &amp;#</w><w id="ftn_elwSQ">8221 </w><w id="ftn_kmXQI">two &</w><w id="ftn_kp3Ve">amp;#</w><w id="ftn_kr9ZK">8220 </w><w id="ftn_kHWzS">three “ </w>`;
+    let check = `<w id="ftn_ehkJO">one &amp;#</w><w id="ftn_elwSQ">8221 </w><w id="ftn_kmXQI">two &amp;#</w><w id="ftn_kr9ZK">8220 </w><w id="ftn_kHWzS">three “ </w>`;
+    let tokens = parser.tokenize(text, `w`);
+    let rebuild = parser.rebuild(tokens, `w`);
+    let rewrap = parser.reWrap(rebuild, `w`);
+    it(`Ampersand sign is not split in tokens, rebuild`, () => expect(rebuild).to.be.equal(check));
+    it(`Ampersand sign is not split in tokens, rewrap`, () => expect(rewrap).to.be.equal(check));
+    it(`Ampersand sign is in token suffix`, () => expect(tokens[1].prefix.indexOf(`&amp;`)).to.be.equal(-1));
+  })
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
