@@ -75,6 +75,16 @@ var parser = {
       //console.log(JSON.stringify(t));
     //});
     //console.log(`========//IN reWrap==========`);
+    //logTokens(tokens, `=`, `IN reWrap`);
+    //tokens.forEach((token, tokenIdx) => {
+      //if (token.prefix && token.prefix.indexOf(`&amp;`) !== -1) {
+        //let previous = tokens[tokenIdx - 1];
+        //if (previous) {
+          //previous.suffix = (previous.suffix || '') + token.prefix;
+          //token.prefix = '';
+        //}
+      //}
+    //});
     if (!destTag) destTag = srcTag;
     return this.rebuild(tokens, destTag);
   },
@@ -86,7 +96,7 @@ var parser = {
     let tokens = splitTokens(str, tag);
     //logTokens(tokens, `=`, `INIT`);
     tokens = mergeAddedWords(tokens);
-    let open_tag = [];
+    //let open_tag = [];
     tokens.map((token, i) => {
       addTokenInfo(token);
     });
@@ -639,6 +649,27 @@ var parser = {
       }
     }
   });
+  tokens.forEach((token, tokenIdx) => {
+    if (token.suffix && /\&$/.test(token.suffix)) {
+      let next = tokens[tokenIdx + 1];
+      if (next && next.word === 'amp' && next.suffix && /^;/.test(next.suffix)) {
+        //let suffixParts = /^(.*?)\&$/.exec(token.suffix);
+        let nextSuffixParts = /^;(.*?)$/.exec(next.suffix);
+        token.suffix+= `amp;`
+        next.word = '';
+        next.suffix = nextSuffixParts[1];
+      }
+    }
+    if (token.prefix && token.prefix.indexOf(`&amp;`) !== -1 && !/^[c]$/.test(token.word)) {
+      let previous = tokens[tokenIdx - 1];
+      if (previous) {
+        previous.suffix = (previous.suffix || '') + token.prefix;
+        token.prefix = '';
+      }
+    }
+  });
+  //logTokens(tokens, `=`, `After move`);
+  //tokens = cleanTokens(tokens);
   tokens = cleanTokens(tokens);
   let openedSuggestions = 0;
   let suggestionTexts = [];
