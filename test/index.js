@@ -626,6 +626,15 @@ perished?”</w></sg>`;
       it(`Suggestion on all text does not break text, rebuilt`, () => expect(rebuilt).to.be.equal(check));
       it(`Suggestion on all text does not break text, rewrap`, () => expect(rewrap).to.be.equal(check));
     });
+    describe(`Two suggestions and superscript`, () => {
+      let text = `<w id="UrnuU" data-ipa="tetle_b@U@Uk">text </w><w id="UvzDW">before </w><w id="UzLMY" data-ipa="tetle_b@U@Uk">Title_Book </w><sup><sg><sg data-suggestion=""><w id="UDXW0" data-sugg="">3:38</w></sg> </sg></sup><w id="UIa52" data-ipa="tetle_@Uff" data-sugg="">title_OFF </w><w id="UMme4" data-sugg="">text </w><w id="UQyn6" data-sugg="">after</w>`;
+      let check = `<w id="UrnuU" data-ipa="tetle_b@U@Uk">text </w><w id="UvzDW">before </w><w id="UzLMY" data-ipa="tetle_b@U@Uk">Title_Book </w><sup><sg><sg data-suggestion=""><w id="UDXW0" data-sugg="">3:38</w></sg> </sg></sup><w id="UIa52" data-ipa="tetle_@Uff">title_OFF </w><w id="UMme4">text </w><w id="UQyn6">after</w>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuild = parser.rebuild(tokens, `w`);
+      let rewrap = parser.reWrap(rebuild, `w`);
+      it(`Two suggestions and superscript do not break HTML structure, rebuild`, () => expect(rebuild).to.be.equal(check));
+      it(`Two suggestions and superscript do not break HTML structure, rewrap`, () => expect(rewrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';

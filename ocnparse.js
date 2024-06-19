@@ -75,16 +75,6 @@ var parser = {
       //console.log(JSON.stringify(t));
     //});
     //console.log(`========//IN reWrap==========`);
-    //logTokens(tokens, `=`, `IN reWrap`);
-    //tokens.forEach((token, tokenIdx) => {
-      //if (token.prefix && token.prefix.indexOf(`&amp;`) !== -1) {
-        //let previous = tokens[tokenIdx - 1];
-        //if (previous) {
-          //previous.suffix = (previous.suffix || '') + token.prefix;
-          //token.prefix = '';
-        //}
-      //}
-    //});
     if (!destTag) destTag = srcTag;
     return this.rebuild(tokens, destTag);
   },
@@ -301,11 +291,11 @@ var parser = {
               token.suffix += next.suffix;
               if (token.after || testForSuggestionAfter.test(next.after) || (/<\/sg>.*?(<\/\w+>|<br\s*\/?>).*?$/.test(next.after) && openedSuggestions === 0)) {
                 let checkDoubleSg = /([ \r\n]*<\/sg>[ \r\n]*)(<\/sg>[\s\S]*)/.exec(next.after);// double closing sg tag
-                if (!token.after && checkDoubleSg && checkDoubleSg[1] && checkDoubleSg[2]) {
+                if (!token.after && checkDoubleSg && checkDoubleSg[1] && checkDoubleSg[2] && /<sg/.test(token.word)) {
                   token.word+= checkDoubleSg[1];
                   token.after = (token.after || "") + checkDoubleSg[2];
                 } else {
-                  token.after += next.after;
+                  token.after = (token.after || '') + next.after;
                 }
               } else {
                 token.after+= next.after;
