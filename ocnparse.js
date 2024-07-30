@@ -440,12 +440,15 @@ var parser = {
                 (token.before || "") +
                 (token.prefix || "") +
                 token.word +
-                (token.suffix || "") +
-                (token.after || "");
+                (token.suffix || "");
               if (prev.after) {
-                prev.after += append;
+                prev.after += append +
+                  (token.after || "");
               } else {
                 prev.suffix = (prev.suffix || "") + append;
+                if (token.after) {
+                  prev.after = (prev.after || "") + token.after;
+                }
               }
               if (token.info && token.info.data && token.info.data.map) {
                 if (!prev.info) {

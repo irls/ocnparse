@@ -1544,6 +1544,16 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
       it(`Token word does not contain quotes, rebuild`, () => expect(tokensRebuilt[0].word).eql(`High-spirited`));
       it(`Token prefix contains quotes, rebuild`, () => expect(tokensRebuilt[0].prefix).eql(`"'`));
     });
+    describe(`Quotes in list`, () => {
+      let text = `<ul><li>“some text“</li><li>‘some text ‘</li></ul>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuilt = parser.rebuild(tokens, `w`);
+      let reWrap = parser.reWrap(rebuilt, `w`);
+      let check = `<ul><li><w>“some </w><w>text“</w></li><li><w>‘some </w><w>text ‘</w></li></ul>`;
+
+      it(`List is closed correctly after quotes, rebuilt`, () => expect(rebuilt).to.be.equal(check));
+      it(`List is closed correctly after quotes, reWrap`, () => expect(reWrap).to.be.equal(check));
+    });
   });
   describe('Punctuation characters', () => {
     let text = `And ‒ thro’ the drifts`;
