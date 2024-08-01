@@ -440,12 +440,15 @@ var parser = {
                 (token.before || "") +
                 (token.prefix || "") +
                 token.word +
-                (token.suffix || "") +
-                (token.after || "");
+                (token.suffix || "");
               if (prev.after) {
-                prev.after += append;
+                prev.after += append +
+                  (token.after || "");
               } else {
                 prev.suffix = (prev.suffix || "") + append;
+                if (token.after) {
+                  prev.after = (prev.after || "") + token.after;
+                }
               }
               if (token.info && token.info.data && token.info.data.map) {
                 if (!prev.info) {
@@ -523,6 +526,22 @@ var parser = {
     }
     tokens = tokens.filter(t => {
       return typeof t !== 'undefined';
+    });
+    // if prefix contains close tag then move it to previous token
+    let closeTagRegex = /<\/([^>]+)>/;
+    tokens.forEach((token, tokenIdx) => {
+      let closeTagMatch = closeTagRegex.exec(token.prefix);
+      if (closeTagMatch && closeTagMatch[1]) {
+        let openTagMatch = (new RegExp(`<${closeTagMatch[1]}[^>]*>`)).exec(token.prefix);
+        if (!openTagMatch || openTagMatch.index > closeTagMatch.index) {
+          let prev = tokens[tokenIdx - 1];
+          if (prev) {
+            prev.after = (prev.after || "") + (token.before || "") + token.prefix;
+            token.before = "";
+            token.prefix = "";
+          }
+        }
+      }
     });
     let quoteOpenInWordRegex = new RegExp(`^(\\s*[\\${quotes_open.join(`\\`) + `\\` + quotes_bidirectional.join(`\\`)}]+)`, `img`);
     let quoteCloseInWordRegex = new RegExp(`([\\${quotes_close.join(`\\`)}]\\s*)$`, `img`);
