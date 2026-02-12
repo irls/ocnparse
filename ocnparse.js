@@ -87,6 +87,27 @@ var parser = {
     //logTokens(tokens, `=`, `INIT`);
     tokens = mergeAddedWords(tokens);
     //let open_tag = [];
+    for (let i = 0; i < tokens.length; ++i) {
+      let token = tokens[i];
+      if (/^\s*\d+\s*<(?![u\/])[^>]+>/.test(token.word)) {
+        let tagParts = token.word.split(/(<(?![u\/])[^>]+>)/);
+
+        if (tagParts && tagParts.length > 1) {
+          tokens[i].word = tagParts[0];
+          let addToken = {
+            before: (token.prefix || "") + tagParts[1],
+            prefix: "",
+            word: tagParts[2] || "",
+            suffix: token.suffix || "",
+            after: token.after || ""
+          };
+          tokens[i].after = "";
+          tokens[i].suffix = "";
+          tokens.splice(i + 1, 0, addToken);
+          --i;
+        }
+      }
+    }
     tokens.map((token, i) => {
       addTokenInfo(token);
     });
@@ -228,6 +249,7 @@ var parser = {
     });
     let checkHtml = /<\/?\w+[^>]*>/;
     let testForSuggestionAfter = new RegExp(`<\\/sg>[\\s${all_punctuation_and_brackets}]*$`, 'i');
+    //logTokens(tokens, "+", "CHECK0001");
     tokens.forEach((token, i) => {
       let hasSuggestion = false;
       if (token.before) {
@@ -327,6 +349,35 @@ var parser = {
         } while (next);
       }
     });
+    /*tokens.forEach((token, tokenIdx) => {
+      if (token.after && /<\/sg>/.test(token.after)) {
+        let matchTag = /<\/(?!sg)(\w+)>/.exec(token.after);
+        let matchSg = /<\/sg>/.exec(token.after);
+        if (matchTag && matchTag.index < matchSg.index) {
+          //console.log(`"` + token.after + `"`);
+          //console.log(matchTag);
+          //console.log(matchSg);
+          //console.log(token.word);
+          let tagMatch;
+          let tagRegex = /<(\/?)([^>]+)>/img;
+          let tags = [];
+          while ((tagMatch = tagRegex.exec(token.word))) {
+            if (tagMatch && tagMatch[2]) {
+              if (tagMatch[1] && tags.length > 0 && tagMatch[2] === tags[tags.length - 1]) {
+                tags.pop();
+              } else if (!tagMatch[1]) {
+                tags.push(tagMatch[2]);
+              }
+            }
+          }
+          if (tags.length === 1 && tags[0] === matchTag[1]) {
+            let closeTag = token.after.substring(0, matchTag.index + matchTag[0].length);
+            tokens[tokenIdx].word+= closeTag;
+            tokens[tokenIdx].after = token.after.replace(closeTag, '');
+          }
+        }
+      }
+    });*/
     tokens = tokens.filter(token => {
       return token instanceof Object && Object.keys(token).length > 0;
     });
@@ -559,6 +610,15 @@ var parser = {
         addTokenInfo(token);
       }
     });
+    // clear duplicated tags, e.g. remove "</b><b>"
+    /*tokens.forEach((token) => {
+      token.word = token.word.replace(/<\/(\w+)>(\s*)<(\w+)[^>]*>/img, (item, closeTag, spaces, openTag) => {
+        if (closeTag === openTag) {
+          return spaces;
+        }
+        return item;
+      });
+    });*/
     let underlineMatch;
     let underlineMatchClose;
     for (let index = 0; index < tokens.length; ++index) {
@@ -636,6 +696,7 @@ var parser = {
         }
       }
     }
+    //logTokens(tokens, "+", "CHECK0002");
   let checkForHTML = /^(\s*<\w+[^>]*?>)([^<]*?)(<\/\w>\s*)$/i;
   tokens.forEach(t => {
     if (t.word && checkForHTML.test(t.word)) {
