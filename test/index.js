@@ -1120,6 +1120,16 @@ Down </w><w id="hwJJn" data-map="290,95">the </w><w id="hOdFG" data-map="385,239
       let secondRebuild = parser.rebuild(tokensReWrapped, 'w');
       it('Second rebuild keeps html entity with word, ()', () => expect(check).to.be.equal(secondRebuild));
     });
+    describe('Numbers with html tag', () => {
+      let text = `Small 4to, price 6<i>s.</i> extra cloth; 7<i>s.</i> 6<i>d.</i> cloth`;
+      let check = `<w>Small </w><w>4to, </w><w>price </w><w>6</w><i><w>s.</w></i> <w>extra </w><w>cloth; </w><w>7</w><i><w>s.</w></i> <w>6</w><i><w>d.</w></i> <w>cloth</w>`;
+      let tokens = parser.tokenize(text, 'w');
+      let rebuild = parser.rebuild(tokens, 'w');
+      it('HTML formatting kept after rebuild', () => expect(check).to.be.equal(rebuild));
+      let retokenize = parser.tokenize(rebuild, 'w');
+      let wrapped = parser.reWrap(retokenize, 'w');
+      it('HTML formatting kept after rewrap', () => expect(check).to.be.equal(wrapped));
+    })
   });
   describe('Keep carriage returns for verlse, list text', () => {
     let text = `one 
