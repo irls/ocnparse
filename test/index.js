@@ -463,7 +463,7 @@ describe('Ocean Parser Behaviour Tests', function() {
     });
     describe(`Suggestion around two italics`, () => {
       let text = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><w id="zbRKM"><i>beginning</i> </w><w id="zg3TO"><i>to</i></w></sg><w id="zg3TO"> </w><w id="zkg2Q">get </w><w id="zosbS">very </w>`;
-      let check = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><w id="zbRKM" data-sugg=""><i>beginning</i> <i>to</i></w></sg> <w id="zkg2Q">get </w><w id="zosbS">very </w>`;
+      let check = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><i><w id="zbRKM" data-sugg="">beginning to</w></i></sg> <w id="zkg2Q">get </w><w id="zosbS">very </w>`;
       let tokens = parser.tokenize(text, 'w');
       let rebuilt = parser.rebuild(tokens, 'w');
       let reWrap = parser.reWrap(rebuilt, 'w');
@@ -472,7 +472,7 @@ describe('Ocean Parser Behaviour Tests', function() {
     });
     describe(`Suggestion around two italics, previously saved`, () => {
       let text = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><w id="zbRKM"><i>beginning</i> <i>to</i></w></sg><w id="zg3TO"> </w><w id="zkg2Q">get </w><w id="zosbS">very </w>`;
-      let check = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><w id="zbRKM" data-sugg=""><i>beginning</i> <i>to</i></w></sg> <w id="zkg2Q">get </w><w id="zosbS">very </w>`;
+      let check = `<w id="z3tsI">Alice </w><w id="z7FBK">was </w><sg data-suggestion=""><i><w id="zbRKM" data-sugg="">beginning to</w></i></sg> <w id="zkg2Q">get </w><w id="zosbS">very </w>`;
       let tokens = parser.tokenize(text, 'w');
       let rebuilt = parser.rebuild(tokens, 'w');
       let reWrap = parser.reWrap(rebuilt, 'w');
@@ -634,6 +634,15 @@ perished?”</w></sg>`;
       let rewrap = parser.reWrap(rebuild, `w`);
       it(`Two suggestions and superscript do not break HTML structure, rebuild`, () => expect(rebuild).to.be.equal(check));
       it(`Two suggestions and superscript do not break HTML structure, rewrap`, () => expect(rewrap).to.be.equal(check));
+    });
+    describe(`Bold, suggestion and dash`, () => {
+      let text = `<sg data-suggestion=""><w id="e0y9G"><b>This </b></w><w id="e4KiI"><b>eBook —</b></w></sg><w id="e4KiI"><b></b> </w><w id="e8WrK">is </w><w id="ed8AM">made </w>`;
+      let check = `<sg data-suggestion=""><b><w id="e0y9G" data-sugg="">This eBook —</w></b></sg> <w id="e8WrK">is </w><w id="ed8AM">made </w>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuild = parser.rebuild(tokens, `w`);
+      let rewrap = parser.reWrap(rebuild, `w`);
+      it(`Bold, suggestion and dash do not break HTML structure, rebuild`, () => expect(rebuild).to.be.equal(check));
+      it(`Bold, suggestion and dash do not break HTML structure, rewrap`, () => expect(rewrap).to.be.equal(check));
     });
   });
   describe('Double rebuild', function() {

@@ -593,6 +593,14 @@ var parser = {
           }
         }
       }
+      closeTagMatch = closeTagRegex.exec(token.suffix);
+      if (closeTagMatch && closeTagMatch[1]) {
+        let openTagMatch = (new RegExp(`<${closeTagMatch[1]}[^>]*>`)).exec(token.suffix);
+        if (!openTagMatch || openTagMatch.index > closeTagMatch.index) {
+          token.after = closeTagMatch[0] + (token.after || "");
+          token.suffix = token.suffix.replace(closeTagMatch[0], '');
+        }
+      }
     });
     let quoteOpenInWordRegex = new RegExp(`^(\\s*[\\${quotes_open.join(`\\`) + `\\` + quotes_bidirectional.join(`\\`)}]+)`, `img`);
     let quoteCloseInWordRegex = new RegExp(`([\\${quotes_close.join(`\\`)}]\\s*)$`, `img`);
@@ -611,14 +619,22 @@ var parser = {
       }
     });
     // clear duplicated tags, e.g. remove "</b><b>"
-    /*tokens.forEach((token) => {
+    tokens.forEach((token) => {
       token.word = token.word.replace(/<\/(\w+)>(\s*)<(\w+)[^>]*>/img, (item, closeTag, spaces, openTag) => {
         if (closeTag === openTag) {
           return spaces;
         }
         return item;
       });
-    });*/
+      if (token.after) {
+        token.after = token.after.replace(/<(\w+)>(\s*)<\/(\w+)[^>]*>/img, (item, closeTag, spaces, openTag) => {
+          if (closeTag === openTag) {
+            return spaces;
+          }
+          return item;
+        });
+      }
+    });
     let underlineMatch;
     let underlineMatchClose;
     for (let index = 0; index < tokens.length; ++index) {
