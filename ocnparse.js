@@ -323,15 +323,20 @@ var parser = {
                 token.after+= next.after;
               }
               delete tokens[index];
-              let endsWithTag = /^(\s*<\/(?!sg)\w+>)/.exec(token.after);
-              if (endsWithTag && endsWithTag[1]) {
-                if (token.suffix) {
-                  token.suffix+= endsWithTag[1];
-                } else {
-                  token.word+= endsWithTag[1];
-                }
-                token.after = token.after.substring(endsWithTag[1].length);
+              const endsWithTagRegex = /^(\s*<\/(?!sg)\w+>)/img;
+              let endsWithTag = null;
+              if (token.suffix) {
+                token.word+= token.suffix;
+                token.suffix = "";
               }
+              do {
+                endsWithTag = endsWithTagRegex.exec(token.after);
+                if (endsWithTag && endsWithTag[1]) {
+                  token.word+= endsWithTag[1];
+                  token.after = token.after.substring(endsWithTag[1].length);
+                  endsWithTagRegex.lastIndex = 0;
+                }
+              } while (endsWithTag);
               token = cleanupBeforeTags(token);
               if (openedSuggestions === 0) {
                 break;
