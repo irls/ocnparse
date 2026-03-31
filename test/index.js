@@ -644,6 +644,24 @@ perished?”</w></sg>`;
       it(`Bold, suggestion and dash do not break HTML structure, rebuild`, () => expect(rebuild).to.be.equal(check));
       it(`Bold, suggestion and dash do not break HTML structure, rewrap`, () => expect(rewrap).to.be.equal(check));
     });
+    describe(`Suggestion and tags intersection`, () => {
+      let text = `<w>This </w><w>work </w><sg data-suggestion=""><w>is </w><qq data-author="abd"><b><w>in</w></b></qq></sg><qq data-author="abd"><b><w> </w><w>the</w></b></qq> <w>Canadian </w><w>public </w><w>domain</w>`;
+      let check = `<w>This </w><w>work </w><sg data-suggestion=""><w data-sugg="">is <qq data-author="abd"><b>in</b></qq></w></sg><qq data-author="abd"><b> <w>the</w></b></qq> <w>Canadian </w><w>public </w><w>domain</w>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuild = parser.rebuild(tokens, `w`);
+      let rewrap = parser.reWrap(rebuild, `w`);
+      it(`Suggestion in intersection with two tags does not break HTML, rebuild`, () => expect(rebuild).to.be.equal(check));
+      it(`Suggestion in intersection with two tags does not break HTML, rewrap`, () => expect(rewrap).to.be.equal(check));
+    });
+    describe(`Suggestion and tags intersection, additional space`, () => {
+      let text = `<w>This </w><w>work </w><sg data-suggestion=""><wdata-sugg="">is <qq data-author="abd"><b>in </b></qq></w></sg><qq data-author="abd"><b><w>the</w></b></qq> <w>Canadian </w><w>public </w><w>domain</w>`;
+      let check = `<w>This </w><w>work </w><sg data-suggestion=""><w data-sugg="">is <qq data-author="abd"><b>in </b></qq></w></sg><qq data-author="abd"><b><w>the</w></b></qq> <w>Canadian </w><w>public </w><w>domain</w>`;
+      let tokens = parser.tokenize(text, `w`);
+      let rebuild = parser.rebuild(tokens, `w`);
+      let rewrap = parser.reWrap(rebuild, `w`);
+      it(`Suggestion in intersection with two tags does not break HTML, rebuild`, () => expect(rebuild).to.be.equal(check));
+      it(`Suggestion in intersection with two tags does not break HTML, rewrap`, () => expect(rewrap).to.be.equal(check));
+    });
   });
   describe('Double rebuild', function() {
     let str = '<span>So</span> <span>she</span> <span>was</span> <span>considering</span>.';
