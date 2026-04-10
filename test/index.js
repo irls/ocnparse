@@ -1633,6 +1633,16 @@ bank,</w></sg> <w id="A4pEc">and </w><w id="A8BNe">of </w><w id="AcNWg">having <
     it(`Ampersand sign is not split in tokens, rewrap`, () => expect(rewrap).to.be.equal(check));
     it(`Ampersand sign is in token suffix`, () => expect(tokens[1].prefix.indexOf(`&amp;`)).to.be.equal(-1));
   })
+  describe('HTML tag set to several words', () => {
+    let text = `Ode named <i>Lámiyyatu ’l-‘Arab</i> (the poem rhymed in <i>l</i> of the<sup data-pg="PRE-ISLAMIC POETRY">pg PRE-ISLAMIC POETRY</sup> 80 `;
+    let check = `<w>Ode </w><w>named </w><i><w data-ipa="lA:meIjatoU">Lámiyyatu </w><w data-ipa="l?arab">’l-‘Arab </w></i><w>(the </w><w>poem </w><w>rhymed </w><w>in </w><i><w>l</w></i> <w>of </w><w>the</w><sup data-pg="PRE-ISLAMIC POETRY"><w data-sugg="">pg </w><w data-sugg="">PRE-ISLAMIC </w><w data-sugg="">POETRY</w></sup> <w>80 </w>`;
+    let tokens = parser.tokenize(text, `w`);
+    let rebuilt = parser.rebuild(tokens, `w`);
+    let reWrap = parser.reWrap(rebuilt, `w`);
+
+    it(`HTML tag set to several words does not break structure, rebuild`, () => expect(rebuilt).to.be.equal(check));
+    it(`HTML tag set to several words does not break structure, rewrap`, () => expect(reWrap).to.be.equal(check));
+  });
   /*describe('Test', () => {
     //let text = `begin sentence (first case) on the bank, and of ( second case ) to do: once( third case )she had peeped`;
     let text = `par Bahá’u’lh. (Dans le saints furent) ses ( more test) and (.another) one`;
