@@ -740,6 +740,30 @@ var parser = {
       }
     }
   });
+  // move single open and close HTML tags from word to before or after
+  let openHTMLRegex = /^(\s*<(?!u|sg|\/)[^>]+>)([\s\S]*)/img;
+  let closeHTMLRegex = /([\s\S]*)(<\/(?!u|sg)[^>]+>\s*)$/img;
+  let fullHTMLRegex = /<[^>]+>[\s\S]*?<\/[^>]+>/img;
+  tokens.forEach((token, tokenIdx) => {
+    fullHTMLRegex.lastIndex = 0;
+    if (openHTMLRegex.test(token.word) && !fullHTMLRegex.test(token.word)) {
+      openHTMLRegex.lastIndex = 0;
+      let parts = openHTMLRegex.exec(token.word);
+      if (parts && parts[1] && parts[2]) {
+        token.before = (token.before || '') + parts[1];
+        token.word = parts[2];
+      }
+    }
+    fullHTMLRegex.lastIndex = 0;
+    if (closeHTMLRegex.test(token.word) && !fullHTMLRegex.test(token.word)) {
+      closeHTMLRegex.lastIndex = 0;
+      let parts = closeHTMLRegex.exec(token.word);
+      if (parts && parts[1] && parts[2]) {
+        token.after = parts[2] + (token.after || '');
+        token.word = parts[1];
+      }
+    }
+  });
   tokens.forEach((token, tokenIdx) => {
     if (token.suffix && /\&$/.test(token.suffix)) {
       let next = tokens[tokenIdx + 1];
