@@ -1359,6 +1359,9 @@ function splitUnWrappedString(str) {
 
 // splits word-wrapped string into tokens -- preserving class and data attributes
 function splitWrappedString(str, tag = "w") {
+  str = str.replace(/<(b|i|u)( [^>]*)>/img, (item, tag, attributes) => {
+    return `<${tag}${attributes.trim().indexOf('class="pin"') === -1 ? '' : attributes}>`;
+  });
   // split by wrapper tag and line break (line breaks mess with javascript regex multiline parsing)
   let matches,
     tokens = [];
